@@ -14,11 +14,19 @@ def decidir_layout_portal(portal: str, convenio: str, arquivo: pd.DataFrame) -> 
         "GOV. PARAÍBA": {
             "colunas_obrigatorias": ["CPF", "NOME", "VALOR_LANCADO", "VALOR_ACATADO"]
         },
-        "CONSIGFACIL": {
+        "CONSIGFACIL_1": {
+            "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica", "Valor Acatado"]
+        },
+        "CONSIGFACIL_2": {
             "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica", "Valor Acatado"]
         }
         # Adicione outros portais e convênios conforme necessário
     }
+
+    # Executa a função que verifica se as colunas obrigatórias estão presentes
+    validar_colunas_obrigatorias(arquivo, layouts[portal]["colunas_obrigatorias"], portal)
+
+    validar_matematica_descontos(arquivo, "Valor Lançado", "Valor Acatado")
 
 
     
