@@ -29,7 +29,7 @@ consigfacil_2 = ["PREF. JOÃO PESSOA",
                 "PREF. IMPERATRIZ MA",
                 "GOV. MARANHÃO"]
 
-def ler_arquivo_seguro(caminho_arquivo: str, convenio: str) -> pd.DataFrame:
+def ler_arquivo_seguro(caminho_arquivo: str, convenio: str, portal: str) -> pd.DataFrame:
     """
     Lê arquivos XLSX, XLS, CSV e TXT de forma segura, garantindo
     que todos os dados nasçam como texto bruto (dtype=str).
@@ -70,14 +70,8 @@ def ler_arquivo_seguro(caminho_arquivo: str, convenio: str) -> pd.DataFrame:
                 # Importante: dtype=str força que tudo seja lido como texto bruto
                 df = pd.read_csv(arquivo, sep=separador, dtype=str, engine='python')
 
-                if convenio in consigfacil_2:
-                    df_filtrado = df.iloc[:, [3, 7, 16, 18]].copy()
+                df = colunas_usadas(modelo=portal, df=df)
 
-                    # 2. Atribui os novos nomes na ordem exata dos índices selecionados
-                    df_filtrado.columns = ['CPF', 'Valor Lançado', 'Crítica', 'Valor Acatado']
-
-                    df = df_filtrado.copy()
-                
                 return df
                 
         except UnicodeDecodeError:
@@ -92,3 +86,18 @@ def ler_arquivo_seguro(caminho_arquivo: str, convenio: str) -> pd.DataFrame:
         f"Falha ao ler {caminho_arquivo}. Nenhum dos encodings testados funcionou. "
         "Verifique se o arquivo não está corrompido ou compactado."
     )
+
+def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Retorna uma lista de colunas que são comumente usadas em todos os portais.
+    Isso ajuda a padronizar o processamento e evitar erros de chave ausente.
+    """
+    if modelo == "CONSIGFACIL_2":
+        df_filtrado = df.iloc[:, [3, 7, 16, 18]].copy()
+        
+        # 2. Atribui os novos nomes na ordem exata dos índices selecionados
+        df_filtrado.columns = ['CPF', 'Valor Lançado', 'Crítica', 'Valor Acatado']
+
+        df = df_filtrado.copy()
+    
+    return df

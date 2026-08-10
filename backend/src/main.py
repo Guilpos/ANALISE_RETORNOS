@@ -2,6 +2,7 @@ from utils.file_readers import ler_arquivo_seguro
 from utils.formatters import limpar_cpf, limpar_data, limpar_moeda_retorno_consigfacil, alinhar_tipagem_chaves
 from utils.validators import validar_colunas_obrigatorias, validar_matematica_descontos, validar_chaves_nulas, validar_nome_portal_convenio
 from utils.portais_convenios_lista import convenio_escolher, portal_escolhido
+from portais import base_portal
 print('Escolha o convênio desejado:\n')
 print("1 - INSS\n2 - GOV. PARAÍBA\n3 - GOV. MINAS GERAIS - IPSM\n4 - GOV. MINAS GERAIS - CBMMG\n5 - GOV. MINAS GERAIS - PMMG\n6 - GOV. MINAS GERAIS - SEPLAG\n" \
         "7 - GOV. MINAS GERAIS - IPSEMG\n8 - GOV. BAHIA\n9 - PREF. ARAGUAÍNA\n10 - PREF. DUQUE DE CAXIAS\n11 - PREF. DUQUE DE CAXIAS - COTAR\n12 - PREF. DUQUE DE CAXIAS - IMPDC\n " \
@@ -51,10 +52,14 @@ while True:
         
         # Agora você pode passar tanto o convenio quanto o portal para a sua função de leitura, se precisar!
         arquivo_lido = ler_arquivo_seguro(caminho_arquivo=caminho_arquivo, convenio=nome_convenio, portal=nome_portal)
+
+        break
         
     except Exception as e:
         print(f"\n[ERRO] Falha ao ler o arquivo: {e}\n")
         continue  # Volta para o início do loop para tentar novamente
 
+resultado = base_portal.decidir_layout_portal(portal=nome_portal, convenio=nome_convenio, arquivo=arquivo_lido)
 
-
+print("\nAnálise concluída com sucesso! Aqui está um resumo dos resultados:\n")
+print(resultado)

@@ -39,7 +39,7 @@ def limpar_moeda_retorno_consigfacil(valor_series: pd.Series) -> pd.Series:
 
     # Preenche valores vazios com 0
     v = v.replace({'': '0', 'nan': '0', np.nan: '0'})
-    print(f'Valores após limpeza: {v.head(10)}')
+    # print(f'Valores após limpeza: {v.head(10)}')
     # Converte para float (valores não convertíveis viram NaN)
     
     return pd.to_numeric(v, errors='coerce')
