@@ -1,4 +1,4 @@
-from utils.formatters import limpar_cpf, limpar_data, limpar_moeda_retorno_consigfacil
+from utils.formatters import limpar_cpf, limpar_data, limpar_moeda_retorno_consigfacil, alinhar_tipagem_chaves
 from utils.validators import validar_matematica_descontos
 from utils.analisador import analisar_dados
 import pandas as pd
@@ -15,10 +15,10 @@ def processar_portal_consigfacil(df_bruto: pd.DataFrame, convenio: str, portal: 
 
     # 3. Alinhamento Estrito de Tipos para Cruzamento
     # Garante que as chaves de relacionamento estejam exatamente no mesmo tipo (string)
-    '''df['texto_contratos_sujo'] = alinhar_tipagem_chaves(df, 'texto_contratos_sujo')
-    df['cpf_contratos'] = alinhar_tipagem_chaves(df, 'cpf_contratos')'''
+    df['Matricula_formatada'] = alinhar_tipagem_chaves(df, 'Matrícula')
+    '''df['cpf_contratos'] = alinhar_tipagem_chaves(df, 'cpf_contratos')'''
 
-    # print(df.head(30))
+    print(df.head(30))
 
     validar_matematica_descontos(df, col_lancado="Valor_lancado", col_acatado="Valor_descontado")
 

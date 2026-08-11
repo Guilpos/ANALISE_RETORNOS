@@ -93,10 +93,10 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
     Isso ajuda a padronizar o processamento e evitar erros de chave ausente.
     """
     if modelo == "CONSIGFACIL_2":
-        df_filtrado = df.iloc[:, [3, 7, 16, 18]].copy()
+        df_filtrado = df.iloc[:, [2, 3, 7, 16, 18]].copy()
         
         # 2. Atribui os novos nomes na ordem exata dos índices selecionados
-        df_filtrado.columns = ['CPF', 'Valor Lançado', 'Crítica', 'Valor Acatado']
+        df_filtrado.columns = ['Matrícula', 'CPF', 'Valor Lançado', 'Crítica', 'Valor Acatado']
 
         df = df_filtrado.copy()
     
