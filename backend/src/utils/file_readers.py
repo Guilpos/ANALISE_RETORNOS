@@ -1,103 +1,66 @@
+# utils/file_readers.py
 import pandas as pd
+from utils.portais_convenios_lista import portal_escolhido, convenio_escolher
+from portais import base_portal
 import csv
+import io
 
-consigfacil_1 = ["GOV. MATO GROSSO",
-                "PREF. TUTÓIA",
-                "PREF. PALMAS",
-                "PREF. CAJAMAR",
-                "PREF. CAMPO GRANDE",
-                "PREF. SUZANO",
-                "PREF. ITU",
-                "PREVIDÊNCIA CAMPO GRANDE IMPCG",
-                "PREF. NATAL",
-                "GOV. PIAUÍ",
-                "GOV. PERNAMBUCO"]
-
-consigfacil_2 = ["PREF. JOÃO PESSOA",
-                "PREF. CAMPINA GRANDE",
-                "PREF. TERESINA",
-                "PREF. JUAZEIRO DO NORTE",
-                "PREF. BAYEUX",
-                "PREVIDÊNCIA CAMPINA GRANDE IPSEM",
-                "PREF. NITERÓI",
-                "PREF. RECIFE",
-                "PREF. PAÇO DO LUMIAR",
-                "PREF. PORTO VELHO - IPAM",
-                "PREF. PORTO VELHO",
-                "PREF. SANTA RITA",
-                "PREF. MARABÁ",
-                "PREF. IMPERATRIZ MA",
-                "GOV. MARANHÃO"]
-
-def ler_arquivo_seguro(caminho_arquivo: str, convenio: str, portal: str) -> pd.DataFrame:
+def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) -> pd.DataFrame:
     """
-    Lê arquivos XLSX, XLS, CSV e TXT de forma segura, garantindo
-    que todos os dados nasçam como texto bruto (dtype=str).
-    Para CSV/TXT, descobre automaticamente o encoding e o separador.
+    Lê o arquivo diretamente da memória (bytes) sem gravar no disco.
     """
-    # Padroniza para letras minúsculas para facilitar a comparação
-    caminho_lower = caminho_arquivo.lower()
+    caminho_lower = nome_arquivo.lower()
     
-    # ==========================================
-    # 1. TRATAMENTO PARA ARQUIVOS EXCEL
-    # ==========================================
+    # A sua lógica de escolha de portal!
+    nome_convenio = convenio_escolher()[convenio]
+    portal = portal_escolhido(nome_convenio)
+    
+    # 1. ARQUIVOS EXCEL (.xlsx, .xls)
     if caminho_lower.endswith('.xlsx') or caminho_lower.endswith('.xls'):
         try:
-            # Importante: dtype=str garante que zeros à esquerda (como em CPFs) não sumam
-            df = pd.read_excel(caminho_arquivo, dtype=str)
-            return df
+            # Transformamos os bytes em um objeto que o Pandas entende como arquivo
+            tabela_memoria = io.BytesIO(conteudo_bytes)
+            return pd.read_excel(tabela_memoria, dtype=str)
         except Exception as e:
-            raise ValueError(f"Erro ao ler o arquivo Excel: {str(e)}")
+            raise ValueError(f"Erro ao ler arquivo Excel: {str(e)}")
 
-    # ==========================================
-    # 2. TRATAMENTO PARA ARQUIVOS CSV / TXT
-    # ==========================================
+    # 2. ARQUIVOS CSV / TXT
     encodings_comuns = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
     
     for encoding in encodings_comuns:
         try:
-            with open(caminho_arquivo, 'r', encoding=encoding) as arquivo:
-                amostra = arquivo.read(4096)
-                
-                try:
-                    separador = csv.Sniffer().sniff(amostra).delimiter
-                except csv.Error:
-                    # Fallback seguro caso o sniffer não consiga identificar
-                    separador = ';'
-                
-                arquivo.seek(0)
-                
-                # Importante: dtype=str força que tudo seja lido como texto bruto
-                df = pd.read_csv(arquivo, sep=separador, dtype=str, engine='python')
-
-                df = colunas_usadas(modelo=portal, df=df)
-
-                return df
-                
+            # Decodificamos os bytes em texto antes de tentar descobrir o separador
+            texto = conteudo_bytes.decode(encoding)
+            
+            # Pegamos uma amostra dos primeiros 4KB para o Sniffer
+            amostra = texto[:4096]
+            
+            try:
+                separador = csv.Sniffer().sniff(amostra).delimiter
+            except csv.Error:
+                separador = ';'
+            
+            # Criamos o arquivo em memória para o CSV
+            arquivo_memoria = io.StringIO(texto)
+            df = pd.read_csv(arquivo_memoria, sep=separador, dtype=str, engine='python')
+            
+            # O processamento do layout que você já desenhou
+            df = colunas_usadas(modelo=portal, df=df)
+            df_resultado = base_portal.decidir_layout_portal(portal=portal, convenio=nome_convenio, arquivo=df)
+            
+            return df_resultado
+            
         except UnicodeDecodeError:
-            # Ignora o erro e passa para a próxima tentativa da lista
-            continue
-            
+            continue # Tenta o próximo encoding
         except Exception as e:
-            raise ValueError(f"Erro estrutural ao ler o arquivo de texto: {str(e)}")
-            
-    # Se o loop terminar e não retornar o DataFrame
-    raise ValueError(
-        f"Falha ao ler {caminho_arquivo}. Nenhum dos encodings testados funcionou. "
-        "Verifique se o arquivo não está corrompido ou compactado."
-    )
+             raise ValueError(f"Erro ao analisar o arquivo de texto: {str(e)}")
+             
+    raise ValueError("Nenhum encoding suportado conseguiu ler este arquivo.")
 
 def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Retorna uma lista de colunas que são comumente usadas em todos os portais.
-    Isso ajuda a padronizar o processamento e evitar erros de chave ausente.
-    """
+    # (Sem alterações, sua lógica está correta e funcional)
     if modelo == "CONSIGFACIL_2":
         df_filtrado = df.iloc[:, [2, 3, 7, 16, 18]].copy()
-        
-        # 2. Atribui os novos nomes na ordem exata dos índices selecionados
         df_filtrado.columns = ['Matrícula', 'CPF', 'Valor Lançado', 'Crítica', 'Valor Acatado']
-
         df = df_filtrado.copy()
-    
     return df

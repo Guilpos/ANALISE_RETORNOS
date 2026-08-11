@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
+from services.processamento_orquestrado import orquestrar_processamento
 from sqlalchemy.orm import Session
+from typing import Optional # Essencial para permitir parâmetros opcionais
 from sqlalchemy import text
 from core.database import get_db
 
@@ -7,52 +9,95 @@ from core.database import get_db
 router = APIRouter()
 
 @router.get("/tendencias/{codigo_convenio}")
-def obter_tendencias_convenio(codigo_convenio: str, db: Session = Depends(get_db)):
+def obter_tendencias_convenio(
+    codigo_convenio: str, 
+    consignataria: Optional[str] = None, # Parâmetro opcional na URL
+    produto: Optional[str] = None,       # Parâmetro opcional na URL
+    db: Session = Depends(get_db)
+):
     """
-    Retorna a evolução temporal financeira de um convênio específico.
-    O resultado já sai formatado para facilitar a vida do Chart.js no frontend.
+    Retorna a evolução temporal. Se a consignatária ou o produto forem informados
+    na URL, aplica os filtros no banco de dados. Caso contrário, traz o total geral.
     """
     
-    # A query em SQL bruto. O banco faz a força de trabalho (SUM e GROUP BY).
-    # Usamos parâmetros nomeados (:convenio) para evitar SQL Injection.
-    query = text("""
+    # 1. Montamos a base da query e o dicionário inicial de parâmetros
+    query_base = """
         SELECT 
             DATE_FORMAT(competencia, '%Y-%m') AS mes_ano,
             SUM(valor_lancado) AS total_lancado,
             SUM(valor_acatado) AS total_acatado
         FROM fato_retornos
         WHERE codigo_convenio = :convenio
+    """
+    
+    parametros = {"convenio": codigo_convenio}
+    
+    # 2. Adicionamos os filtros dinamicamente SE eles vierem do frontend
+    if consignataria:
+        query_base += " AND consignataria = :banco"
+        parametros["banco"] = consignataria
+        
+    if produto:
+        query_base += " AND produto = :produto"
+        parametros["produto"] = produto
+        
+    # 3. Finalizamos a query com o agrupamento
+    query_base += """
         GROUP BY mes_ano
         ORDER BY mes_ano ASC
-    """)
+    """
     
-    # Executa a query no banco
-    resultados = db.execute(query, {"convenio": codigo_convenio}).fetchall()
+    # Executa no TiDB
+    resultados = db.execute(text(query_base), parametros).fetchall()
     
-    # Se não houver dados, retorna um erro 404 limpo
     if not resultados:
-        raise HTTPException(status_code=404, detail="Nenhum dado encontrado para este convênio.")
+        raise HTTPException(status_code=404, detail="Nenhum dado encontrado para os filtros informados.")
     
-    # Formata a resposta num JSON estruturado para o gráfico (Eixos X e Y)
+    # 4. A formatação do JSON continua igualzinho para o Chart.js
     dados_grafico = {
-        "labels": [],           # Eixo X: ['2026-01', '2026-02', ...]
-        "lancado": [],          # Eixo Y (Linha 1)
-        "acatado": [],          # Eixo Y (Linha 2)
-        "taxa_sucesso": []      # Eixo Y (Percentual)
+        "labels": [],
+        "lancado": [],
+        "acatado": [],
+        "taxa_sucesso": []
     }
     
     for linha in resultados:
         dados_grafico["labels"].append(linha.mes_ano)
-        
-        # Converte Decimal para float para ser aceito no JSON
         lancado = float(linha.total_lancado)
         acatado = float(linha.total_acatado)
         
         dados_grafico["lancado"].append(lancado)
         dados_grafico["acatado"].append(acatado)
         
-        # Calcula a taxa de acatamento para o ponto do gráfico (evitando divisão por zero)
         taxa = round((acatado / lancado * 100), 2) if lancado > 0 else 0
         dados_grafico["taxa_sucesso"].append(taxa)
         
     return dados_grafico
+
+@router.post("/upload")
+async def receber_upload_retorno(
+    arquivo: UploadFile = File(...),
+    codigo_convenio: str = Form(...),
+    consignataria: str = Form(...),
+    produto: str = Form(...)
+):
+    try:
+        # Lê o arquivo em bytes da memória
+        conteudo_em_bytes = await arquivo.read()
+        
+        # A CORREÇÃO ESTÁ AQUI: Passamos os 5 parâmetros exatamente como o orquestrador pede
+        resultado_df = orquestrar_processamento(
+            conteudo=conteudo_em_bytes,
+            nome_arquivo=arquivo.filename,  # <-- O FastAPI entrega o nome de bandeja!
+            convenio=codigo_convenio,       # <-- Casando os nomes das variáveis
+            banco=consignataria,
+            tipo_produto=produto
+        )
+        
+        return {
+            "status": "sucesso", 
+            "mensagem": f"Arquivo {arquivo.filename} processado! Linhas geradas: {len(resultado_df)}"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

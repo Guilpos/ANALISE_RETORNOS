@@ -172,8 +172,10 @@ def portal_escolhido(nome_convenio: str) -> list:
     # 2. Retorna a lista correspondente tratando letras maiúsculas/minúsculas.
     # O .get() evita que o código quebre se você passar um portal que não existe (retorna [] por padrão).
     # 2. Varre o dicionário para encontrar onde o convênio está
+    nome_convenio_limpo = nome_convenio.strip().upper()
+    
     for nome_portal, lista_convenios in portais.items():
-        if nome_convenio in lista_convenios:
-            return nome_portal  # Retorna o nome do portal (ex: "CONSIGFACIL")
+        if nome_convenio_limpo in lista_convenios:
+            return nome_portal
             
-    return "PORTAL NÃO MAPEADO" # Retorno de segurança caso não ache
+    return "PORTAL NÃO MAPEADO"# Retorno de segurança caso não ache
