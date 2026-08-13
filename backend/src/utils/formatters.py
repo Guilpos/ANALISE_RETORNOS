@@ -84,45 +84,65 @@ def limpar_data(valor_series: pd.Series) -> pd.Series:
     return datas.dt.floor('s')
 
 
+import hashlib
+import pandas as pd
+
 def gerar_hash_registro(df: pd.DataFrame) -> pd.Series:
     """
-    Gera um hash MD5 único para cada linha baseado nos identificadores disponíveis.
-    Protege o banco de dados contra a ingestão duplicada do mesmo arquivo de retorno.
+    Gera um hash MD5 único por linha, combinando os dados do servidor,
+    as dimensões do formulário e a posição exata da linha no arquivo original.
     """
-    # 1. Garante que campos nulos não quebrem a concatenação
-    cpf_str = df['cpf_formatado'].fillna('SEM_CPF').astype(str)
+    # 1. Dados do Servidor e Financeiro
+    cpf_str = df['cpf'].fillna('SEM_CPF').astype(str)
     mat_str = df['matricula'].fillna('SEM_MAT').astype(str)
-    rub_str = df['rubrica'].fillna('SEM_RUB').astype(str)
-    comp_str = df['competencia'].astype(str)
     val_str = df['valor_lancado'].astype(str)
-
-    # 2. Concatena os campos em uma única string
-    string_base = cpf_str + mat_str + rub_str + comp_str + val_str
     
-    # 3. Aplica o algoritmo Hash de forma rápida em toda a coluna
+    # 2. Dimensões do Formulário (Garante distinção entre Bancos e Produtos diferentes)
+    conv_str = df['codigo_convenio'].astype(str)
+    consig_str = df['consignataria'].astype(str)
+    prod_str = df['produto'].astype(str)
+    comp_str = df['competencia'].astype(str)
+    
+    # 3. Solução para Empréstimos Gêmeos 
+    # (Adiciona o número da linha original do arquivo. Assim, duas parcelas 
+    # idênticas para a mesma pessoa no mesmo banco geram hashes diferentes)
+    linha_str = df.index.astype(str)
+
+    # 4. Concatenação Absoluta
+    string_base = (
+        conv_str + consig_str + prod_str + comp_str + 
+        cpf_str + mat_str + val_str + linha_str
+    )
+    
+    # 5. Aplicação vetorizada do Hash
     return string_base.apply(
         lambda x: hashlib.md5(x.encode('utf-8')).hexdigest()
     )
 
-def classificar_acatamento(df: pd.DataFrame, col_lancado: str, col_acatado: str) -> pd.Series:
+# [Suas funções limpar_cpf, limpar_moeda_retorno_consigfacil e limpar_moeda ficam aqui]
+
+def classificar_status_acatamento(df: pd.DataFrame) -> pd.Series:
     """
-    Infere o status do retorno baseado estritamente na diferença financeira,
-    já que a maioria dos portais não envia código de recusa.
+    Compara o valor lançado com o valor acatado (já em float) e 
+    retorna a string de status para salvar no banco de dados.
     """
-    # Cria uma lista de condições matemáticas
     condicoes = [
-        (df[col_acatado] == df[col_lancado]) & (df[col_lancado] > 0),
-        (df[col_acatado] < df[col_lancado]) & (df[col_acatado] > 0),
-        (df[col_acatado] == 0) | (df[col_acatado].isna())
+        # Se o acatado for igual ao lançado e maior que zero
+        (df['valor_acatado'] == df['valor_lancado']) & (df['valor_lancado'] > 0),
+        
+        # Se o acatado for menor que o lançado, mas maior que zero
+        (df['valor_acatado'] < df['valor_lancado']) & (df['valor_acatado'] > 0),
+        
+        # Se veio zerado, nulo, ou menor/igual a zero
+        (df['valor_acatado'] == 0) | (df['valor_acatado'].isna())
     ]
     
-    # Define as categorias para cada condição
     categorias = [
         'ACATADO INTEGRAL',
         'ACATADO PARCIAL',
         'ZERADO/REJEITADO'
     ]
     
-    # Aplica a regra de forma vetorizada no Pandas
+    # default abrange anomalias (ex: descontou a mais do que foi pedido)
     return np.select(condicoes, categorias, default='ANOMALIA/SOBREVALOR')
 

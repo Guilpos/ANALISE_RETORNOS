@@ -22,10 +22,10 @@ def processar_portal_consigfacil(df_bruto: pd.DataFrame, convenio: str, portal: 
 
     validar_matematica_descontos(df, col_lancado="Valor_lancado", col_acatado="Valor_descontado")
 
-    resultado = analisar_dados(df, convenio=convenio, portal=portal)
+    # resultado = analisar_dados(df, convenio=convenio, portal=portal)
 
 
-    return resultado
+    return df
 
 # caminho = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\07 - Julho\PREF JOAO PESSOA\LANÇAMENTO E RETORNO\RETORNO PREF JOAO PESSOA 07.2062.csv"
 
