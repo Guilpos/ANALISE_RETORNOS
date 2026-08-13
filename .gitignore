@@ -1,2 +1,16 @@
 secrets.txt
 .env
+backend/src/__pycache__/main.cpython-313.pyc
+backend/src/__pycache__/main.cpython-313.pyc
+backend/src/api/__pycache__/rotas_relatorios.cpython-313.pyc
+backend/src/__pycache__/main.cpython-313.pyc
+backend/src/core/__pycache__/config.cpython-313.pyc
+backend/src/core/__pycache__/database.cpython-313.pyc
+backend/src/portais/__pycache__/base_portal.cpython-313.pyc
+backend/src/portais/__pycache__/Consigfacil_portal.cpython-313.pyc
+backend/src/services/__pycache__/processamento_orquestrado.cpython-313.pyc
+backend/src/utils/__pycache__/analisador.cpython-313.pyc
+backend/src/utils/__pycache__/file_readers.cpython-313.pyc
+backend/src/utils/__pycache__/formatters.cpython-313.pyc
+backend/src/utils/__pycache__/portais_convenios_lista.cpython-313.pyc
+backend/src/utils/__pycache__/validators.cpython-313.pyc

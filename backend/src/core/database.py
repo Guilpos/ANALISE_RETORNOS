@@ -6,8 +6,13 @@ from core.config import settings  # Importamos o seu novo módulo
 # A URL agora vem pronta e protegida da classe Settings
 engine = create_engine(
     settings.DATABASE_URL,
-    pool_pre_ping=True,
-    pool_recycle=3600
+    pool_pre_ping=True, # Excelente prática que você já colocou!
+    pool_recycle=3600,
+    connect_args={
+        "ssl": {
+            "ssl_mode": "VERIFY_IDENTITY"  # Garante conexão segura com o TiDB Cloud
+        }
+    }
 )
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
