@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validador de Convênios</title>
+    <!-- Importação do Bootstrap 5 para um visual corporativo instantâneo -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; }
+        .card { box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; }
+        #mensagem-alerta { display: none; } /* Escondido por padrão */
+    </style>
+</head>
+<body>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card p-4">
+                <h2 class="mb-4 text-primary">Importação de Retornos Financeiros</h2>
+                
+                <!-- O id="form-upload" é o que o Javascript vai procurar -->
+                <form id="form-upload">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Código do Convênio</label>
+                            <select class="form-select" id="codigo_convenio" required>
+                                <option value="" selected disabled>Selecione...</option>
+                                <option value="1">1 - INSS</option>
+                                <option value="2">2 - GOV. PARAÍBA</option>
+                                <option value="71">71 - PREF. JOÃO PESSOA</option>
+                                <!-- <option value="CONSIGFACIL_2">CONSIGFACIL 2</option> -->
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Consignatária (Banco)</label>
+                            <select class="form-select" id="consignataria" required>
+                                <option value="" selected disabled>Selecione...</option>
+                                <option value="CAPITAL CONSIG">Capital Consig</option>
+                                <option value="CIASPREV">Ciasprev</option>
+                                <option value="CLICKBANK">Clickbank</option>
+                                <option value="HOJE_PREVIDENCIA">Hoje Previdência</option>
+                                <option value="BEM_CARTOES">Bem Cartões</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Produto</label>
+                            <select class="form-select" id="produto" required>
+                                <option value="" selected disabled>Selecione...</option>
+                                <option value="EMPRESTIMO">Empréstimo</option>
+                                <option value="CARTAO_CREDITO">Cartão de Crédito</option>
+                                <option value="CARTAO_BENEFICIO">Cartão Benefício</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Competência</label>
+                            <!-- Input de data para forçar o padrão AAAA-MM-DD -->
+                            <input type="date" class="form-control" id="competencia" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label">Arquivo de Retorno (.csv, .xlsx)</label>
+                        <input type="file" class="form-control" id="arquivo" accept=".csv, .xlsx, .xls" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100" id="btn-enviar">
+                        <span id="btn-texto">Processar Arquivo</span>
+                        <span id="btn-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    </button>
+                </form>
+
+                <!-- Área de feedback para o usuário -->
+                <div id="mensagem-alerta" class="alert mt-4" role="alert"></div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- O MOTOR: Aqui é onde o JavaScript puro faz a comunicação com o FastAPI -->
+<script>
+    // 1. "Capturamos" os elementos da tela que vamos manipular
+    const formulario = document.getElementById('form-upload');
+    const btnEnviar = document.getElementById('btn-enviar');
+    const btnTexto = document.getElementById('btn-texto');
+    const btnSpinner = document.getElementById('btn-spinner');
+    const caixaAlerta = document.getElementById('mensagem-alerta');
+
+    // 2. Interceptamos o evento de envio (Submit) do formulário
+    formulario.addEventListener('submit', async function(evento) {
+        
+        // Impede que a página recarregue ao clicar no botão
+        evento.preventDefault();
+        
+        // Altera o estado do botão para "Carregando"
+        btnTexto.textContent = "Processando...";
+        btnSpinner.classList.remove('d-none');
+        btnEnviar.disabled = true;
+        caixaAlerta.style.display = 'none'; // Esconde mensagens anteriores
+
+        // 3. Montamos o pacote de dados EXATAMENTE como o FastAPI pede
+        const dadosFormulario = new FormData();
+        dadosFormulario.append("codigo_convenio", document.getElementById('codigo_convenio').value);
+        dadosFormulario.append("consignataria", document.getElementById('consignataria').value);
+        dadosFormulario.append("produto", document.getElementById('produto').value);
+        dadosFormulario.append("competencia", document.getElementById('competencia').value);
+        
+        // Pega o arquivo físico anexado no input
+        const arquivoFisico = document.getElementById('arquivo').files[0];
+        dadosFormulario.append("arquivo", arquivoFisico);
+
+        // 4. Enviamos a requisição HTTP (Fetch)
+        try {
+            const resposta = await fetch('http://localhost:8000/api/upload', {
+                method: 'POST',
+                body: dadosFormulario 
+                // Nota: Com FormData, NÃO definimos o "Content-Type" manualmente. 
+                // O navegador ajusta sozinho para 'multipart/form-data' com o limite correto.
+            });
+
+            const resultado = await resposta.json();
+
+            // 5. Analisamos a resposta do servidor para pintar a tela
+            if (resposta.ok) {
+                mostrarAlerta(resultado.mensagem, 'success');
+                formulario.reset(); // Limpa o formulário após o sucesso
+            } else {
+                // Erros do FastAPI (ex: duplicidade de hash, arquivo inválido)
+                mostrarAlerta(`Erro: ${resultado.detail}`, 'danger');
+            }
+
+        } catch (erro) {
+            // Erros de rede (ex: servidor desligado)
+            mostrarAlerta("Falha de conexão com o servidor. O backend está rodando?", 'danger');
+        } finally {
+            // Devolve o botão ao estado original independente do resultado
+            btnTexto.textContent = "Processar Arquivo";
+            btnSpinner.classList.add('d-none');
+            btnEnviar.disabled = false;
+        }
+    });
+
+    // Função auxiliar para exibir a caixa de aviso verde ou vermelha
+    function mostrarAlerta(mensagem, tipo) {
+        caixaAlerta.className = `alert mt-4 alert-${tipo}`;
+        caixaAlerta.textContent = mensagem;
+        caixaAlerta.style.display = 'block';
+    }
+</script>
+
+</body>
+</html>

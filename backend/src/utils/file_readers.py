@@ -20,7 +20,7 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
         try:
             # Transformamos os bytes em um objeto que o Pandas entende como arquivo
             tabela_memoria = io.BytesIO(conteudo_bytes)
-            return pd.read_excel(tabela_memoria, dtype=str)
+            return pd.read_excel(tabela_memoria, dtype=str, header=None)
         except Exception as e:
             raise ValueError(f"Erro ao ler arquivo Excel: {str(e)}")
 
@@ -42,7 +42,7 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
             
             # Criamos o arquivo em memória para o CSV
             arquivo_memoria = io.StringIO(texto)
-            df = pd.read_csv(arquivo_memoria, sep=separador, dtype=str, engine='python')
+            df = pd.read_csv(arquivo_memoria, sep=separador, dtype=str, engine='python', header=None)
             
             # O processamento do layout que você já desenhou
             df = colunas_usadas(modelo=portal, df=df)
