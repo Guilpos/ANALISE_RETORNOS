@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from typing import Optional 
 from sqlalchemy import text
 from core.database import get_db
-from pydantic import BaseModel
 
 router = APIRouter()
 # ... (resto do seu código continua igualzinho)
@@ -145,4 +144,80 @@ def obter_resumo_dashboard(db: Session = Depends(get_db)):
     return {
         "grafico_pizza": dados_pizza,
         "grafico_barras": dados_barras
+    }
+
+@router.get("/dashboard/resumo", summary="Dados mastigados para os gráficos")
+def obter_resumo_dashboard(db: Session = Depends(get_db)):
+    
+    # 1. DADOS DA PIZZA (Mantido igual)
+    query_pizza = text("""
+        SELECT status_acatamento, COUNT(id) as quantidade, SUM(valor_lancado) as valor_total
+        FROM fato_retornos
+        GROUP BY status_acatamento
+    """)
+    resultado_pizza = db.execute(query_pizza).fetchall()
+    dados_pizza = {
+        "labels": [row[0] if row[0] else "NAO INFORMADO" for row in resultado_pizza],
+        "quantidades": [row[1] for row in resultado_pizza]
+    }
+
+    # 2. DADOS DAS BARRAS (Mantido igual)
+    query_barras = text("""
+        SELECT texto_critica_original, COUNT(id) as quantidade
+        FROM fato_retornos
+        WHERE texto_critica_original IS NOT NULL AND texto_critica_original != '' AND texto_critica_original != 'OK'
+        GROUP BY texto_critica_original
+        ORDER BY quantidade DESC
+        LIMIT 5
+    """)
+    resultado_barras = db.execute(query_barras).fetchall()
+    dados_barras = {
+        "labels": [row[0] for row in resultado_barras],
+        "quantidades": [row[1] for row in resultado_barras]
+    }
+
+    # 3. NOVO: DADOS DE TENDÊNCIA (GRÁFICO DE LINHAS)
+    query_tendencia = text("""
+        SELECT 
+            DATE_FORMAT(competencia, '%m/%Y') as mes_ano, 
+            status_acatamento, 
+            COUNT(id) as quantidade
+        FROM fato_retornos
+        WHERE status_acatamento IS NOT NULL
+        GROUP BY mes_ano, status_acatamento
+        ORDER BY MIN(competencia) ASC
+    """)
+    resultado_tendencia = db.execute(query_tendencia).fetchall()
+
+    # Como o SQL traz os dados em formato de tabela, precisamos "pivotar" (organizar)
+    # para o Chart.js entender as 3 linhas separadas.
+    meses_unicos = []
+    linha_aceitos = {}
+    linha_rejeitados = {}
+    
+    for row in resultado_tendencia:
+        mes = row[0]
+        status = row[1].upper() if row[1] else ""
+        qtd = row[2]
+
+        if mes not contemplation not in meses_unicos:
+            meses_unicos.append(mes)
+            linha_aceitos[mes] = 0
+            linha_rejeitados[mes] = 0
+
+        if "ACATADO" in status and "INTEGRAL" in status:
+            linha_aceitos[mes] += qtd
+        elif "REJEITADO" in status or "ZERADO" in status:
+            linha_rejeitados[mes] += qtd
+
+    dados_tendencia = {
+        "labels": meses_unicos,
+        "aceitos": [linha_aceitos[mes] for mes in meses_unicos],
+        "rejeitados": [linha_rejeitados[mes] for mes in meses_unicos]
+    }
+
+    return {
+        "grafico_pizza": dados_pizza,
+        "grafico_barras": dados_barras,
+        "grafico_tendencia": dados_tendencia
     }
