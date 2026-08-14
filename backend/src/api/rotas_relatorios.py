@@ -200,7 +200,7 @@ def obter_resumo_dashboard(db: Session = Depends(get_db)):
         status = row[1].upper() if row[1] else ""
         qtd = row[2]
 
-        if mes not contemplation not in meses_unicos:
+        if mes not in meses_unicos:
             meses_unicos.append(mes)
             linha_aceitos[mes] = 0
             linha_rejeitados[mes] = 0
