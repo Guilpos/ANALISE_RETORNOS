@@ -107,3 +107,42 @@ def excluir_arquivo(id_arquivo: int, db: Session = Depends(get_db)):
         # Se der qualquer erro, desfaz tudo para não corromper o banco
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Erro interno ao excluir: {str(e)}")
+
+@router.get("/dashboard/resumo", summary="Dados mastigados para os gráficos de Pizza e Barras")
+def obter_resumo_dashboard(db: Session = Depends(get_db)):
+    
+    # 1. Dados para o Gráfico de Pizza (Status de Acatamento)
+    query_pizza = text("""
+        SELECT status_acatamento, COUNT(id) as quantidade, SUM(valor_lancado) as valor_total
+        FROM fato_retornos
+        GROUP BY status_acatamento
+    """)
+    resultado_pizza = db.execute(query_pizza).fetchall()
+    
+    dados_pizza = {
+        "labels": [row[0] if row[0] else "NAO INFORMADO" for row in resultado_pizza],
+        "quantidades": [row[1] for row in resultado_pizza],
+        "valores": [float(row[2]) for row in resultado_pizza]
+    }
+
+    # 2. Dados para o Gráfico de Barras (Top 5 Críticas mais comuns)
+    query_barras = text("""
+        SELECT texto_critica_original, COUNT(id) as quantidade
+        FROM fato_retornos
+        WHERE texto_critica_original IS NOT NULL AND texto_critica_original != '' AND texto_critica_original != 'OK'
+        GROUP BY texto_critica_original
+        ORDER BY quantidade DESC
+        LIMIT 5
+    """)
+    resultado_barras = db.execute(query_barras).fetchall()
+    
+    dados_barras = {
+        "labels": [row[0] for row in resultado_barras],
+        "quantidades": [row[1] for row in resultado_barras]
+    }
+
+    # Retorna o pacote completo pronto para o JavaScript consumir
+    return {
+        "grafico_pizza": dados_pizza,
+        "grafico_barras": dados_barras
+    }
