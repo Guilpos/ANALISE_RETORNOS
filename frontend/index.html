@@ -118,6 +118,7 @@
     const caixaAlerta = document.getElementById('mensagem-alerta');
 
     // 2. Interceptamos o evento de envio (Submit) do formulário
+    // 2. Interceptamos o evento de envio (Submit) do formulário
     formulario.addEventListener('submit', async function(evento) {
         
         // Impede que a página recarregue ao clicar no botão
@@ -140,24 +141,25 @@
         const arquivoFisico = document.getElementById('arquivo').files[0];
         dadosFormulario.append("arquivo", arquivoFisico);
 
-        // 4. Enviamos a requisição HTTP (Fetch)
         try {
+            // 4. Mandamos o "dadosFormulario" para a nuvem
             const resposta = await fetch('https://api-validador-convenios.onrender.com/api/upload', {
                 method: 'POST',
-                body: formData
+                body: dadosFormulario 
             });
 
             if (resposta.ok) {
-                // A mensagem verde que você já vê hoje
-                alert("Upload concluído com sucesso!"); 
+                // Usando a sua função auxiliar mostrarAlerta que está logo abaixo no código!
+                mostrarAlerta("Upload concluído com sucesso!", "success"); 
                 
-                // ADICIONE ESTA LINHA AQUI!
-                // Assim que o upload termina, o navegador pede para a API os dados atualizados
+                // Atualiza os gráficos sozinhos sem recarregar a página
                 carregarDashboard(); 
+            } else {
+                mostrarAlerta("Erro ao processar o arquivo no servidor.", "danger");
             }
-
         } catch (erro) {
             console.error("Erro no upload:", erro);
+            mostrarAlerta("Erro de conexão com a API.", "danger");
         } finally {
             // Devolve o botão ao estado original independente do resultado
             btnTexto.textContent = "Processar Arquivo";
