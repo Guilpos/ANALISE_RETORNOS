@@ -108,37 +108,78 @@ def excluir_arquivo(id_arquivo: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Erro interno ao excluir: {str(e)}")
 
 
-@router.get("/dashboard/resumo", summary="Dados mastigados para os gráficos")
+@router.get("/dashboard/resumo", summary="Dados mastigados e separados por arquivo")
 def obter_resumo_dashboard(db: Session = Depends(get_db)):
     
-    # 1. DADOS DA PIZZA (Mantido igual)
+    # ==========================================
+    # 1. DADOS DOS CARDS (PIZZA E BARRAS POR ARQUIVO)
+    # ==========================================
+    
+    # Busca a proporção de acatamento agrupada por arquivo
     query_pizza = text("""
-        SELECT status_acatamento, COUNT(id) as quantidade, SUM(valor_lancado) as valor_total
-        FROM fato_retornos
-        GROUP BY status_acatamento
+        SELECT 
+            f.id_arquivo_origem,
+            MAX(h.nome_arquivo_original) as nome_arquivo,
+            MAX(f.codigo_convenio) as convenio,
+            f.status_acatamento, 
+            COUNT(f.id) as quantidade
+        FROM fato_retornos f
+        LEFT JOIN historico_uploads h ON f.id_arquivo_origem = h.id
+        WHERE f.id_arquivo_origem IS NOT NULL
+        GROUP BY f.id_arquivo_origem, f.status_acatamento
     """)
     resultado_pizza = db.execute(query_pizza).fetchall()
-    dados_pizza = {
-        "labels": [row[0] if row[0] else "NAO INFORMADO" for row in resultado_pizza],
-        "quantidades": [row[1] for row in resultado_pizza]
-    }
 
-    # 2. DADOS DAS BARRAS (Mantido igual)
+    # Busca as críticas agrupadas por arquivo
     query_barras = text("""
-        SELECT texto_critica_original, COUNT(id) as quantidade
+        SELECT 
+            id_arquivo_origem,
+            texto_critica_original, 
+            COUNT(id) as quantidade
         FROM fato_retornos
         WHERE texto_critica_original IS NOT NULL AND texto_critica_original != '' AND texto_critica_original != 'OK'
-        GROUP BY texto_critica_original
-        ORDER BY quantidade DESC
-        LIMIT 5
+        GROUP BY id_arquivo_origem, texto_critica_original
     """)
     resultado_barras = db.execute(query_barras).fetchall()
-    dados_barras = {
-        "labels": [row[0] for row in resultado_barras],
-        "quantidades": [row[1] for row in resultado_barras]
-    }
 
-    # 3. NOVO: DADOS DE TENDÊNCIA (GRÁFICO DE LINHAS)
+    # Organizando os dados brutos do SQL em um formato de dicionário por arquivo
+    cards_arquivos = {}
+
+    for row in resultado_pizza:
+        id_arq = row[0]
+        nome_arq = row[1] or f"Arquivo {id_arq}"
+        status = row[3] if row[3] else "NAO INFORMADO"
+        qtd = row[4]
+
+        # Se o arquivo ainda não existe no dicionário, criamos a estrutura dele
+        if id_arq not in cards_arquivos:
+            cards_arquivos[id_arq] = {
+                "id_arquivo": id_arq,
+                "nome_arquivo": nome_arq,
+                "grafico_pizza": {"labels": [], "quantidades": []},
+                "grafico_barras": {"labels": [], "quantidades": []}
+            }
+        
+        # Adicionando os dados da pizza
+        cards_arquivos[id_arq]["grafico_pizza"]["labels"].append(status)
+        cards_arquivos[id_arq]["grafico_pizza"]["quantidades"].append(qtd)
+
+    # Adicionando os dados das barras nos arquivos corretos
+    for row in resultado_barras:
+        id_arq = row[0]
+        critica = row[1]
+        qtd = row[2]
+
+        if id_arq in cards_arquivos:
+            cards_arquivos[id_arq]["grafico_barras"]["labels"].append(critica)
+            cards_arquivos[id_arq]["grafico_barras"]["quantidades"].append(qtd)
+
+    # Convertendo o dicionário para uma lista simples para o Frontend iterar
+    lista_de_cards = list(cards_arquivos.values())
+
+    # ==========================================
+    # 2. DADOS DO GRÁFICO GLOBAL (TENDÊNCIA - Mantido igual)
+    # ==========================================
     query_tendencia = text("""
         SELECT 
             DATE_FORMAT(competencia, '%m/%Y') as mes_ano, 
@@ -151,8 +192,6 @@ def obter_resumo_dashboard(db: Session = Depends(get_db)):
     """)
     resultado_tendencia = db.execute(query_tendencia).fetchall()
 
-    # Como o SQL traz os dados em formato de tabela, precisamos "pivotar" (organizar)
-    # para o Chart.js entender as 3 linhas separadas.
     meses_unicos = []
     linha_aceitos = {}
     linha_rejeitados = {}
@@ -178,8 +217,8 @@ def obter_resumo_dashboard(db: Session = Depends(get_db)):
         "rejeitados": [linha_rejeitados[mes] for mes in meses_unicos]
     }
 
+    # Retorno final: A lista de arquivos (pro meio) e a tendência global (pra direita)
     return {
-        "grafico_pizza": dados_pizza,
-        "grafico_barras": dados_barras,
+        "cards_arquivos": lista_de_cards,
         "grafico_tendencia": dados_tendencia
     }

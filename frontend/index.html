@@ -8,10 +8,77 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { background-color: #f8f9fa; }
-        .card { box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: none; }
-        #mensagem-alerta { display: none; } /* Escondido por padrão */
+        /* Zera as margens e faz a tela ocupar 100% da janela */
+        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; }
+        
+        /* O contêiner pai que segura as 3 colunas */
+        .layout-principal {
+            display: flex;
+            height: 100vh;
+            overflow: hidden; /* Trava a rolagem da página inteira */
+        }
+
+        /* 1. BARRA ESQUERDA (Formulário) */
+        .barra-esquerda {
+            width: 300px;
+            background-color: #9b59b6; /* Roxo do seu desenho */
+            padding: 20px;
+            transition: 0.3s all ease; /* Animação para retrair */
+        }
+        /* Classe que será ativada via JavaScript para encolher o menu */
+        .barra-esquerda.recolhida {
+            width: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        /* 2. CENTRO (Scroll Horizontal com os Cards) */
+        .area-central {
+            flex: 1; /* Ocupa todo o espaço que sobrar */
+            background-color: #f4f6f9;
+            padding: 20px;
+            display: flex;
+            gap: 20px;
+            overflow-x: auto; /* Cria a barra de rolagem horizontal */
+            align-items: flex-start;
+        }
+        
+        .card-arquivo {
+            min-width: 350px; /* Largura mínima de cada conjunto de pizza+barras */
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* 3. BARRA DIREITA (Tendência e IA) */
+        .barra-direita {
+            width: 350px;
+            background-color: #d2c9eb; /* Roxo claro */
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
     </style>
+
+    <div class="layout-principal">
+        <!-- BARRA ESQUERDA -->
+        <aside class="barra-esquerda" id="menu-lateral">
+            <button onclick="document.getElementById('menu-lateral').classList.toggle('recolhida')">Ocultar/Mostrar</button>
+            <!-- Seu formulário de upload vem aqui -->
+        </aside>
+
+        <!-- ÁREA CENTRAL -->
+        <main class="area-central" id="area-cards">
+            <!-- O JavaScript vai limpar isso e injetar os gráficos reais aqui -->
+        </main>
+
+        <!-- BARRA DIREITA -->
+        <aside class="barra-direita">
+            <!-- Tendência e IA vêm aqui -->
+        </aside>
+    </div>
 </head>
 <body>
 
@@ -192,54 +259,73 @@
 
             const dados = await resposta.json();
 
-            // 1. DADOS DO GRÁFICO DE PIZZA (STATUS)
-            const ctxPizza = document.getElementById('chartPizza').getContext('2d');
+            // =================================================================
+            // 1. ÁREA CENTRAL: CARDS DINÂMICOS (LAÇO DE REPETIÇÃO)
+            // =================================================================
+            const areaCards = document.getElementById('area-cards');
             
-            // Destrói o gráfico antigo se ele já existir (evita sobreposição ao atualizar)
-            if (chartPizzaInstancia) chartPizzaInstancia.destroy();
+            // Limpa a tela para não duplicar os gráficos se você atualizar a página
+            areaCards.innerHTML = ''; 
 
-            chartPizzaInstancia = new Chart(ctxPizza, {
-                type: 'doughnut', // Rosca/Pizza
-                data: {
-                    labels: dados.grafico_pizza.labels,
-                    datasets: [{
-                        data: dados.grafico_pizza.quantidades,
-                        backgroundColor: ['#2ea44f', '#d73a49', '#dbab09', '#6e7681'] // Verde, Vermelho, Amarelo, Cinza
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom' }
+            // Varre a lista de arquivos que o Python enviou
+            dados.cards_arquivos.forEach(arquivo => {
+                
+                // Cria o "chassi" HTML de cada arquivo com IDs únicos (ex: pizza-1, barras-1)
+                const cardHTML = `
+                    <div class="card-arquivo">
+                        <h4 style="text-align: center; color: #555; margin-top: 0;">${arquivo.nome_arquivo}</h4>
+                        
+                        <div style="display: flex; gap: 15px; margin-top: 15px; align-items: center;">
+                            <div style="flex: 1; min-width: 200px;">
+                                <canvas id="pizza-${arquivo.id_arquivo}"></canvas>
+                            </div>
+                            <div style="flex: 1; min-width: 250px;">
+                                <canvas id="barras-${arquivo.id_arquivo}"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Injeta o HTML na área central (um do lado do outro graças ao CSS Flexbox)
+                areaCards.insertAdjacentHTML('beforeend', cardHTML);
+
+                // Desenha a Pizza do respectivo arquivo
+                new Chart(document.getElementById(`pizza-${arquivo.id_arquivo}`).getContext('2d'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: arquivo.grafico_pizza.labels,
+                        datasets: [{
+                            data: arquivo.grafico_pizza.quantidades,
+                            backgroundColor: ['#2ea44f', '#d73a49', '#dbab09', '#6e7681']
+                        }]
+                    },
+                    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+                });
+
+                // Desenha as Barras do respectivo arquivo
+                new Chart(document.getElementById(`barras-${arquivo.id_arquivo}`).getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: arquivo.grafico_barras.labels,
+                        datasets: [{
+                            label: 'Ocorrências',
+                            data: arquivo.grafico_barras.quantidades,
+                            backgroundColor: '#0366d6'
+                        }]
+                    },
+                    options: { 
+                        indexAxis: 'y', 
+                        responsive: true, 
+                        plugins: { legend: { display: false } } 
                     }
-                }
+                });
             });
 
-            // 2. DADOS DO GRÁFICO DE BARRAS (TOP CRÍTICAS)
-            const ctxBarras = document.getElementById('chartBarras').getContext('2d');
-            
-            if (chartBarrasInstancia) chartBarrasInstancia.destroy();
+            // =================================================================
+            // 2. BARRA DIREITA: GRÁFICO DE TENDÊNCIA FIXO
+            // =================================================================
+            if (!dados.grafico_tendencia) return;
 
-            chartBarrasInstancia = new Chart(ctxBarras, {
-                type: 'bar',
-                data: {
-                    labels: dados.grafico_barras.labels,
-                    datasets: [{
-                        label: 'Quantidade de Ocorrências',
-                        data: dados.grafico_barras.quantidades,
-                        backgroundColor: '#0366d6' // Azul corporativo
-                    }]
-                },
-                options: {
-                    indexAxis: 'y', // Deixa as barras horizontais para facilitar leitura de textos longos
-                    responsive: true,
-                    plugins: {
-                        legend: { display: false }
-                    }
-                }
-            });
-
-            // 3. DADOS DO GRÁFICO DE TENDÊNCIA (LINHAS)
             const ctxTendencia = document.getElementById('chartTendencia').getContext('2d');
 
             if (chartTendenciaInstancia) chartTendenciaInstancia.destroy();
@@ -247,20 +333,20 @@
             chartTendenciaInstancia = new Chart(ctxTendencia, {
                 type: 'line',
                 data: {
-                    labels: dados.grafico_tendencia.labels, // Meses no eixo X
+                    labels: dados.grafico_tendencia.labels,
                     datasets: [
                         {
-                            label: 'Acatado Integral',
+                            label: 'Acatado',
                             data: dados.grafico_tendencia.aceitos,
-                            borderColor: '#2ea44f', // Verde
+                            borderColor: '#2ea44f',
                             backgroundColor: 'rgba(46, 164, 79, 0.1)',
                             fill: true,
-                            tension: 0.3 // Deixa a linha levemente arredondada
+                            tension: 0.3
                         },
                         {
-                            label: 'Rejeitado / Zerado',
+                            label: 'Rejeitado',
                             data: dados.grafico_tendencia.rejeitados,
-                            borderColor: '#d73a49', // Vermelho
+                            borderColor: '#d73a49',
                             backgroundColor: 'rgba(215, 58, 73, 0.1)',
                             fill: true,
                             tension: 0.3
@@ -269,13 +355,8 @@
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top' }
-                    },
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
+                    maintainAspectRatio: false, // Permite que o gráfico estique na barra direita
+                    plugins: { legend: { position: 'top' } }
                 }
             });
 
@@ -287,6 +368,8 @@
     // Executa a função assim que a página é carregada
     document.addEventListener("DOMContentLoaded", carregarDashboard);
 </script>
+
+
 
 </body>
 </html>
