@@ -535,9 +535,34 @@
 
       async function carregarDashboard() {
         try {
-          const resposta = await fetch(
-            `${API_URL}/api/relatorios/dashboard/resumo`,
-          );
+          // 1. CAPTURAR OS FILTROS DA BARRA LATERAL
+          const convenio = document.getElementById("codigo_convenio").value;
+          const consignataria = document.getElementById("consignataria").value;
+          const produto = document.getElementById("produto").value;
+          const compInicio =
+            document.getElementById("competencia_inicio").value;
+          const compFim = document.getElementById("competencia_fim").value;
+
+          // 2. MONTAR A URL DINÂMICA
+          // O URLSearchParams ajuda a criar aquela string "?convenio=71&produto=EMPRESTIMO"
+          const parametros = new URLSearchParams();
+
+          if (convenio) parametros.append("codigo_convenio", convenio);
+          if (consignataria) parametros.append("consignataria", consignataria);
+          if (produto) parametros.append("produto", produto);
+          if (compInicio) parametros.append("competencia_inicio", compInicio);
+          if (compFim) parametros.append("competencia_fim", compFim);
+
+          const queryString = parametros.toString();
+          // Se tiver parâmetros, adiciona a interrogação. Se não, chama a rota pura (traz tudo).
+          const endpoint = queryString
+            ? `/api/relatorios/dashboard/resumo?${queryString}`
+            : "/api/relatorios/dashboard/resumo";
+
+          const urlFinal = `${API_URL}${endpoint}`;
+
+          // 3. FAZER A BUSCA NA NUVEM
+          const resposta = await fetch(urlFinal);
 
           if (!resposta.ok) {
             throw new Error("Erro ao carregar dados do dashboard.");
@@ -545,36 +570,37 @@
 
           const dados = await resposta.json();
 
-          // =================================================================
-          // 1. ÁREA CENTRAL: CARDS DINÂMICOS (LAÇO DE REPETIÇÃO)
-          // =================================================================
+          // 4. DESENHAR OS GRÁFICOS (Mantido igual)
           const areaCards = document.getElementById("area-cards");
+          areaCards.innerHTML = ""; // Limpa a tela de boas-vindas ou gráficos anteriores
 
-          // Limpa a tela para não duplicar os gráficos se você atualizar a página
-          areaCards.innerHTML = "";
+          // Verifica se a API não trouxe nenhum arquivo
+          if (!dados.cards_arquivos || dados.cards_arquivos.length === 0) {
+            areaCards.innerHTML = `
+                        <div style="width: 100%; text-align: center; margin-top: 50px; color: #666;">
+                            <h3>Nenhum dado encontrado</h3>
+                            <p>Tente ajustar os filtros de pesquisa ou faça o upload de um novo arquivo.</p>
+                        </div>`;
+            return; // Para a execução aqui
+          }
 
-          // Varre a lista de arquivos que o Python enviou
+          // Varre a lista de arquivos e desenha os cards dinâmicos
           dados.cards_arquivos.forEach((arquivo) => {
-            // Cria o "chassi" HTML de cada arquivo com IDs únicos (ex: pizza-1, barras-1)
             const cardHTML = `
-                    <div class="card-arquivo">
-                        <h4 style="text-align: center; color: #555; margin-top: 0;">${arquivo.nome_arquivo}</h4>
-                        
-                        <div style="display: flex; gap: 15px; margin-top: 15px; align-items: center;">
-                            <div style="flex: 1; min-width: 200px;">
-                                <canvas id="pizza-${arquivo.id_arquivo}"></canvas>
-                            </div>
-                            <div style="flex: 1; min-width: 250px;">
-                                <canvas id="barras-${arquivo.id_arquivo}"></canvas>
+                        <div class="card-arquivo">
+                            <h4 style="text-align: center; color: #555; margin-top: 0;">${arquivo.nome_arquivo}</h4>
+                            <div style="display: flex; gap: 15px; margin-top: 15px; align-items: center;">
+                                <div style="flex: 1; min-width: 200px;">
+                                    <canvas id="pizza-${arquivo.id_arquivo}"></canvas>
+                                </div>
+                                <div style="flex: 1; min-width: 250px;">
+                                    <canvas id="barras-${arquivo.id_arquivo}"></canvas>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                `;
-
-            // Injeta o HTML na área central (um do lado do outro graças ao CSS Flexbox)
+                    `;
             areaCards.insertAdjacentHTML("beforeend", cardHTML);
 
-            // Desenha a Pizza do respectivo arquivo
             new Chart(
               document
                 .getElementById(`pizza-${arquivo.id_arquivo}`)
@@ -602,7 +628,6 @@
               },
             );
 
-            // Desenha as Barras do respectivo arquivo
             new Chart(
               document
                 .getElementById(`barras-${arquivo.id_arquivo}`)
@@ -628,15 +653,11 @@
             );
           });
 
-          // =================================================================
-          // 2. BARRA DIREITA: GRÁFICO DE TENDÊNCIA FIXO
-          // =================================================================
+          // Desenha a Barra Direita (Gráfico de Tendência Fixo)
           if (!dados.grafico_tendencia) return;
-
           const ctxTendencia = document
             .getElementById("chartTendencia")
             .getContext("2d");
-
           if (chartTendenciaInstancia) chartTendenciaInstancia.destroy();
 
           chartTendenciaInstancia = new Chart(ctxTendencia, {
@@ -664,7 +685,7 @@
             },
             options: {
               responsive: true,
-              maintainAspectRatio: false, // Permite que o gráfico estique na barra direita
+              maintainAspectRatio: false,
               plugins: { legend: { position: "top" } },
             },
           });
@@ -674,6 +695,10 @@
       }
 
       // Executa a função assim que a página é carregada
+      // Atrela a função de carregar o dashboard ao clique do botão de filtro
+      document
+        .getElementById("btn-buscar")
+        .addEventListener("click", carregarDashboard);
     </script>
   </body>
 </html>
