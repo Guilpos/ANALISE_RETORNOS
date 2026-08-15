@@ -303,290 +303,155 @@
       </aside>
     </div>
   </head>
-  <body>
-    <div class="container mt-5">
-      <div class="row justify-content-center">
-        <div class="col-md-8">
-          <div class="card p-4">
-            <h2 class="mb-4 text-primary">
-              Importação de Retornos Financeiros
-            </h2>
+  <!-- O MOTOR: Aqui é onde o JavaScript puro faz a comunicação com o FastAPI -->
+  <script>
+    // 1. "Capturamos" os elementos que sobraram no novo layout
+    const btnEnviar = document.getElementById("btn-enviar");
+    const caixaAlerta = document.getElementById("mensagem-alerta");
 
-            <!-- O id="form-upload" é o que o Javascript vai procurar -->
-            <form id="form-upload">
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <label class="form-label">Código do Convênio</label>
-                  <select class="form-select" id="codigo_convenio" required>
-                    <option value="" selected disabled>Selecione...</option>
-                    <option value="1">1 - INSS</option>
-                    <option value="2">2 - GOV. PARAÍBA</option>
-                    <option value="71">71 - PREF. JOÃO PESSOA</option>
-                    <!-- <option value="CONSIGFACIL_2">CONSIGFACIL 2</option> -->
-                  </select>
-                </div>
+    // Função auxiliar atualizada para exibir a caixa de aviso no novo design
+    function mostrarAlerta(mensagem, corFundo) {
+      caixaAlerta.style.backgroundColor = corFundo;
+      caixaAlerta.style.color = "white";
+      caixaAlerta.textContent = mensagem;
+      caixaAlerta.style.display = "block";
+    }
 
-                <div class="col-md-6">
-                  <label class="form-label">Consignatária (Banco)</label>
-                  <select class="form-select" id="consignataria" required>
-                    <option value="" selected disabled>Selecione...</option>
-                    <option value="CAPITAL_CONSIG">Capital Consig</option>
-                    <option value="CIASPREV">Ciasprev</option>
-                    <option value="CLICKBANK">Clickbank</option>
-                    <option value="HOJE_PREVIDENCIA">Hoje Previdência</option>
-                    <option value="BEM_CARTOES">Bem Cartões</option>
-                  </select>
-                </div>
-              </div>
+    // 2. Interceptamos o clique direto no botão de Upload
+    btnEnviar.addEventListener("click", async function () {
+      // Pega o arquivo físico anexado no input
+      const inputArquivo = document.getElementById("arquivo");
+      const arquivoFisico = inputArquivo.files[0];
 
-              <div class="row mb-3">
-                <div class="col-md-6">
-                  <label class="form-label">Produto</label>
-                  <select class="form-select" id="produto" required>
-                    <option value="" selected disabled>Selecione...</option>
-                    <option value="EMPRESTIMO">Empréstimo</option>
-                    <option value="CARTAO_CREDITO">Cartão de Crédito</option>
-                    <option value="CARTAO_BENEFICIO">Cartão Benefício</option>
-                  </select>
-                </div>
-
-                <div class="col-md-6">
-                  <label class="form-label">Competência</label>
-                  <!-- Input de data para forçar o padrão AAAA-MM-DD -->
-                  <input
-                    type="date"
-                    class="form-control"
-                    id="competencia"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div class="mb-4">
-                <label class="form-label"
-                  >Arquivo de Retorno (.csv, .xlsx)</label
-                >
-                <input
-                  type="file"
-                  class="form-control"
-                  id="arquivo"
-                  accept=".csv, .xlsx, .xls"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                class="btn btn-primary w-100"
-                id="btn-enviar"
-              >
-                <span id="btn-texto">Processar Arquivo</span>
-                <span
-                  id="btn-spinner"
-                  class="spinner-border spinner-border-sm d-none"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
-              </button>
-            </form>
-
-            <!-- Área de feedback para o usuário -->
-            <div id="mensagem-alerta" class="alert mt-4" role="alert"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <section id="secao-dashboard" style="margin-top: 40px">
-      <h2>Resumo de Desempenho</h2>
-
-      <div style="display: flex; gap: 20px; flex-wrap: wrap">
-        <div
-          style="
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            margin-top: 20px;
-          "
-        >
-          <h3>Tendência de Acatamento (Mês a Mês)</h3>
-          <!-- <canvas id="chartTendencia" style="max-height: 300px;"></canvas> -->
-        </div>
-        <!-- Card 1: Gráfico de Pizza (Status) -->
-        <div
-          style="
-            flex: 1;
-            min-width: 300px;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          "
-        >
-          <h3>Proporção de Acatamento</h3>
-          <canvas id="chartPizza"></canvas>
-        </div>
-
-        <!-- Card 2: Gráfico de Barras (Top Críticas) -->
-        <div
-          style="
-            flex: 1;
-            min-width: 300px;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          "
-        >
-          <h3>Top 5 Inconsistências / Críticas</h3>
-          <canvas id="chartBarras"></canvas>
-        </div>
-      </div>
-    </section>
-
-    <!-- O MOTOR: Aqui é onde o JavaScript puro faz a comunicação com o FastAPI -->
-    <script>
-      // 1. "Capturamos" os elementos da tela que vamos manipular
-      const formulario = document.getElementById("form-upload");
-      const btnEnviar = document.getElementById("btn-enviar");
-      const btnTexto = document.getElementById("btn-texto");
-      const btnSpinner = document.getElementById("btn-spinner");
-      const caixaAlerta = document.getElementById("mensagem-alerta");
-
-      // 2. Interceptamos o evento de envio (Submit) do formulário
-      // 2. Interceptamos o evento de envio (Submit) do formulário
-      formulario.addEventListener("submit", async function (evento) {
-        // Impede que a página recarregue ao clicar no botão
-        evento.preventDefault();
-
-        // Altera o estado do botão para "Carregando"
-        btnTexto.textContent = "Processando...";
-        btnSpinner.classList.remove("d-none");
-        btnEnviar.disabled = true;
-        caixaAlerta.style.display = "none"; // Esconde mensagens anteriores
-
-        // 3. Montamos o pacote de dados EXATAMENTE como o FastAPI pede
-        const dadosFormulario = new FormData();
-        dadosFormulario.append(
-          "codigo_convenio",
-          document.getElementById("codigo_convenio").value,
-        );
-        dadosFormulario.append(
-          "consignataria",
-          document.getElementById("consignataria").value,
-        );
-        dadosFormulario.append(
-          "produto",
-          document.getElementById("produto").value,
-        );
-        dadosFormulario.append(
-          "competencia",
-          document.getElementById("competencia").value,
-        );
-
-        // Pega o arquivo físico anexado no input
-        const arquivoFisico = document.getElementById("arquivo").files[0];
-        dadosFormulario.append("arquivo", arquivoFisico);
-
-        try {
-          // 4. Mandamos o "dadosFormulario" para a nuvem
-          const resposta = await fetch(
-            "https://api-validador-convenios.onrender.com/api/upload",
-            {
-              method: "POST",
-              body: dadosFormulario,
-            },
-          );
-
-          if (resposta.ok) {
-            // Usando a sua função auxiliar mostrarAlerta que está logo abaixo no código!
-            mostrarAlerta("Upload concluído com sucesso!", "success");
-
-            // Atualiza os gráficos sozinhos sem recarregar a página
-            carregarDashboard();
-          } else {
-            mostrarAlerta("Erro ao processar o arquivo no servidor.", "danger");
-          }
-        } catch (erro) {
-          console.error("Erro no upload:", erro);
-          mostrarAlerta("Erro de conexão com a API.", "danger");
-        } finally {
-          // Devolve o botão ao estado original independente do resultado
-          btnTexto.textContent = "Processar Arquivo";
-          btnSpinner.classList.add("d-none");
-          btnEnviar.disabled = false;
-        }
-      });
-
-      // Função auxiliar para exibir a caixa de aviso verde ou vermelha
-      function mostrarAlerta(mensagem, tipo) {
-        caixaAlerta.className = `alert mt-4 alert-${tipo}`;
-        caixaAlerta.textContent = mensagem;
-        caixaAlerta.style.display = "block";
+      // Trava de segurança: se o usuário esquecer de anexar, avisa e cancela o envio
+      if (!arquivoFisico) {
+        mostrarAlerta(
+          "Por favor, anexe um arquivo antes de processar.",
+          "#e74c3c",
+        ); // Vermelho
+        return;
       }
 
-      // Endereço base da sua API no Render
-      const API_URL = "https://api-validador-convenios.onrender.com";
+      // Altera o estado do botão para "Processando"
+      const textoOriginal = btnEnviar.textContent;
+      btnEnviar.textContent = "Processando...";
+      btnEnviar.disabled = true;
+      caixaAlerta.style.display = "none"; // Esconde mensagens anteriores
 
-      let chartPizzaInstancia = null;
-      let chartBarrasInstancia = null;
-      let chartTendenciaInstancia = null;
+      // 3. Montamos o pacote de dados EXATAMENTE como o FastAPI pede
+      const dadosFormulario = new FormData();
+      dadosFormulario.append(
+        "codigo_convenio",
+        document.getElementById("codigo_convenio").value,
+      );
+      dadosFormulario.append(
+        "consignataria",
+        document.getElementById("consignataria").value,
+      );
+      dadosFormulario.append(
+        "produto",
+        document.getElementById("produto").value,
+      );
+      // Atenção aqui: estamos pegando a data do novo campo "competencia_inicio"
+      dadosFormulario.append(
+        "competencia",
+        document.getElementById("competencia_inicio").value,
+      );
+      dadosFormulario.append("arquivo", arquivoFisico);
 
-      async function carregarDashboard() {
-        try {
-          // 1. CAPTURAR OS FILTROS DA BARRA LATERAL
-          const convenio = document.getElementById("codigo_convenio").value;
-          const consignataria = document.getElementById("consignataria").value;
-          const produto = document.getElementById("produto").value;
-          const compInicio =
-            document.getElementById("competencia_inicio").value;
-          const compFim = document.getElementById("competencia_fim").value;
+      try {
+        // 4. Mandamos os dados para a nuvem
+        const resposta = await fetch(`${API_URL}/api/upload`, {
+          method: "POST",
+          body: dadosFormulario,
+        });
 
-          // 2. MONTAR A URL DINÂMICA
-          // O URLSearchParams ajuda a criar aquela string "?convenio=71&produto=EMPRESTIMO"
-          const parametros = new URLSearchParams();
+        if (resposta.ok) {
+          mostrarAlerta("Upload concluído com sucesso!", "#2ecc71"); // Verde
 
-          if (convenio) parametros.append("codigo_convenio", convenio);
-          if (consignataria) parametros.append("consignataria", consignataria);
-          if (produto) parametros.append("produto", produto);
-          if (compInicio) parametros.append("competencia_inicio", compInicio);
-          if (compFim) parametros.append("competencia_fim", compFim);
+          inputArquivo.value = ""; // Limpa o campo do arquivo após sucesso
 
-          const queryString = parametros.toString();
-          // Se tiver parâmetros, adiciona a interrogação. Se não, chama a rota pura (traz tudo).
-          const endpoint = queryString
-            ? `/api/relatorios/dashboard/resumo?${queryString}`
-            : "/api/relatorios/dashboard/resumo";
+          carregarDashboard(); // Atualiza os gráficos sozinhos
+        } else {
+          mostrarAlerta("Erro ao processar o arquivo no servidor.", "#e74c3c"); // Vermelho
+        }
+      } catch (erro) {
+        console.error("Erro no upload:", erro);
+        mostrarAlerta("Erro de conexão com a API.", "#e74c3c");
+      } finally {
+        // Devolve o botão ao estado original independente do resultado
+        btnEnviar.textContent = textoOriginal;
+        btnEnviar.disabled = false;
+      }
+    });
 
-          const urlFinal = `${API_URL}${endpoint}`;
+    // Função auxiliar para exibir a caixa de aviso verde ou vermelha
+    function mostrarAlerta(mensagem, tipo) {
+      caixaAlerta.className = `alert mt-4 alert-${tipo}`;
+      caixaAlerta.textContent = mensagem;
+      caixaAlerta.style.display = "block";
+    }
 
-          // 3. FAZER A BUSCA NA NUVEM
-          const resposta = await fetch(urlFinal);
+    // Endereço base da sua API no Render
+    const API_URL = "https://api-validador-convenios.onrender.com";
 
-          if (!resposta.ok) {
-            throw new Error("Erro ao carregar dados do dashboard.");
-          }
+    let chartPizzaInstancia = null;
+    let chartBarrasInstancia = null;
+    let chartTendenciaInstancia = null;
 
-          const dados = await resposta.json();
+    async function carregarDashboard() {
+      try {
+        // 1. CAPTURAR OS FILTROS DA BARRA LATERAL
+        const convenio = document.getElementById("codigo_convenio").value;
+        const consignataria = document.getElementById("consignataria").value;
+        const produto = document.getElementById("produto").value;
+        const compInicio = document.getElementById("competencia_inicio").value;
+        const compFim = document.getElementById("competencia_fim").value;
 
-          // 4. DESENHAR OS GRÁFICOS (Mantido igual)
-          const areaCards = document.getElementById("area-cards");
-          areaCards.innerHTML = ""; // Limpa a tela de boas-vindas ou gráficos anteriores
+        // 2. MONTAR A URL DINÂMICA
+        // O URLSearchParams ajuda a criar aquela string "?convenio=71&produto=EMPRESTIMO"
+        const parametros = new URLSearchParams();
 
-          // Verifica se a API não trouxe nenhum arquivo
-          if (!dados.cards_arquivos || dados.cards_arquivos.length === 0) {
-            areaCards.innerHTML = `
+        if (convenio) parametros.append("codigo_convenio", convenio);
+        if (consignataria) parametros.append("consignataria", consignataria);
+        if (produto) parametros.append("produto", produto);
+        if (compInicio) parametros.append("competencia_inicio", compInicio);
+        if (compFim) parametros.append("competencia_fim", compFim);
+
+        const queryString = parametros.toString();
+        // Se tiver parâmetros, adiciona a interrogação. Se não, chama a rota pura (traz tudo).
+        const endpoint = queryString
+          ? `/api/relatorios/dashboard/resumo?${queryString}`
+          : "/api/relatorios/dashboard/resumo";
+
+        const urlFinal = `${API_URL}${endpoint}`;
+
+        // 3. FAZER A BUSCA NA NUVEM
+        const resposta = await fetch(urlFinal);
+
+        if (!resposta.ok) {
+          throw new Error("Erro ao carregar dados do dashboard.");
+        }
+
+        const dados = await resposta.json();
+
+        // 4. DESENHAR OS GRÁFICOS (Mantido igual)
+        const areaCards = document.getElementById("area-cards");
+        areaCards.innerHTML = ""; // Limpa a tela de boas-vindas ou gráficos anteriores
+
+        // Verifica se a API não trouxe nenhum arquivo
+        if (!dados.cards_arquivos || dados.cards_arquivos.length === 0) {
+          areaCards.innerHTML = `
                         <div style="width: 100%; text-align: center; margin-top: 50px; color: #666;">
                             <h3>Nenhum dado encontrado</h3>
                             <p>Tente ajustar os filtros de pesquisa ou faça o upload de um novo arquivo.</p>
                         </div>`;
-            return; // Para a execução aqui
-          }
+          return; // Para a execução aqui
+        }
 
-          // Varre a lista de arquivos e desenha os cards dinâmicos
-          dados.cards_arquivos.forEach((arquivo) => {
-            const cardHTML = `
+        // Varre a lista de arquivos e desenha os cards dinâmicos
+        dados.cards_arquivos.forEach((arquivo) => {
+          const cardHTML = `
                         <div class="card-arquivo">
                             <h4 style="text-align: center; color: #555; margin-top: 0;">${arquivo.nome_arquivo}</h4>
                             <div style="display: flex; gap: 15px; margin-top: 15px; align-items: center;">
@@ -599,106 +464,105 @@
                             </div>
                         </div>
                     `;
-            areaCards.insertAdjacentHTML("beforeend", cardHTML);
+          areaCards.insertAdjacentHTML("beforeend", cardHTML);
 
-            new Chart(
-              document
-                .getElementById(`pizza-${arquivo.id_arquivo}`)
-                .getContext("2d"),
-              {
-                type: "doughnut",
-                data: {
-                  labels: arquivo.grafico_pizza.labels,
-                  datasets: [
-                    {
-                      data: arquivo.grafico_pizza.quantidades,
-                      backgroundColor: [
-                        "#2ea44f",
-                        "#d73a49",
-                        "#dbab09",
-                        "#6e7681",
-                      ],
-                    },
-                  ],
-                },
-                options: {
-                  responsive: true,
-                  plugins: { legend: { position: "bottom" } },
-                },
+          new Chart(
+            document
+              .getElementById(`pizza-${arquivo.id_arquivo}`)
+              .getContext("2d"),
+            {
+              type: "doughnut",
+              data: {
+                labels: arquivo.grafico_pizza.labels,
+                datasets: [
+                  {
+                    data: arquivo.grafico_pizza.quantidades,
+                    backgroundColor: [
+                      "#2ea44f",
+                      "#d73a49",
+                      "#dbab09",
+                      "#6e7681",
+                    ],
+                  },
+                ],
               },
-            );
-
-            new Chart(
-              document
-                .getElementById(`barras-${arquivo.id_arquivo}`)
-                .getContext("2d"),
-              {
-                type: "bar",
-                data: {
-                  labels: arquivo.grafico_barras.labels,
-                  datasets: [
-                    {
-                      label: "Ocorrências",
-                      data: arquivo.grafico_barras.quantidades,
-                      backgroundColor: "#0366d6",
-                    },
-                  ],
-                },
-                options: {
-                  indexAxis: "y",
-                  responsive: true,
-                  plugins: { legend: { display: false } },
-                },
+              options: {
+                responsive: true,
+                plugins: { legend: { position: "bottom" } },
               },
-            );
-          });
-
-          // Desenha a Barra Direita (Gráfico de Tendência Fixo)
-          if (!dados.grafico_tendencia) return;
-          const ctxTendencia = document
-            .getElementById("chartTendencia")
-            .getContext("2d");
-          if (chartTendenciaInstancia) chartTendenciaInstancia.destroy();
-
-          chartTendenciaInstancia = new Chart(ctxTendencia, {
-            type: "line",
-            data: {
-              labels: dados.grafico_tendencia.labels,
-              datasets: [
-                {
-                  label: "Acatado",
-                  data: dados.grafico_tendencia.aceitos,
-                  borderColor: "#2ea44f",
-                  backgroundColor: "rgba(46, 164, 79, 0.1)",
-                  fill: true,
-                  tension: 0.3,
-                },
-                {
-                  label: "Rejeitado",
-                  data: dados.grafico_tendencia.rejeitados,
-                  borderColor: "#d73a49",
-                  backgroundColor: "rgba(215, 58, 73, 0.1)",
-                  fill: true,
-                  tension: 0.3,
-                },
-              ],
             },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: { legend: { position: "top" } },
+          );
+
+          new Chart(
+            document
+              .getElementById(`barras-${arquivo.id_arquivo}`)
+              .getContext("2d"),
+            {
+              type: "bar",
+              data: {
+                labels: arquivo.grafico_barras.labels,
+                datasets: [
+                  {
+                    label: "Ocorrências",
+                    data: arquivo.grafico_barras.quantidades,
+                    backgroundColor: "#0366d6",
+                  },
+                ],
+              },
+              options: {
+                indexAxis: "y",
+                responsive: true,
+                plugins: { legend: { display: false } },
+              },
             },
-          });
-        } catch (erro) {
-          console.error("Erro ao desenhar gráficos:", erro);
-        }
+          );
+        });
+
+        // Desenha a Barra Direita (Gráfico de Tendência Fixo)
+        if (!dados.grafico_tendencia) return;
+        const ctxTendencia = document
+          .getElementById("chartTendencia")
+          .getContext("2d");
+        if (chartTendenciaInstancia) chartTendenciaInstancia.destroy();
+
+        chartTendenciaInstancia = new Chart(ctxTendencia, {
+          type: "line",
+          data: {
+            labels: dados.grafico_tendencia.labels,
+            datasets: [
+              {
+                label: "Acatado",
+                data: dados.grafico_tendencia.aceitos,
+                borderColor: "#2ea44f",
+                backgroundColor: "rgba(46, 164, 79, 0.1)",
+                fill: true,
+                tension: 0.3,
+              },
+              {
+                label: "Rejeitado",
+                data: dados.grafico_tendencia.rejeitados,
+                borderColor: "#d73a49",
+                backgroundColor: "rgba(215, 58, 73, 0.1)",
+                fill: true,
+                tension: 0.3,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: "top" } },
+          },
+        });
+      } catch (erro) {
+        console.error("Erro ao desenhar gráficos:", erro);
       }
+    }
 
-      // Executa a função assim que a página é carregada
-      // Atrela a função de carregar o dashboard ao clique do botão de filtro
-      document
-        .getElementById("btn-buscar")
-        .addEventListener("click", carregarDashboard);
-    </script>
-  </body>
+    // Executa a função assim que a página é carregada
+    // Atrela a função de carregar o dashboard ao clique do botão de filtro
+    document
+      .getElementById("btn-buscar")
+      .addEventListener("click", carregarDashboard);
+  </script>
 </html>

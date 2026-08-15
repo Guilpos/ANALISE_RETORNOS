@@ -21,10 +21,16 @@ def orquestrar_processamento(conteudo: bytes, nome_arquivo: str, convenio: str, 
         (codigo_convenio, consignataria, produto, nome_arquivo_original, linhas_totais, status_processamento, usuario_upload)
         VALUES (:conv, :banco, :prod, :nome, :linhas, 'PROCESSANDO', 'usuario_teste')
     """)
-    db.execute(query_historico, {"conv": convenio, "banco": banco, "prod": tipo_produto, "nome": nome_arquivo, "linhas": len(df)})
+    
+    # 1º: Executamos a query e guardamos o resultado em uma variável
+    resultado = db.execute(query_historico, {"conv": convenio, "banco": banco, "prod": tipo_produto, "nome": nome_arquivo, "linhas": len(df)})
+    
+    # 2º: Pegamos o ID real que acabou de nascer, ANTES de comitar
+    id_upload = resultado.lastrowid
+    
+    # 3º: Agora sim, comitamos e fechamos a transação com segurança
     db.commit()
     
-    id_upload = db.execute(text("SELECT LAST_INSERT_ID()")).scalar()
     df['id_arquivo_origem'] = id_upload
     
     # =================================================================
