@@ -136,6 +136,12 @@ def obter_resumo_dashboard(
     competencia_fim: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
+
+    if not codigo_convenio:
+            raise HTTPException(
+                status_code=400, 
+                detail="Operação negada: Para excluir um lote, você deve selecionar Convênio, Consignatária, Produto e Competência Inicial."
+            )
     # ==========================================
     # 0. CONSTRUÇÃO DINÂMICA DO FILTRO (WHERE)
     # ==========================================
@@ -171,13 +177,15 @@ def obter_resumo_dashboard(
     # 1. DADOS DOS CARDS (PIZZA E BARRAS)
     # ==========================================
     
+    # Adicionamos o MAX(f.competencia) para saber de qual mês é esse arquivo
     query_pizza = text(f"""
         SELECT 
             f.id_arquivo_origem,
             MAX(h.nome_arquivo_original) as nome_arquivo,
             MAX(f.codigo_convenio) as convenio,
             f.status_acatamento, 
-            COUNT(f.id) as quantidade
+            COUNT(f.id) as quantidade,
+            MAX(f.competencia) as competencia_ref 
         FROM fato_retornos f
         LEFT JOIN historico_uploads h ON f.id_arquivo_origem = h.id
         WHERE f.id_arquivo_origem IS NOT NULL {clausula_where}
@@ -206,11 +214,13 @@ def obter_resumo_dashboard(
         nome_arq = row[1] or f"Arquivo {id_arq}"
         status = row[3] if row[3] else "NAO INFORMADO"
         qtd = row[4]
+        comp_ref = row[5] # Capturamos a competência
 
         if id_arq not in cards_arquivos:
             cards_arquivos[id_arq] = {
                 "id_arquivo": id_arq,
                 "nome_arquivo": nome_arq,
+                "competencia_ref": comp_ref, # Guardamos aqui temporariamente
                 "grafico_pizza": {"labels": [], "quantidades": []},
                 "grafico_barras": {"labels": [], "quantidades": []}
             }
@@ -227,7 +237,10 @@ def obter_resumo_dashboard(
             cards_arquivos[id_arq]["grafico_barras"]["labels"].append(critica)
             cards_arquivos[id_arq]["grafico_barras"]["quantidades"].append(qtd)
 
+    # Convertendo para lista
     lista_de_cards = list(cards_arquivos.values())
+    # A MÁGICA DA ORDENAÇÃO: Força a lista a ficar em ordem crescente de data!
+    lista_de_cards.sort(key=lambda x: (x["competencia_ref"] or "", x["id_arquivo"]))
 
     # ==========================================
     # 2. DADOS DO GRÁFICO GLOBAL (TENDÊNCIA)

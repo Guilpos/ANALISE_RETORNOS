@@ -138,16 +138,19 @@
       }
 
       .card-arquivo {
-        min-width: 350px; /* Largura mínima de cada conjunto de pizza+barras */
+        min-width: 600px; /* Aumentamos para caber a pizza e as barras com folga */
+        flex-shrink: 0; /* A MÁGICA: Impede que o cartão seja espremido quando houver muitos na tela */
         background: white;
         padding: 20px;
         border-radius: 12px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
       }
 
       /* 3. BARRA DIREITA (Tendência e IA) */
       .barra-direita {
-        width: 350px;
+        width: 400px;
         background-color: #d2c9eb; /* Roxo claro */
         padding: 20px;
         display: flex;
@@ -298,8 +301,56 @@
 
       <!-- BARRA DIREITA -->
       <aside class="barra-direita">
-        <canvas id="chartTendencia" style="min-height: 250px"></canvas>
-        <!-- Tendência e IA vêm aqui -->
+        <h4 style="text-align: center; color: #555; margin-bottom: 0">
+          Tendência (Mês a Mês)
+        </h4>
+
+        <!-- Esta DIV é a "jaula" que vai segurar o tamanho do gráfico -->
+        <div
+          style="
+            background-color: white;
+            border-radius: 20px;
+            padding: 15px;
+            height: 300px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          "
+        >
+          <canvas id="chartTendencia"></canvas>
+        </div>
+
+        <!-- O espaço reservado para o resumo da IA que faremos a seguir -->
+        <h4
+          style="
+            text-align: center;
+            color: #555;
+            margin-bottom: 0;
+            margin-top: 20px;
+          "
+        >
+          Insight da IA
+        </h4>
+        <div
+          id="caixa-ia"
+          style="
+            background-color: white;
+            border-radius: 20px;
+            padding: 20px;
+            flex: 1;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+          "
+        >
+          <p
+            style="
+              color: #888;
+              text-align: center;
+              font-size: 14px;
+              margin-top: 50px;
+            "
+          >
+            A inteligência artificial irá gerar o resumo aqui...
+          </p>
+        </div>
       </aside>
     </div>
   </head>
@@ -427,7 +478,7 @@
 
         // 5. Disparar a requisição usando o método DELETE
         const resposta = await fetch(
-          `${API_URL}/api/arquivos/excluir-lote?${parametros.toString()}`,
+          `${API_URL}/api/relatorios/arquivos/excluir-lote?${parametros.toString()}`,
           {
             method: "DELETE",
           },
@@ -540,6 +591,18 @@
                     `;
           areaCards.insertAdjacentHTML("beforeend", cardHTML);
 
+          // 1. O Robô Mapeador de Cores
+          const coresExatas = arquivo.grafico_pizza.labels.map((label) => {
+            const texto = label.toUpperCase();
+            if (texto.includes("ACATADO INTEGRAL") || texto === "ACATADO")
+              return "#2ea44f"; // Verde
+            if (texto.includes("PARCIAL")) return "#f39c12"; // Amarelo
+            if (texto.includes("ZERADO") || texto.includes("REJEITADO"))
+              return "#e74c3c"; // Vermelho
+            return "#95a5a6"; // Cinza (Para caso apareça algum status desconhecido)
+          });
+
+          // 2. Desenhando a Pizza com as cores fixadas
           new Chart(
             document
               .getElementById(`pizza-${arquivo.id_arquivo}`)
@@ -551,12 +614,7 @@
                 datasets: [
                   {
                     data: arquivo.grafico_pizza.quantidades,
-                    backgroundColor: [
-                      "#2ea44f",
-                      "#d73a49",
-                      "#dbab09",
-                      "#6e7681",
-                    ],
+                    backgroundColor: coresExatas, // Aplicamos a nova lista de cores aqui!
                   },
                 ],
               },
