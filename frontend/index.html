@@ -738,8 +738,60 @@
             plugins: { legend: { position: "top" } },
           },
         });
+        // 3. O PONTO DE IGNIÇÃO DA IA
+        // Dispara a requisição da IA em segundo plano passando o JSON inteiro
+        gerarResumoIA(dados);
       } catch (erro) {
         console.error("Erro ao desenhar gráficos:", erro);
+      }
+    }
+
+    async function gerarResumoIA(dadosDashboard) {
+      const caixaIA = document.getElementById("caixa-ia");
+
+      // Mostra um indicador de carregamento charmoso enquanto o Python trabalha
+      caixaIA.innerHTML =
+        '<p style="color: #888; text-align: center; font-size: 14px; margin-top: 50px;">⏳ A IA está analisando os resultados...</p>';
+
+      try {
+        const resposta = await fetch(
+          `${API_URL}/api/relatorios/dashboard/gerar-insight`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            // Empacotamos todos os dados matemáticos do painel e mandamos pro backend
+            body: JSON.stringify({ resumo_dados: dadosDashboard }),
+          },
+        );
+
+        const dadosIA = await resposta.json();
+
+        if (resposta.ok) {
+          // Limpamos possíveis formatações markdown (**) que a IA possa devolver e injetamos o texto
+          const textoLimpo = dadosIA.insight
+            .replace(/\*\*/g, "")
+            .replace(/\*/g, "");
+
+          // Um pequeno selo indicando se a resposta veio do Cache (⚡) ou se foi gerada na hora (🤖)
+          const iconeOrigem =
+            dadosIA.status === "cache" ? "⚡ (Cache)" : "🤖 (Gerado)";
+
+          caixaIA.innerHTML = `
+                <p style="color: #333; font-size: 13px; line-height: 1.6; text-align: justify; margin: 0;">
+                    ${textoLimpo}
+                </p>
+                <div style="text-align: right; margin-top: 15px; font-size: 10px; color: #aaa;">
+                    ${iconeOrigem}
+                </div>
+            `;
+        } else {
+          caixaIA.innerHTML = `<p style="color: #e74c3c; font-size: 13px; text-align: center;">Erro da API ao gerar insight.</p>`;
+        }
+      } catch (erro) {
+        console.error("Erro na comunicação com a IA:", erro);
+        caixaIA.innerHTML = `<p style="color: #e74c3c; font-size: 13px; text-align: center;">Sem conexão com o serviço de Inteligência Artificial.</p>`;
       }
     }
 

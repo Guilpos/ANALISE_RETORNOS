@@ -1,11 +1,85 @@
+import hashlib
+import json
+import os
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional 
 from sqlalchemy import text
 from core.database import get_db
+from pydantic import BaseModel
+import google.generativeai as genai
 
 router = APIRouter()
 # ... (resto do seu código continua igualzinho)
+
+# Configure sua chave de API (O ideal é puxar de um arquivo .env como os dados do seu banco)
+CHAVE_API_GOOGLE = os.getenv("GEMINI_API_KEY")
+genai.configure(api_key=CHAVE_API_GOOGLE)
+
+# Modelo Pydantic para receber o pacote de dados do Frontend
+class DadosInsight(BaseModel):
+    resumo_dados: dict
+
+@router.post("/dashboard/gerar-insight", summary="Gera resumo com IA usando cache de Hash")
+def gerar_insight_ia(dados: DadosInsight, db: Session = Depends(get_db)):
+    
+    # ==========================================
+    # 1. CRIPTOGRAFIA: CRIANDO A IMPRESSÃO DIGITAL
+    # ==========================================
+    # Transforma o dicionário em texto puro (sort_keys garante que a ordem não mude o hash)
+    string_dados = json.dumps(dados.resumo_dados, sort_keys=True)
+    
+    # Gera o hash SHA-256 (a impressão digital de 64 caracteres)
+    hash_digital = hashlib.sha256(string_dados.encode('utf-8')).hexdigest()
+
+    # ==========================================
+    # 2. CONSULTA AO CACHE (TIDB)
+    # ==========================================
+    query_cache = text("SELECT texto_resumo FROM cache_resumos_ia WHERE hash_dados = :hash")
+    resultado_cache = db.execute(query_cache, {"hash": hash_digital}).scalar()
+
+    if resultado_cache:
+        # Se achou no banco, devolvemos imediatamente sem gastar créditos!
+        return {"status": "cache", "insight": resultado_cache}
+
+    # ==========================================
+    # 3. GERAÇÃO COM INTELIGÊNCIA ARTIFICIAL
+    # ==========================================
+    # Montamos o prompt com instruções claras para a IA agir como analista
+    prompt = f"""
+    Atue como um analista de dados financeiros focado em retornos de convênios consignados.
+    Analise os seguintes dados numéricos de processamento e escreva um parágrafo analítico curto (máximo de 3 linhas).
+    Destaque o principal ponto de atenção (como alto volume de rejeições por uma crítica específica) ou o sucesso da operação financeira.
+    Não use saudações ("Olá", "Aqui está"), vá direto ao ponto e seja estritamente profissional.
+    
+    Dados brutos: {string_dados}
+    """
+
+    try:
+        # Usa o modelo mais rápido e barato do Gemini para tarefas de texto
+        modelo = genai.GenerativeModel('gemini-1.5-flash')
+        resposta_ia = modelo.generate_content(prompt)
+        texto_final = resposta_ia.text.strip()
+
+        # ==========================================
+        # 4. SALVANDO NO CACHE PARA O FUTURO
+        # ==========================================
+        query_insert = text("""
+            INSERT INTO cache_resumos_ia (hash_dados, texto_resumo) 
+            VALUES (:hash, :texto)
+        """)
+        db.execute(query_insert, {"hash": hash_digital, "texto": texto_final})
+        db.commit()
+
+        return {"status": "novo", "insight": texto_final}
+
+    except Exception as e:
+        print(f"Erro na IA: {e}")
+        return {
+            "status": "erro", 
+            "insight": "O resumo inteligente não está disponível no momento devido a uma falha de conexão com a IA."
+        }
 
 @router.get("/tendencias/{codigo_convenio}")
 def obter_tendencias_convenio(
