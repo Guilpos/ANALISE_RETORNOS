@@ -576,31 +576,83 @@
 
         // Varre a lista de arquivos e desenha os cards dinâmicos
         dados.cards_arquivos.forEach((arquivo) => {
-          const cardHTML = `
-                        <div class="card-arquivo">
-                            <h4 style="text-align: center; color: #555; margin-top: 0;">${arquivo.nome_arquivo}</h4>
-                            <div style="display: flex; gap: 15px; margin-top: 15px; align-items: center;">
-                                <div style="flex: 1; min-width: 200px;">
-                                    <canvas id="pizza-${arquivo.id_arquivo}"></canvas>
-                                </div>
-                                <div style="flex: 1; min-width: 250px;">
-                                    <canvas id="barras-${arquivo.id_arquivo}"></canvas>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-          areaCards.insertAdjacentHTML("beforeend", cardHTML);
-
-          // 1. O Robô Mapeador de Cores
+          // 1. O Robô Mapeador de Cores que já fizemos
           const coresExatas = arquivo.grafico_pizza.labels.map((label) => {
             const texto = label.toUpperCase();
             if (texto.includes("ACATADO INTEGRAL") || texto === "ACATADO")
-              return "#2ea44f"; // Verde
-            if (texto.includes("PARCIAL")) return "#f39c12"; // Amarelo
+              return "#2ea44f";
+            if (texto.includes("PARCIAL")) return "#f39c12";
             if (texto.includes("ZERADO") || texto.includes("REJEITADO"))
-              return "#e74c3c"; // Vermelho
-            return "#95a5a6"; // Cinza (Para caso apareça algum status desconhecido)
+              return "#e74c3c";
+            return "#95a5a6";
           });
+
+          // 2. CONSTRUÇÃO DO RESUMO FINANCEIRO
+          // Soma todos os valores para descobrir o 100%
+          const totalFinanceiro =
+            arquivo.grafico_pizza.valores_financeiros.reduce(
+              (a, b) => a + b,
+              0,
+            );
+
+          let htmlValores = `<div style="margin-top: 20px; background: #f4f6f9; border-radius: 8px; padding: 15px; width: 100%;">`;
+          htmlValores += `<div style="font-weight: bold; margin-bottom: 10px; text-align: center; color: #333; font-size: 13px; text-transform: uppercase;">Resumo Financeiro Bruto</div>`;
+
+          arquivo.grafico_pizza.labels.forEach((label, index) => {
+            const valor = arquivo.grafico_pizza.valores_financeiros[index];
+            const percentual =
+              totalFinanceiro > 0
+                ? ((valor / totalFinanceiro) * 100).toFixed(1)
+                : 0;
+            const valorBRL = valor.toLocaleString("pt-BR", {
+              style: "currency",
+              currency: "BRL",
+            });
+            const cor = coresExatas[index];
+
+            htmlValores += `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; border-left: 4px solid ${cor}; padding-left: 8px; font-size: 12px;">
+                        <span style="color: #555;">${label}</span>
+                        <span style="font-weight: bold; color: #333;">${valorBRL} <span style="font-size: 10px; color: #888; margin-left: 5px;">(${percentual}%)</span></span>
+                    </div>
+                `;
+          });
+
+          const totalBRL = totalFinanceiro.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          });
+          htmlValores += `
+                <div style="display: flex; justify-content: space-between; margin-top: 12px; border-top: 1px dashed #ccc; padding-top: 10px; font-weight: bold; font-size: 13px; color: #2c3e50;">
+                    <span>TOTAL PROCESSADO</span>
+                    <span>${totalBRL}</span>
+                </div>
+            </div>`;
+
+          // 3. Montagem do HTML com o Resumo Injetado
+          const cardHTML = `
+                <div class="card-arquivo">
+                    <h4 style="text-align: center; color: #555; margin-top: 0; margin-bottom: 20px;">${arquivo.nome_arquivo}</h4>
+                    
+                    <div style="display: flex; gap: 20px; align-items: flex-start;">
+                        <!-- Coluna da Esquerda: Pizza + Valores Financeiros -->
+                        <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; align-items: center;">
+                            <div style="width: 100%; max-width: 220px;">
+                                <canvas id="pizza-${arquivo.id_arquivo}"></canvas>
+                            </div>
+                            ${htmlValores}
+                        </div>
+                        
+                        <!-- Coluna da Direita: Gráfico de Barras -->
+                        <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column;">
+                            <h5 style="text-align: center; margin-top: 0; margin-bottom: 10px; color: #666; font-size: 13px; font-weight: normal;">Volume de Inconsistências</h5>
+                            <canvas id="barras-${arquivo.id_arquivo}"></canvas>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+          areaCards.insertAdjacentHTML("beforeend", cardHTML);
 
           // 2. Desenhando a Pizza com as cores fixadas
           new Chart(

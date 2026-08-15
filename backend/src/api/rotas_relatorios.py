@@ -185,7 +185,8 @@ def obter_resumo_dashboard(
             MAX(f.codigo_convenio) as convenio,
             f.status_acatamento, 
             COUNT(f.id) as quantidade,
-            MAX(f.competencia) as competencia_ref 
+            MAX(f.competencia) as competencia_ref,
+            SUM(f.valor_lancado) as valor_financeiro 
         FROM fato_retornos f
         LEFT JOIN historico_uploads h ON f.id_arquivo_origem = h.id
         WHERE f.id_arquivo_origem IS NOT NULL {clausula_where}
@@ -214,19 +215,21 @@ def obter_resumo_dashboard(
         nome_arq = row[1] or f"Arquivo {id_arq}"
         status = row[3] if row[3] else "NAO INFORMADO"
         qtd = row[4]
-        comp_ref = row[5] # Capturamos a competência
+        comp_ref = row[5] 
+        valor_fin = float(row[6] or 0.0) # 2. Capturamos o valor em Reais
 
         if id_arq not in cards_arquivos:
             cards_arquivos[id_arq] = {
                 "id_arquivo": id_arq,
                 "nome_arquivo": nome_arq,
-                "competencia_ref": comp_ref, # Guardamos aqui temporariamente
-                "grafico_pizza": {"labels": [], "quantidades": []},
+                "competencia_ref": comp_ref, 
+                "grafico_pizza": {"labels": [], "quantidades": [], "valores_financeiros": []}, # 3. Adicionamos a lista aqui
                 "grafico_barras": {"labels": [], "quantidades": []}
             }
         
         cards_arquivos[id_arq]["grafico_pizza"]["labels"].append(status)
         cards_arquivos[id_arq]["grafico_pizza"]["quantidades"].append(qtd)
+        cards_arquivos[id_arq]["grafico_pizza"]["valores_financeiros"].append(valor_fin) # 4. Guardamos o valor
 
     for row in resultado_barras:
         id_arq = row[0]
