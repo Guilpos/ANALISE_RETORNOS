@@ -73,39 +73,58 @@ def obter_tendencias_convenio(
         
     return dados_grafico
 
-@router.delete("/excluir/{id_arquivo}", summary="Exclui um arquivo e todos os seus registros")
-def excluir_arquivo(id_arquivo: int, db: Session = Depends(get_db)):
-    try:
-        # 1. Verifica se o arquivo realmente existe no banco
-        query_busca = text("SELECT nome_arquivo_original FROM historico_uploads WHERE id = :id")
-        arquivo_encontrado = db.execute(query_busca, {"id": id_arquivo}).fetchone()
-        
-        if not arquivo_encontrado:
-            raise HTTPException(status_code=404, detail="Arquivo não encontrado no histórico.")
-        
-        nome_arquivo = arquivo_encontrado[0]
+@router.delete("/arquivos/excluir-lote", summary="Exclui dados exatos de um mês")
+def excluir_lote_arquivos(
+    codigo_convenio: str,
+    consignataria: str,
+    produto: str,
+    competencia_inicio: str, # Usamos o mesmo nome do frontend
+    db: Session = Depends(get_db)
+):
+    # =================================================================
+    # 1. TRAVA DE SEGURANÇA (Prevenção contra desastres)
+    # =================================================================
+    if not codigo_convenio or not consignataria or not produto or not competencia_inicio:
+        raise HTTPException(
+            status_code=400, 
+            detail="Operação negada: Para excluir um lote, você deve selecionar Convênio, Consignatária, Produto e Competência Inicial."
+        )
 
-        # 2. Deleta as milhares de linhas da fato_retornos (Cascata manual)
-        query_del_fato = text("DELETE FROM fato_retornos WHERE id_arquivo_origem = :id")
-        linhas_afetadas = db.execute(query_del_fato, {"id": id_arquivo}).rowcount
+    try:
+        # =================================================================
+        # 2. EXECUÇÃO CIRÚRGICA DA EXCLUSÃO
+        # =================================================================
+        query_delete = text("""
+            DELETE FROM fato_retornos 
+            WHERE codigo_convenio = :conv 
+              AND consignataria = :banco 
+              AND produto = :prod 
+              AND competencia = :comp
+        """)
         
-        # 3. Deleta o registro "pai" do histórico
-        query_del_hist = text("DELETE FROM historico_uploads WHERE id = :id")
-        db.execute(query_del_hist, {"id": id_arquivo})
+        resultado = db.execute(query_delete, {
+            "conv": codigo_convenio, 
+            "banco": consignataria, 
+            "prod": produto, 
+            "comp": competencia_inicio
+        })
         
-        # 4. Salva as alterações de forma definitiva
+        # O SQLAlchemy nos diz exatamente quantas linhas foram evaporadas
+        linhas_afetadas = resultado.rowcount
+        
+        if linhas_afetadas == 0:
+            return {"status": "aviso", "mensagem": "Nenhum dado encontrado com esses parâmetros para excluir."}
+
         db.commit()
-        
+
         return {
-            "status": "sucesso",
-            "mensagem": f"O arquivo '{nome_arquivo}' foi excluído.",
-            "linhas_removidas": linhas_afetadas
+            "status": "sucesso", 
+            "mensagem": f"Lote excluído permanentemente! {linhas_afetadas} registros foram apagados."
         }
 
     except Exception as e:
-        # Se der qualquer erro, desfaz tudo para não corromper o banco
-        db.rollback()
-        raise HTTPException(status_code=500, detail=f"Erro interno ao excluir: {str(e)}")
+        db.rollback() # Em caso de erro, desfaz qualquer alteração
+        raise HTTPException(status_code=500, detail=f"Falha ao excluir no banco de dados: {str(e)}")
 
 
 @router.get("/dashboard/resumo", summary="Dados mastigados e filtrados dinamicamente")

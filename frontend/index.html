@@ -384,6 +384,80 @@
         btnEnviar.disabled = false;
       }
     });
+    // Interceptamos o clique no botão de Excluir Lote
+    const btnExcluir = document.getElementById("btn-excluir");
+
+    btnExcluir.addEventListener("click", async function () {
+      // 1. Capturar os valores atuais dos filtros no painel lateral
+      const convenio = document.getElementById("codigo_convenio").value;
+      const consignataria = document.getElementById("consignataria").value;
+      const produto = document.getElementById("produto").value;
+      const compInicio = document.getElementById("competencia_inicio").value;
+
+      // 2. Trava de Segurança no Frontend: Exige preenchimento total
+      if (!convenio || !consignataria || !produto || !compInicio) {
+        mostrarAlerta(
+          "Preencha Convênio, Consignatária, Produto e Competência Inicial para excluir.",
+          "#f39c12",
+        ); // Laranja
+        return; // Cancela a execução
+      }
+
+      // 3. Confirmação Dupla (Evita cliques acidentais)
+      const mensagemConfirmacao = `ATENÇÃO! Isso apagará permanentemente todos os registros com os seguintes parâmetros:\n\nConvênio: ${convenio}\nBanco: ${consignataria}\nProduto: ${produto}\nCompetência: ${compInicio}\n\nDeseja realmente continuar?`;
+
+      if (!confirm(mensagemConfirmacao)) {
+        return; // Se o usuário clicar em "Cancelar", a função morre aqui.
+      }
+
+      // Altera o estado do botão visualmente
+      const textoOriginal = btnExcluir.textContent;
+      btnExcluir.textContent = "Excluindo...";
+      btnExcluir.disabled = true;
+      caixaAlerta.style.display = "none"; // Esconde mensagens anteriores
+
+      try {
+        // 4. Montar a URL com os parâmetros exatos para a API
+        const parametros = new URLSearchParams({
+          codigo_convenio: convenio,
+          consignataria: consignataria,
+          produto: produto,
+          competencia_inicio: compInicio,
+        });
+
+        // 5. Disparar a requisição usando o método DELETE
+        const resposta = await fetch(
+          `${API_URL}/api/arquivos/excluir-lote?${parametros.toString()}`,
+          {
+            method: "DELETE",
+          },
+        );
+
+        const dados = await resposta.json();
+
+        if (resposta.ok) {
+          if (dados.status === "sucesso") {
+            mostrarAlerta(dados.mensagem, "#2ecc71"); // Verde
+
+            // Recarrega o dashboard. Como os dados foram apagados, a tela ficará em branco e mostrará "Nenhum dado encontrado"
+            carregarDashboard();
+          } else {
+            // Caso o backend avise que não achou nada para apagar
+            mostrarAlerta(dados.mensagem, "#f39c12"); // Laranja
+          }
+        } else {
+          // Caso a API devolva o erro 400 da nossa trava de segurança do Python
+          mostrarAlerta(dados.detail || "Erro ao excluir o lote.", "#e74c3c"); // Vermelho
+        }
+      } catch (erro) {
+        console.error("Erro na exclusão:", erro);
+        mostrarAlerta("Erro de conexão com o servidor.", "#e74c3c");
+      } finally {
+        // Devolve o botão ao estado original independente do resultado
+        btnExcluir.textContent = textoOriginal;
+        btnExcluir.disabled = false;
+      }
+    });
 
     // Função auxiliar para exibir a caixa de aviso verde ou vermelha
     function mostrarAlerta(mensagem, tipo) {
