@@ -108,15 +108,51 @@ def excluir_arquivo(id_arquivo: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=f"Erro interno ao excluir: {str(e)}")
 
 
-@router.get("/dashboard/resumo", summary="Dados mastigados e separados por arquivo")
-def obter_resumo_dashboard(db: Session = Depends(get_db)):
-    
+@router.get("/dashboard/resumo", summary="Dados mastigados e filtrados dinamicamente")
+def obter_resumo_dashboard(
+    codigo_convenio: Optional[str] = None,
+    consignataria: Optional[str] = None,
+    produto: Optional[str] = None,
+    competencia_inicio: Optional[str] = None,
+    competencia_fim: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
     # ==========================================
-    # 1. DADOS DOS CARDS (PIZZA E BARRAS POR ARQUIVO)
+    # 0. CONSTRUÇÃO DINÂMICA DO FILTRO (WHERE)
+    # ==========================================
+    filtros_sql = []
+    parametros = {}
+
+    if codigo_convenio:
+        filtros_sql.append("f.codigo_convenio = :convenio")
+        parametros["convenio"] = codigo_convenio
+        
+    if consignataria:
+        filtros_sql.append("f.consignataria = :consignataria")
+        parametros["consignataria"] = consignataria
+        
+    if produto:
+        filtros_sql.append("f.produto = :produto")
+        parametros["produto"] = produto
+        
+    if competencia_inicio:
+        filtros_sql.append("f.competencia >= :comp_ini")
+        parametros["comp_ini"] = competencia_inicio
+        
+    if competencia_fim:
+        filtros_sql.append("f.competencia <= :comp_fim")
+        parametros["comp_fim"] = competencia_fim
+
+    # Transforma a lista de filtros em uma string: " AND f.codigo_convenio = :convenio AND ..."
+    clausula_where = ""
+    if filtros_sql:
+        clausula_where = " AND " + " AND ".join(filtros_sql)
+
+    # ==========================================
+    # 1. DADOS DOS CARDS (PIZZA E BARRAS)
     # ==========================================
     
-    # Busca a proporção de acatamento agrupada por arquivo
-    query_pizza = text("""
+    query_pizza = text(f"""
         SELECT 
             f.id_arquivo_origem,
             MAX(h.nome_arquivo_original) as nome_arquivo,
@@ -125,24 +161,25 @@ def obter_resumo_dashboard(db: Session = Depends(get_db)):
             COUNT(f.id) as quantidade
         FROM fato_retornos f
         LEFT JOIN historico_uploads h ON f.id_arquivo_origem = h.id
-        WHERE f.id_arquivo_origem IS NOT NULL
+        WHERE f.id_arquivo_origem IS NOT NULL {clausula_where}
         GROUP BY f.id_arquivo_origem, f.status_acatamento
     """)
-    resultado_pizza = db.execute(query_pizza).fetchall()
+    resultado_pizza = db.execute(query_pizza, parametros).fetchall()
 
-    # Busca as críticas agrupadas por arquivo
-    query_barras = text("""
+    query_barras = text(f"""
         SELECT 
-            id_arquivo_origem,
-            texto_critica_original, 
-            COUNT(id) as quantidade
-        FROM fato_retornos
-        WHERE texto_critica_original IS NOT NULL AND texto_critica_original != '' AND texto_critica_original != 'OK'
-        GROUP BY id_arquivo_origem, texto_critica_original
+            f.id_arquivo_origem,
+            f.texto_critica_original, 
+            COUNT(f.id) as quantidade
+        FROM fato_retornos f
+        WHERE f.texto_critica_original IS NOT NULL 
+          AND f.texto_critica_original != '' 
+          AND f.texto_critica_original != 'OK' 
+          {clausula_where}
+        GROUP BY f.id_arquivo_origem, f.texto_critica_original
     """)
-    resultado_barras = db.execute(query_barras).fetchall()
+    resultado_barras = db.execute(query_barras, parametros).fetchall()
 
-    # Organizando os dados brutos do SQL em um formato de dicionário por arquivo
     cards_arquivos = {}
 
     for row in resultado_pizza:
@@ -151,7 +188,6 @@ def obter_resumo_dashboard(db: Session = Depends(get_db)):
         status = row[3] if row[3] else "NAO INFORMADO"
         qtd = row[4]
 
-        # Se o arquivo ainda não existe no dicionário, criamos a estrutura dele
         if id_arq not in cards_arquivos:
             cards_arquivos[id_arq] = {
                 "id_arquivo": id_arq,
@@ -160,11 +196,9 @@ def obter_resumo_dashboard(db: Session = Depends(get_db)):
                 "grafico_barras": {"labels": [], "quantidades": []}
             }
         
-        # Adicionando os dados da pizza
         cards_arquivos[id_arq]["grafico_pizza"]["labels"].append(status)
         cards_arquivos[id_arq]["grafico_pizza"]["quantidades"].append(qtd)
 
-    # Adicionando os dados das barras nos arquivos corretos
     for row in resultado_barras:
         id_arq = row[0]
         critica = row[1]
@@ -174,23 +208,22 @@ def obter_resumo_dashboard(db: Session = Depends(get_db)):
             cards_arquivos[id_arq]["grafico_barras"]["labels"].append(critica)
             cards_arquivos[id_arq]["grafico_barras"]["quantidades"].append(qtd)
 
-    # Convertendo o dicionário para uma lista simples para o Frontend iterar
     lista_de_cards = list(cards_arquivos.values())
 
     # ==========================================
-    # 2. DADOS DO GRÁFICO GLOBAL (TENDÊNCIA - Mantido igual)
+    # 2. DADOS DO GRÁFICO GLOBAL (TENDÊNCIA)
     # ==========================================
-    query_tendencia = text("""
+    query_tendencia = text(f"""
         SELECT 
-            DATE_FORMAT(competencia, '%m/%Y') as mes_ano, 
-            status_acatamento, 
-            COUNT(id) as quantidade
-        FROM fato_retornos
-        WHERE status_acatamento IS NOT NULL
-        GROUP BY mes_ano, status_acatamento
-        ORDER BY MIN(competencia) ASC
+            DATE_FORMAT(f.competencia, '%m/%Y') as mes_ano, 
+            f.status_acatamento, 
+            COUNT(f.id) as quantidade
+        FROM fato_retornos f
+        WHERE f.status_acatamento IS NOT NULL {clausula_where}
+        GROUP BY mes_ano, f.status_acatamento
+        ORDER BY MIN(f.competencia) ASC
     """)
-    resultado_tendencia = db.execute(query_tendencia).fetchall()
+    resultado_tendencia = db.execute(query_tendencia, parametros).fetchall()
 
     meses_unicos = []
     linha_aceitos = {}
@@ -217,7 +250,6 @@ def obter_resumo_dashboard(db: Session = Depends(get_db)):
         "rejeitados": [linha_rejeitados[mes] for mes in meses_unicos]
     }
 
-    # Retorno final: A lista de arquivos (pro meio) e a tendência global (pra direita)
     return {
         "cards_arquivos": lista_de_cards,
         "grafico_tendencia": dados_tendencia

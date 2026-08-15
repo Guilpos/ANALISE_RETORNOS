@@ -1,278 +1,562 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Validador de Convênios</title>
     <!-- Importação do Bootstrap 5 para um visual corporativo instantâneo -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Zera as margens e faz a tela ocupar 100% da janela */
-        body, html { margin: 0; padding: 0; height: 100%; font-family: sans-serif; }
-        
-        /* O contêiner pai que segura as 3 colunas */
-        .layout-principal {
-            display: flex;
-            height: 100vh;
-            overflow: hidden; /* Trava a rolagem da página inteira */
-        }
+      /* ESTILOS DA BARRA LATERAL (PAINEL DE CONTROLE) */
+      .card-lateral {
+        background-color: white;
+        border-radius: 20px;
+        padding: 25px 20px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
 
-        /* 1. BARRA ESQUERDA (Formulário) */
-        .barra-esquerda {
-            width: 300px;
-            background-color: #9b59b6; /* Roxo do seu desenho */
-            padding: 20px;
-            transition: 0.3s all ease; /* Animação para retrair */
-        }
-        /* Classe que será ativada via JavaScript para encolher o menu */
-        .barra-esquerda.recolhida {
-            width: 0;
-            padding: 0;
-            overflow: hidden;
-        }
+      .titulo-lateral {
+        color: #00aced; /* Azul claro do seu desenho */
+        text-align: center;
+        font-size: 16px;
+        margin: 0 0 15px 0;
+      }
 
-        /* 2. CENTRO (Scroll Horizontal com os Cards) */
-        .area-central {
-            flex: 1; /* Ocupa todo o espaço que sobrar */
-            background-color: #f4f6f9;
-            padding: 20px;
-            display: flex;
-            gap: 20px;
-            overflow-x: auto; /* Cria a barra de rolagem horizontal */
-            align-items: flex-start;
-        }
-        
-        .card-arquivo {
-            min-width: 350px; /* Largura mínima de cada conjunto de pizza+barras */
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+      .grupo-form label {
+        display: block;
+        font-size: 12px;
+        color: #333;
+        margin-bottom: 4px;
+        font-weight: bold;
+        text-align: center;
+      }
 
-        /* 3. BARRA DIREITA (Tendência e IA) */
-        .barra-direita {
-            width: 350px;
-            background-color: #d2c9eb; /* Roxo claro */
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
+      .grupo-form input,
+      .grupo-form select {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #00aced;
+        border-radius: 4px;
+        box-sizing: border-box;
+        text-align: center;
+        background-color: white;
+        cursor: pointer;
+      }
+
+      /* Campos de data lado a lado para o período */
+      .grupo-datas {
+        display: flex;
+        gap: 10px;
+      }
+
+      /* Botões de Ação */
+      .btn-acao {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 6px;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.2s;
+        margin-top: 5px;
+      }
+
+      .btn-buscar {
+        background-color: #3498db;
+      }
+      .btn-buscar:hover {
+        background-color: #2980b9;
+      }
+
+      .btn-upload {
+        background-color: #2ecc71;
+      }
+      .btn-upload:hover {
+        background-color: #27ae60;
+      }
+
+      .btn-excluir {
+        background-color: #e74c3c;
+        margin-top: 15px;
+      }
+      .btn-excluir:hover {
+        background-color: #c0392b;
+      }
+
+      .divisor-linha {
+        border: 0;
+        border-top: 1px dashed #ccc;
+        margin: 10px 0;
+      }
+      /* Zera as margens e faz a tela ocupar 100% da janela */
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        font-family: sans-serif;
+      }
+
+      /* O contêiner pai que segura as 3 colunas */
+      .layout-principal {
+        display: flex;
+        height: 100vh;
+        overflow: hidden; /* Trava a rolagem da página inteira */
+      }
+
+      /* 1. BARRA ESQUERDA (Formulário) */
+      .barra-esquerda {
+        width: 400px;
+        background-color: #9b59b6; /* Roxo do seu desenho */
+        padding: 20px;
+        transition: 0.3s all ease; /* Animação para retrair */
+      }
+      /* Classe que será ativada via JavaScript para encolher o menu */
+      .barra-esquerda.recolhida {
+        width: 0;
+        padding: 0;
+        overflow: hidden;
+      }
+
+      /* 2. CENTRO (Scroll Horizontal com os Cards) */
+      .area-central {
+        flex: 1; /* Ocupa todo o espaço que sobrar */
+        background-color: #f4f6f9;
+        padding: 20px;
+        display: flex;
+        gap: 20px;
+        overflow-x: auto; /* Cria a barra de rolagem horizontal */
+        align-items: flex-start;
+      }
+
+      .card-arquivo {
+        min-width: 350px; /* Largura mínima de cada conjunto de pizza+barras */
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      /* 3. BARRA DIREITA (Tendência e IA) */
+      .barra-direita {
+        width: 350px;
+        background-color: #d2c9eb; /* Roxo claro */
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
     </style>
 
     <div class="layout-principal">
-        <!-- BARRA ESQUERDA -->
-        <aside class="barra-esquerda" id="menu-lateral">
-            <button onclick="document.getElementById('menu-lateral').classList.toggle('recolhida')">Ocultar/Mostrar</button>
-            <!-- Seu formulário de upload vem aqui -->
-        </aside>
+      <!-- BARRA ESQUERDA -->
+      <aside class="barra-esquerda" id="menu-lateral">
+        <div class="card-lateral">
+          <h3 class="titulo-lateral">Painel de Controle</h3>
 
-        <!-- ÁREA CENTRAL -->
+          <!-- PARÂMETROS GERAIS (Usados para Buscar, Upload e Excluir) -->
+          <div class="grupo-form">
+            <label>Código do Convênio</label>
+            <select id="codigo_convenio">
+              <option value="">-- Selecione --</option>
+              <option value="1">1 - INSS</option>
+              <option value="71">71 - PREF. JOÃO PESSOA</option>
+              <option value="82">82 - PREF. NATAL</option>
+            </select>
+          </div>
+
+          <div class="grupo-form">
+            <label>Consignatária (Banco)</label>
+            <select id="consignataria">
+              <option value="">-- Selecione --</option>
+              <option value="CAPITAL_CONSIG">Capital Consig</option>
+              <option value="CIASPREV">Ciasprev</option>
+              <option value="CLICKBANK">Clickbank</option>
+              <option value="HOJE_PREVIDENCIA">Hoje Previdência</option>
+              <option value="BEM_CARTOES">Bem Cartões</option>
+            </select>
+          </div>
+
+          <div class="grupo-form">
+            <label>Produto</label>
+            <select id="produto">
+              <option value="">-- Selecione --</option>
+              <option value="EMPRESTIMO">Empréstimo</option>
+              <option value="CARTAO_CREDITO">Cartão de Crédito</option>
+              <option value="CARTAO_BENEFICIO">Cartão Benefício</option>
+            </select>
+          </div>
+
+          <div class="grupo-form">
+            <label>Período (Competência)</label>
+            <div class="grupo-datas">
+              <!-- Data Inicial -->
+              <input
+                type="date"
+                id="competencia_inicio"
+                title="Competência Inicial"
+              />
+              <!-- Data Final (Opcional) -->
+              <input
+                type="date"
+                id="competencia_fim"
+                title="Competência Final (Opcional)"
+              />
+            </div>
+            <small
+              style="
+                display: block;
+                text-align: center;
+                font-size: 10px;
+                color: #888;
+                margin-top: 4px;
+              "
+              >Deixe a data final vazia para ver apenas 1 mês</small
+            >
+          </div>
+          <small
+            style="
+              display: block;
+              text-align: center;
+              font-size: 10px;
+              color: #888;
+              margin-top: 4px;
+            "
+            >Deixe a data final vazia para ver apenas 1 mês</small
+          >
+        </div>
+
+        <hr class="divisor-linha" />
+
+        <!-- 1º BOTÃO: APENAS BUSCAR (Filtro) -->
+        <button id="btn-buscar" class="btn-acao btn-buscar">
+          🔍 Filtrar Relatórios
+        </button>
+
+        <hr class="divisor-linha" />
+
+        <!-- 2º BOTÃO: UPLOAD DE NOVO ARQUIVO -->
+        <div class="grupo-form" style="margin-top: 5px">
+          <label>Arquivo de Retorno (.csv, .xlsx)</label>
+          <input
+            type="file"
+            id="arquivo"
+            style="border: 1px solid #7f8c8d; background: #ecf0f1"
+          />
+        </div>
+        <button id="btn-enviar" class="btn-acao btn-upload">
+          ⬆️ Processar Arquivo
+        </button>
+
+        <!-- 3º BOTÃO: EXCLUSÃO DE LOTE (Perigo) -->
+        <button id="btn-excluir" class="btn-acao btn-excluir">
+          🗑️ Excluir Lote
+        </button>
+
+        <!-- Alerta de Status -->
+        <div
+          id="mensagem-alerta"
+          style="
+            display: none;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+          "
+        ></div>
+      </aside>
+
+      <!-- ÁREA CENTRAL -->
+      <main class="area-central" id="area-cards">
         <main class="area-central" id="area-cards">
-            <!-- O JavaScript vai limpar isso e injetar os gráficos reais aqui -->
+          <div
+            style="
+              width: 100%;
+              text-align: center;
+              margin-top: 50px;
+              color: #666;
+            "
+          >
+            <h2>Bem-vindo ao Validador de Convênios</h2>
+            <p>
+              Selecione os filtros desejados ou faça o upload de um arquivo para
+              visualizar os relatórios.
+            </p>
+          </div>
         </main>
+        <!-- O JavaScript vai limpar isso e injetar os gráficos reais aqui -->
+      </main>
 
-        <!-- BARRA DIREITA -->
-        <aside class="barra-direita">
-            <canvas id="chartTendencia" style="min-height: 250px;"></canvas>
-            <!-- Tendência e IA vêm aqui -->
-        </aside>
+      <!-- BARRA DIREITA -->
+      <aside class="barra-direita">
+        <canvas id="chartTendencia" style="min-height: 250px"></canvas>
+        <!-- Tendência e IA vêm aqui -->
+      </aside>
     </div>
-</head>
-<body>
-
+  </head>
+  <body>
     <div class="container mt-5">
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <div class="card p-4">
-                    <h2 class="mb-4 text-primary">Importação de Retornos Financeiros</h2>
-                    
-                    <!-- O id="form-upload" é o que o Javascript vai procurar -->
-                    <form id="form-upload">
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Código do Convênio</label>
-                                <select class="form-select" id="codigo_convenio" required>
-                                    <option value="" selected disabled>Selecione...</option>
-                                    <option value="1">1 - INSS</option>
-                                    <option value="2">2 - GOV. PARAÍBA</option>
-                                    <option value="71">71 - PREF. JOÃO PESSOA</option>
-                                    <!-- <option value="CONSIGFACIL_2">CONSIGFACIL 2</option> -->
-                                </select>
-                            </div>
-                            
-                            <div class="col-md-6">
-                                <label class="form-label">Consignatária (Banco)</label>
-                                <select class="form-select" id="consignataria" required>
-                                    <option value="" selected disabled>Selecione...</option>
-                                    <option value="CAPITAL CONSIG">Capital Consig</option>
-                                    <option value="CIASPREV">Ciasprev</option>
-                                    <option value="CLICKBANK">Clickbank</option>
-                                    <option value="HOJE_PREVIDENCIA">Hoje Previdência</option>
-                                    <option value="BEM_CARTOES">Bem Cartões</option>
-                                </select>
-                            </div>
-                        </div>
+      <div class="row justify-content-center">
+        <div class="col-md-8">
+          <div class="card p-4">
+            <h2 class="mb-4 text-primary">
+              Importação de Retornos Financeiros
+            </h2>
 
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label">Produto</label>
-                                <select class="form-select" id="produto" required>
-                                    <option value="" selected disabled>Selecione...</option>
-                                    <option value="EMPRESTIMO">Empréstimo</option>
-                                    <option value="CARTAO_CREDITO">Cartão de Crédito</option>
-                                    <option value="CARTAO_BENEFICIO">Cartão Benefício</option>
-                                </select>
-                            </div>
-
-                            <div class="col-md-6">
-                                <label class="form-label">Competência</label>
-                                <!-- Input de data para forçar o padrão AAAA-MM-DD -->
-                                <input type="date" class="form-control" id="competencia" required>
-                            </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="form-label">Arquivo de Retorno (.csv, .xlsx)</label>
-                            <input type="file" class="form-control" id="arquivo" accept=".csv, .xlsx, .xls" required>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100" id="btn-enviar">
-                            <span id="btn-texto">Processar Arquivo</span>
-                            <span id="btn-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                        </button>
-                    </form>
-
-                    <!-- Área de feedback para o usuário -->
-                    <div id="mensagem-alerta" class="alert mt-4" role="alert"></div>
-
+            <!-- O id="form-upload" é o que o Javascript vai procurar -->
+            <form id="form-upload">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Código do Convênio</label>
+                  <select class="form-select" id="codigo_convenio" required>
+                    <option value="" selected disabled>Selecione...</option>
+                    <option value="1">1 - INSS</option>
+                    <option value="2">2 - GOV. PARAÍBA</option>
+                    <option value="71">71 - PREF. JOÃO PESSOA</option>
+                    <!-- <option value="CONSIGFACIL_2">CONSIGFACIL 2</option> -->
+                  </select>
                 </div>
-            </div>
+
+                <div class="col-md-6">
+                  <label class="form-label">Consignatária (Banco)</label>
+                  <select class="form-select" id="consignataria" required>
+                    <option value="" selected disabled>Selecione...</option>
+                    <option value="CAPITAL_CONSIG">Capital Consig</option>
+                    <option value="CIASPREV">Ciasprev</option>
+                    <option value="CLICKBANK">Clickbank</option>
+                    <option value="HOJE_PREVIDENCIA">Hoje Previdência</option>
+                    <option value="BEM_CARTOES">Bem Cartões</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Produto</label>
+                  <select class="form-select" id="produto" required>
+                    <option value="" selected disabled>Selecione...</option>
+                    <option value="EMPRESTIMO">Empréstimo</option>
+                    <option value="CARTAO_CREDITO">Cartão de Crédito</option>
+                    <option value="CARTAO_BENEFICIO">Cartão Benefício</option>
+                  </select>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label">Competência</label>
+                  <!-- Input de data para forçar o padrão AAAA-MM-DD -->
+                  <input
+                    type="date"
+                    class="form-control"
+                    id="competencia"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <label class="form-label"
+                  >Arquivo de Retorno (.csv, .xlsx)</label
+                >
+                <input
+                  type="file"
+                  class="form-control"
+                  id="arquivo"
+                  accept=".csv, .xlsx, .xls"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                class="btn btn-primary w-100"
+                id="btn-enviar"
+              >
+                <span id="btn-texto">Processar Arquivo</span>
+                <span
+                  id="btn-spinner"
+                  class="spinner-border spinner-border-sm d-none"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+              </button>
+            </form>
+
+            <!-- Área de feedback para o usuário -->
+            <div id="mensagem-alerta" class="alert mt-4" role="alert"></div>
+          </div>
         </div>
+      </div>
     </div>
 
-    <section id="secao-dashboard" style="margin-top: 40px;">
-        <h2>Resumo de Desempenho</h2>
-        
-        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-            <div style="background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 20px;">
-                <h3>Tendência de Acatamento (Mês a Mês)</h3>
-                <!-- <canvas id="chartTendencia" style="max-height: 300px;"></canvas> -->
-            </div>
-            <!-- Card 1: Gráfico de Pizza (Status) -->
-            <div style="flex: 1; min-width: 300px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                <h3>Proporção de Acatamento</h3>
-                <canvas id="chartPizza"></canvas>
-            </div>
+    <section id="secao-dashboard" style="margin-top: 40px">
+      <h2>Resumo de Desempenho</h2>
 
-            <!-- Card 2: Gráfico de Barras (Top Críticas) -->
-            <div style="flex: 1; min-width: 300px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                <h3>Top 5 Inconsistências / Críticas</h3>
-                <canvas id="chartBarras"></canvas>
-            </div>
+      <div style="display: flex; gap: 20px; flex-wrap: wrap">
+        <div
+          style="
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+          "
+        >
+          <h3>Tendência de Acatamento (Mês a Mês)</h3>
+          <!-- <canvas id="chartTendencia" style="max-height: 300px;"></canvas> -->
         </div>
+        <!-- Card 1: Gráfico de Pizza (Status) -->
+        <div
+          style="
+            flex: 1;
+            min-width: 300px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          "
+        >
+          <h3>Proporção de Acatamento</h3>
+          <canvas id="chartPizza"></canvas>
+        </div>
+
+        <!-- Card 2: Gráfico de Barras (Top Críticas) -->
+        <div
+          style="
+            flex: 1;
+            min-width: 300px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          "
+        >
+          <h3>Top 5 Inconsistências / Críticas</h3>
+          <canvas id="chartBarras"></canvas>
+        </div>
+      </div>
     </section>
 
-<!-- O MOTOR: Aqui é onde o JavaScript puro faz a comunicação com o FastAPI -->
-<script>
-    // 1. "Capturamos" os elementos da tela que vamos manipular
-    const formulario = document.getElementById('form-upload');
-    const btnEnviar = document.getElementById('btn-enviar');
-    const btnTexto = document.getElementById('btn-texto');
-    const btnSpinner = document.getElementById('btn-spinner');
-    const caixaAlerta = document.getElementById('mensagem-alerta');
+    <!-- O MOTOR: Aqui é onde o JavaScript puro faz a comunicação com o FastAPI -->
+    <script>
+      // 1. "Capturamos" os elementos da tela que vamos manipular
+      const formulario = document.getElementById("form-upload");
+      const btnEnviar = document.getElementById("btn-enviar");
+      const btnTexto = document.getElementById("btn-texto");
+      const btnSpinner = document.getElementById("btn-spinner");
+      const caixaAlerta = document.getElementById("mensagem-alerta");
 
-    // 2. Interceptamos o evento de envio (Submit) do formulário
-    // 2. Interceptamos o evento de envio (Submit) do formulário
-    formulario.addEventListener('submit', async function(evento) {
-        
+      // 2. Interceptamos o evento de envio (Submit) do formulário
+      // 2. Interceptamos o evento de envio (Submit) do formulário
+      formulario.addEventListener("submit", async function (evento) {
         // Impede que a página recarregue ao clicar no botão
         evento.preventDefault();
-        
+
         // Altera o estado do botão para "Carregando"
         btnTexto.textContent = "Processando...";
-        btnSpinner.classList.remove('d-none');
+        btnSpinner.classList.remove("d-none");
         btnEnviar.disabled = true;
-        caixaAlerta.style.display = 'none'; // Esconde mensagens anteriores
+        caixaAlerta.style.display = "none"; // Esconde mensagens anteriores
 
         // 3. Montamos o pacote de dados EXATAMENTE como o FastAPI pede
         const dadosFormulario = new FormData();
-        dadosFormulario.append("codigo_convenio", document.getElementById('codigo_convenio').value);
-        dadosFormulario.append("consignataria", document.getElementById('consignataria').value);
-        dadosFormulario.append("produto", document.getElementById('produto').value);
-        dadosFormulario.append("competencia", document.getElementById('competencia').value);
-        
+        dadosFormulario.append(
+          "codigo_convenio",
+          document.getElementById("codigo_convenio").value,
+        );
+        dadosFormulario.append(
+          "consignataria",
+          document.getElementById("consignataria").value,
+        );
+        dadosFormulario.append(
+          "produto",
+          document.getElementById("produto").value,
+        );
+        dadosFormulario.append(
+          "competencia",
+          document.getElementById("competencia").value,
+        );
+
         // Pega o arquivo físico anexado no input
-        const arquivoFisico = document.getElementById('arquivo').files[0];
+        const arquivoFisico = document.getElementById("arquivo").files[0];
         dadosFormulario.append("arquivo", arquivoFisico);
 
         try {
-            // 4. Mandamos o "dadosFormulario" para a nuvem
-            const resposta = await fetch('https://api-validador-convenios.onrender.com/api/upload', {
-                method: 'POST',
-                body: dadosFormulario 
-            });
+          // 4. Mandamos o "dadosFormulario" para a nuvem
+          const resposta = await fetch(
+            "https://api-validador-convenios.onrender.com/api/upload",
+            {
+              method: "POST",
+              body: dadosFormulario,
+            },
+          );
 
-            if (resposta.ok) {
-                // Usando a sua função auxiliar mostrarAlerta que está logo abaixo no código!
-                mostrarAlerta("Upload concluído com sucesso!", "success"); 
-                
-                // Atualiza os gráficos sozinhos sem recarregar a página
-                carregarDashboard(); 
-            } else {
-                mostrarAlerta("Erro ao processar o arquivo no servidor.", "danger");
-            }
+          if (resposta.ok) {
+            // Usando a sua função auxiliar mostrarAlerta que está logo abaixo no código!
+            mostrarAlerta("Upload concluído com sucesso!", "success");
+
+            // Atualiza os gráficos sozinhos sem recarregar a página
+            carregarDashboard();
+          } else {
+            mostrarAlerta("Erro ao processar o arquivo no servidor.", "danger");
+          }
         } catch (erro) {
-            console.error("Erro no upload:", erro);
-            mostrarAlerta("Erro de conexão com a API.", "danger");
+          console.error("Erro no upload:", erro);
+          mostrarAlerta("Erro de conexão com a API.", "danger");
         } finally {
-            // Devolve o botão ao estado original independente do resultado
-            btnTexto.textContent = "Processar Arquivo";
-            btnSpinner.classList.add('d-none');
-            btnEnviar.disabled = false;
+          // Devolve o botão ao estado original independente do resultado
+          btnTexto.textContent = "Processar Arquivo";
+          btnSpinner.classList.add("d-none");
+          btnEnviar.disabled = false;
         }
-    });
+      });
 
-    // Função auxiliar para exibir a caixa de aviso verde ou vermelha
-    function mostrarAlerta(mensagem, tipo) {
+      // Função auxiliar para exibir a caixa de aviso verde ou vermelha
+      function mostrarAlerta(mensagem, tipo) {
         caixaAlerta.className = `alert mt-4 alert-${tipo}`;
         caixaAlerta.textContent = mensagem;
-        caixaAlerta.style.display = 'block';
-    }
+        caixaAlerta.style.display = "block";
+      }
 
-    // Endereço base da sua API no Render
-    const API_URL = 'https://api-validador-convenios.onrender.com';
+      // Endereço base da sua API no Render
+      const API_URL = "https://api-validador-convenios.onrender.com";
 
-    let chartPizzaInstancia = null;
-    let chartBarrasInstancia = null;
-    let chartTendenciaInstancia = null;
+      let chartPizzaInstancia = null;
+      let chartBarrasInstancia = null;
+      let chartTendenciaInstancia = null;
 
-    async function carregarDashboard() {
+      async function carregarDashboard() {
         try {
-            const resposta = await fetch(`${API_URL}/api/relatorios/dashboard/resumo`);
-            
-            if (!resposta.ok) {
-                throw new Error("Erro ao carregar dados do dashboard.");
-            }
+          const resposta = await fetch(
+            `${API_URL}/api/relatorios/dashboard/resumo`,
+          );
 
-            const dados = await resposta.json();
+          if (!resposta.ok) {
+            throw new Error("Erro ao carregar dados do dashboard.");
+          }
 
-            // =================================================================
-            // 1. ÁREA CENTRAL: CARDS DINÂMICOS (LAÇO DE REPETIÇÃO)
-            // =================================================================
-            const areaCards = document.getElementById('area-cards');
-            
-            // Limpa a tela para não duplicar os gráficos se você atualizar a página
-            areaCards.innerHTML = ''; 
+          const dados = await resposta.json();
 
-            // Varre a lista de arquivos que o Python enviou
-            dados.cards_arquivos.forEach(arquivo => {
-                
-                // Cria o "chassi" HTML de cada arquivo com IDs únicos (ex: pizza-1, barras-1)
-                const cardHTML = `
+          // =================================================================
+          // 1. ÁREA CENTRAL: CARDS DINÂMICOS (LAÇO DE REPETIÇÃO)
+          // =================================================================
+          const areaCards = document.getElementById("area-cards");
+
+          // Limpa a tela para não duplicar os gráficos se você atualizar a página
+          areaCards.innerHTML = "";
+
+          // Varre a lista de arquivos que o Python enviou
+          dados.cards_arquivos.forEach((arquivo) => {
+            // Cria o "chassi" HTML de cada arquivo com IDs únicos (ex: pizza-1, barras-1)
+            const cardHTML = `
                     <div class="card-arquivo">
                         <h4 style="text-align: center; color: #555; margin-top: 0;">${arquivo.nome_arquivo}</h4>
                         
@@ -286,91 +570,110 @@
                         </div>
                     </div>
                 `;
-                
-                // Injeta o HTML na área central (um do lado do outro graças ao CSS Flexbox)
-                areaCards.insertAdjacentHTML('beforeend', cardHTML);
 
-                // Desenha a Pizza do respectivo arquivo
-                new Chart(document.getElementById(`pizza-${arquivo.id_arquivo}`).getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: arquivo.grafico_pizza.labels,
-                        datasets: [{
-                            data: arquivo.grafico_pizza.quantidades,
-                            backgroundColor: ['#2ea44f', '#d73a49', '#dbab09', '#6e7681']
-                        }]
-                    },
-                    options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
-                });
+            // Injeta o HTML na área central (um do lado do outro graças ao CSS Flexbox)
+            areaCards.insertAdjacentHTML("beforeend", cardHTML);
 
-                // Desenha as Barras do respectivo arquivo
-                new Chart(document.getElementById(`barras-${arquivo.id_arquivo}`).getContext('2d'), {
-                    type: 'bar',
-                    data: {
-                        labels: arquivo.grafico_barras.labels,
-                        datasets: [{
-                            label: 'Ocorrências',
-                            data: arquivo.grafico_barras.quantidades,
-                            backgroundColor: '#0366d6'
-                        }]
-                    },
-                    options: { 
-                        indexAxis: 'y', 
-                        responsive: true, 
-                        plugins: { legend: { display: false } } 
-                    }
-                });
-            });
-
-            // =================================================================
-            // 2. BARRA DIREITA: GRÁFICO DE TENDÊNCIA FIXO
-            // =================================================================
-            if (!dados.grafico_tendencia) return;
-
-            const ctxTendencia = document.getElementById('chartTendencia').getContext('2d');
-
-            if (chartTendenciaInstancia) chartTendenciaInstancia.destroy();
-
-            chartTendenciaInstancia = new Chart(ctxTendencia, {
-                type: 'line',
+            // Desenha a Pizza do respectivo arquivo
+            new Chart(
+              document
+                .getElementById(`pizza-${arquivo.id_arquivo}`)
+                .getContext("2d"),
+              {
+                type: "doughnut",
                 data: {
-                    labels: dados.grafico_tendencia.labels,
-                    datasets: [
-                        {
-                            label: 'Acatado',
-                            data: dados.grafico_tendencia.aceitos,
-                            borderColor: '#2ea44f',
-                            backgroundColor: 'rgba(46, 164, 79, 0.1)',
-                            fill: true,
-                            tension: 0.3
-                        },
-                        {
-                            label: 'Rejeitado',
-                            data: dados.grafico_tendencia.rejeitados,
-                            borderColor: '#d73a49',
-                            backgroundColor: 'rgba(215, 58, 73, 0.1)',
-                            fill: true,
-                            tension: 0.3
-                        }
-                    ]
+                  labels: arquivo.grafico_pizza.labels,
+                  datasets: [
+                    {
+                      data: arquivo.grafico_pizza.quantidades,
+                      backgroundColor: [
+                        "#2ea44f",
+                        "#d73a49",
+                        "#dbab09",
+                        "#6e7681",
+                      ],
+                    },
+                  ],
                 },
                 options: {
-                    responsive: true,
-                    maintainAspectRatio: false, // Permite que o gráfico estique na barra direita
-                    plugins: { legend: { position: 'top' } }
-                }
-            });
+                  responsive: true,
+                  plugins: { legend: { position: "bottom" } },
+                },
+              },
+            );
 
+            // Desenha as Barras do respectivo arquivo
+            new Chart(
+              document
+                .getElementById(`barras-${arquivo.id_arquivo}`)
+                .getContext("2d"),
+              {
+                type: "bar",
+                data: {
+                  labels: arquivo.grafico_barras.labels,
+                  datasets: [
+                    {
+                      label: "Ocorrências",
+                      data: arquivo.grafico_barras.quantidades,
+                      backgroundColor: "#0366d6",
+                    },
+                  ],
+                },
+                options: {
+                  indexAxis: "y",
+                  responsive: true,
+                  plugins: { legend: { display: false } },
+                },
+              },
+            );
+          });
+
+          // =================================================================
+          // 2. BARRA DIREITA: GRÁFICO DE TENDÊNCIA FIXO
+          // =================================================================
+          if (!dados.grafico_tendencia) return;
+
+          const ctxTendencia = document
+            .getElementById("chartTendencia")
+            .getContext("2d");
+
+          if (chartTendenciaInstancia) chartTendenciaInstancia.destroy();
+
+          chartTendenciaInstancia = new Chart(ctxTendencia, {
+            type: "line",
+            data: {
+              labels: dados.grafico_tendencia.labels,
+              datasets: [
+                {
+                  label: "Acatado",
+                  data: dados.grafico_tendencia.aceitos,
+                  borderColor: "#2ea44f",
+                  backgroundColor: "rgba(46, 164, 79, 0.1)",
+                  fill: true,
+                  tension: 0.3,
+                },
+                {
+                  label: "Rejeitado",
+                  data: dados.grafico_tendencia.rejeitados,
+                  borderColor: "#d73a49",
+                  backgroundColor: "rgba(215, 58, 73, 0.1)",
+                  fill: true,
+                  tension: 0.3,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false, // Permite que o gráfico estique na barra direita
+              plugins: { legend: { position: "top" } },
+            },
+          });
         } catch (erro) {
-            console.error("Erro ao desenhar gráficos:", erro);
+          console.error("Erro ao desenhar gráficos:", erro);
         }
-    }
+      }
 
-    // Executa a função assim que a página é carregada
-    document.addEventListener("DOMContentLoaded", carregarDashboard);
-</script>
-
-
-
-</body>
+      // Executa a função assim que a página é carregada
+    </script>
+  </body>
 </html>
