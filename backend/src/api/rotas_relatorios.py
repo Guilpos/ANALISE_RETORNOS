@@ -214,7 +214,7 @@ def obter_resumo_dashboard(
     if not codigo_convenio:
             raise HTTPException(
                 status_code=400, 
-                detail="Operação negada: Para excluir um lote, você deve selecionar Convênio, Consignatária, Produto e Competência Inicial."
+                detail="Operação negada: Para obter o resumo de um convênio, você deve selecionar um Convênio"
             )
     # ==========================================
     # 0. CONSTRUÇÃO DINÂMICA DO FILTRO (WHERE)

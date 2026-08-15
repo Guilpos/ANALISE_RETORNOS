@@ -15,6 +15,13 @@ async def receber_upload_retorno(
     competencia: str = Form(...), # NOVO: Para sabermos de qual mês é o arquivo
     db: Session = Depends(get_db) # NOVO: Injeção do banco de dados na rota
 ):
+    
+    if not codigo_convenio or not consignataria or not produto or not competencia:
+            raise HTTPException(
+                status_code=400, 
+                detail="Operação negada: Para adicionar um lote, você deve selecionar Convênio, Consignatária, Produto e Competência Inicial."
+            )
+    
     try:
         conteudo_em_bytes = await arquivo.read()
         

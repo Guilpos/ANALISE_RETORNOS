@@ -11,6 +11,23 @@
     />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
+      /* 1. Preparamos a barra original para aceitar animações */
+      .barra-esquerda {
+        transition: all 0.4s ease-in-out; /* Duração de 0.4 segundos com aceleração e desaceleração suave */
+        overflow-x: hidden; /* Impede que os botões e textos "vazem" enquanto a barra espreme */
+      }
+
+      /* 2. O novo estado oculto (Adeus, display: none!) */
+      .barra-esquerda.oculta {
+        min-width: 0 !important;
+        width: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        opacity: 0;
+        border: none !important;
+      }
       /* ESTILOS DA BARRA LATERAL (PAINEL DE CONTROLE) */
       .card-lateral {
         background-color: white;
@@ -138,7 +155,7 @@
       }
 
       .card-arquivo {
-        min-width: 600px; /* Aumentamos para caber a pizza e as barras com folga */
+        min-width: 800px; /* Aumentamos para caber a pizza e as barras com folga */
         flex-shrink: 0; /* A MÁGICA: Impede que o cartão seja espremido quando houver muitos na tela */
         background: white;
         padding: 20px;
@@ -158,6 +175,25 @@
         gap: 20px;
       }
     </style>
+
+    <!-- Novo Botão Flutuante Fixo -->
+    <button
+      id="btn-toggle-menu"
+      class="btn btn-dark"
+      style="
+        position: fixed;
+        bottom: 30px;
+        left: 30px;
+        z-index: 9999;
+        border-radius: 50px;
+        padding: 10px 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+      "
+    >
+      <span id="icone-menu">◀</span>
+      <span style="font-size: 14px">Filtros</span>
+    </button>
 
     <div class="layout-principal">
       <!-- BARRA ESQUERDA -->
@@ -279,24 +315,9 @@
       </aside>
 
       <!-- ÁREA CENTRAL -->
-      <main class="area-central" id="area-cards">
-        <main class="area-central" id="area-cards">
-          <div
-            style="
-              width: 100%;
-              text-align: center;
-              margin-top: 50px;
-              color: #666;
-            "
-          >
-            <h2>Bem-vindo ao Validador de Convênios</h2>
-            <p>
-              Selecione os filtros desejados ou faça o upload de um arquivo para
-              visualizar os relatórios.
-            </p>
-          </div>
-        </main>
-        <!-- O JavaScript vai limpar isso e injetar os gráficos reais aqui -->
+      <main class="area-central" style="padding: 20px; position: relative">
+        <!-- A sua div area-cards continua aqui embaixo -->
+        <div id="area-cards" style="display: flex; gap: 20px"></div>
       </main>
 
       <!-- BARRA DIREITA -->
@@ -319,16 +340,38 @@
         </div>
 
         <!-- O espaço reservado para o resumo da IA que faremos a seguir -->
-        <h4
+        <!-- Título com Switch de Ativação -->
+        <div
           style="
-            text-align: center;
-            color: #555;
-            margin-bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-top: 20px;
+            margin-bottom: 5px;
           "
         >
-          Insight da IA
-        </h4>
+          <h4 style="text-align: center; color: #555; margin: 0">
+            Insight da IA
+          </h4>
+
+          <div class="form-check form-switch" style="margin: 0">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="toggle-ia"
+              unchecked
+              style="cursor: pointer"
+            />
+            <label
+              class="form-check-label"
+              for="toggle-ia"
+              style="font-size: 11px; color: #888; cursor: pointer"
+              >Ativar</label
+            >
+          </div>
+        </div>
+
+        <!-- A div caixa-ia continua igual -->
         <div
           id="caixa-ia"
           style="
@@ -351,6 +394,14 @@
             A inteligência artificial irá gerar o resumo aqui...
           </p>
         </div>
+        <p
+          style="
+            color: #888;
+            text-align: center;
+            font-size: 14px;
+            margin-top: 50px;
+          "
+        ></p>
       </aside>
     </div>
   </head>
@@ -510,6 +561,24 @@
       }
     });
 
+    // Intercepta o clique no botão Flutuante
+    document
+      .getElementById("btn-toggle-menu")
+      .addEventListener("click", function () {
+        const barraEsquerda = document.querySelector(".barra-esquerda");
+        const iconeMenu = document.getElementById("icone-menu");
+
+        // Ativa ou desativa a classe que oculta a barra
+        barraEsquerda.classList.toggle("oculta");
+
+        // Muda a setinha do botão para dar feedback visual de qual lado a barra vai
+        if (barraEsquerda.classList.contains("oculta")) {
+          iconeMenu.textContent = "▶"; // Mostrar
+        } else {
+          iconeMenu.textContent = "◀"; // Esconder
+        }
+      });
+
     // Função auxiliar para exibir a caixa de aviso verde ou vermelha
     function mostrarAlerta(mensagem, tipo) {
       caixaAlerta.className = `alert mt-4 alert-${tipo}`;
@@ -636,7 +705,7 @@
                     
                     <div style="display: flex; gap: 20px; align-items: flex-start;">
                         <!-- Coluna da Esquerda: Pizza + Valores Financeiros -->
-                        <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; align-items: center;">
+                        <div style="flex: 1; min-width: 290px; display: flex; flex-direction: column; align-items: center;">
                             <div style="width: 100%; max-width: 220px;">
                                 <canvas id="pizza-${arquivo.id_arquivo}"></canvas>
                             </div>
@@ -644,7 +713,7 @@
                         </div>
                         
                         <!-- Coluna da Direita: Gráfico de Barras -->
-                        <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column;">
+                        <div style="flex: 1; min-width: 500px; display: flex; flex-direction: column;">
                             <h5 style="text-align: center; margin-top: 0; margin-bottom: 10px; color: #666; font-size: 13px; font-weight: normal;">Volume de Inconsistências</h5>
                             <canvas id="barras-${arquivo.id_arquivo}"></canvas>
                         </div>
@@ -730,6 +799,14 @@
                 fill: true,
                 tension: 0.3,
               },
+              {
+                label: "Parcial",
+                data: dados.grafico_tendencia.parciais,
+                borderColor: "#f39c12",
+                backgroundColor: "rgba(215, 58, 73, 0.1)",
+                fill: true,
+                tension: 0.3,
+              },
             ],
           },
           options: {
@@ -738,9 +815,17 @@
             plugins: { legend: { position: "top" } },
           },
         });
-        // 3. O PONTO DE IGNIÇÃO DA IA
-        // Dispara a requisição da IA em segundo plano passando o JSON inteiro
-        gerarResumoIA(dados);
+        // 3. O PONTO DE IGNIÇÃO DA IA (COM TRAVA DE SEGURANÇA)
+        const botaoIA = document.getElementById("toggle-ia");
+
+        // Só dispara a IA se o botão estiver marcado (checked)
+        if (botaoIA && botaoIA.checked) {
+          gerarResumoIA(dados);
+        } else {
+          // Se estiver desligado, limpa a caixa e avisa que está em modo de teste
+          document.getElementById("caixa-ia").innerHTML =
+            '<p style="color: #aaa; text-align: center; font-size: 13px; margin-top: 50px;">⏸️ Modo de teste visual ativo.<br>Geração de insight desativada.</p>';
+        }
       } catch (erro) {
         console.error("Erro ao desenhar gráficos:", erro);
       }
