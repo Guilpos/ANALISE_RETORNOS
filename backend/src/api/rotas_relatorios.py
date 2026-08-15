@@ -58,7 +58,7 @@ def gerar_insight_ia(dados: DadosInsight, db: Session = Depends(get_db)):
 
     try:
         # Usa o modelo mais rápido e barato do Gemini para tarefas de texto
-        modelo = genai.GenerativeModel('gemini-1.5-flash')
+        modelo = genai.GenerativeModel('gemini-2.5-flash')
         resposta_ia = modelo.generate_content(prompt)
         texto_final = resposta_ia.text.strip()
 
