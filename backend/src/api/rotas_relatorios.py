@@ -337,6 +337,7 @@ def obter_resumo_dashboard(
     meses_unicos = []
     linha_aceitos = {}
     linha_rejeitados = {}
+    linha_parciais = {}
     
     for row in resultado_tendencia:
         mes = row[0]
@@ -347,15 +348,19 @@ def obter_resumo_dashboard(
             meses_unicos.append(mes)
             linha_aceitos[mes] = 0
             linha_rejeitados[mes] = 0
+            linha_parciais[mes] = 0
 
         if "ACATADO" in status and "INTEGRAL" in status:
             linha_aceitos[mes] += qtd
+        elif "ACATADO" in status and "PARCIAL" in status:
+            linha_parciais[mes] += qtd
         elif "REJEITADO" in status or "ZERADO" in status:
             linha_rejeitados[mes] += qtd
 
     dados_tendencia = {
         "labels": meses_unicos,
         "aceitos": [linha_aceitos[mes] for mes in meses_unicos],
+        "parciais": [linha_parciais[mes] for mes in meses_unicos],
         "rejeitados": [linha_rejeitados[mes] for mes in meses_unicos]
     }
 
