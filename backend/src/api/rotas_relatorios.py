@@ -314,6 +314,39 @@ def obter_resumo_dashboard(
             cards_arquivos[id_arq]["grafico_barras"]["labels"].append(critica)
             cards_arquivos[id_arq]["grafico_barras"]["quantidades"].append(qtd)
 
+    # =================================================================
+    # ORDENAÇÃO DOS DADOS (DO MAIOR PARA O MENOR)
+    # =================================================================
+    for arquivo_id, dados_arq in cards_arquivos.items():
+        
+        # 1. Ordenar a Pizza e o Resumo Financeiro pelo Valor em Reais
+        pizza = dados_arq["grafico_pizza"]
+        if len(pizza["labels"]) > 0:
+            # A função zip() junta as três listas como se fossem linhas de uma tabela
+            # O reverse=True garante que ficará em ordem decrescente (do maior pro menor)
+            pizza_ordenada = sorted(
+                zip(pizza["labels"], pizza["quantidades"], pizza["valores_financeiros"]), 
+                key=lambda x: x[2], # x[2] significa que o alvo da ordenação é a 3ª lista (valores financeiros)
+                reverse=True
+            )
+            
+            # Desempacota de volta para o formato original
+            pizza["labels"] = [item[0] for item in pizza_ordenada]
+            pizza["quantidades"] = [item[1] for item in pizza_ordenada]
+            pizza["valores_financeiros"] = [item[2] for item in pizza_ordenada]
+
+        # 2. Ordenar o Gráfico de Barras pela Quantidade de Inconsistências
+        barras = dados_arq["grafico_barras"]
+        if len(barras["labels"]) > 0:
+            barras_ordenadas = sorted(
+                zip(barras["labels"], barras["quantidades"]), 
+                key=lambda x: x[1], # x[1] significa que o alvo da ordenação é a 2ª lista (quantidades)
+                reverse=True
+            )
+            
+            barras["labels"] = [item[0] for item in barras_ordenadas]
+            barras["quantidades"] = [item[1] for item in barras_ordenadas]
+
     # Convertendo para lista
     lista_de_cards = list(cards_arquivos.values())
     # A MÁGICA DA ORDENAÇÃO: Força a lista a ficar em ordem crescente de data!
