@@ -70,6 +70,7 @@
       /* Campos de data lado a lado para o período */
       .grupo-datas {
         display: flex;
+        width: 50%;
         gap: 10px;
       }
 
@@ -239,13 +240,13 @@
             <div class="grupo-datas">
               <!-- Data Inicial -->
               <input
-                type="date"
+                type="month"
                 id="competencia_inicio"
                 title="Competência Inicial"
               />
               <!-- Data Final (Opcional) -->
               <input
-                type="date"
+                type="month"
                 id="competencia_fim"
                 title="Competência Final (Opcional)"
               />
@@ -261,16 +262,6 @@
               >Deixe a data final vazia para ver apenas 1 mês</small
             >
           </div>
-          <small
-            style="
-              display: block;
-              text-align: center;
-              font-size: 10px;
-              color: #888;
-              margin-top: 4px;
-            "
-            >Deixe a data final vazia para ver apenas 1 mês</small
-          >
         </div>
 
         <hr class="divisor-linha" />

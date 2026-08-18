@@ -164,6 +164,9 @@ def excluir_lote_arquivos(
             detail="Operação negada: Para excluir um lote, você deve selecionar Convênio, Consignatária, Produto e Competência Inicial."
         )
 
+    # PADRONIZAÇÃO AQUI
+    competencia_padronizada = f"{competencia_inicio}-01"
+
     try:
         # =================================================================
         # 2. EXECUÇÃO CIRÚRGICA DA EXCLUSÃO
@@ -180,7 +183,7 @@ def excluir_lote_arquivos(
             "conv": codigo_convenio, 
             "banco": consignataria, 
             "prod": produto, 
-            "comp": competencia_inicio
+            "comp": competencia_padronizada
         })
         
         # O SQLAlchemy nos diz exatamente quantas linhas foram evaporadas
@@ -236,11 +239,13 @@ def obter_resumo_dashboard(
         
     if competencia_inicio:
         filtros_sql.append("f.competencia >= :comp_ini")
-        parametros["comp_ini"] = competencia_inicio
+        # Injeta o -01 direto no parâmetro da query
+        parametros["comp_ini"] = f"{competencia_inicio}-01" 
         
     if competencia_fim:
         filtros_sql.append("f.competencia <= :comp_fim")
-        parametros["comp_fim"] = competencia_fim
+        # Injeta o -01 direto no parâmetro da query
+        parametros["comp_fim"] = f"{competencia_fim}-01"
 
     # Transforma a lista de filtros em uma string: " AND f.codigo_convenio = :convenio AND ..."
     clausula_where = ""
