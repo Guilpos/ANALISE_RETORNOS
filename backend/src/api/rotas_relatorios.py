@@ -252,42 +252,92 @@ def obter_resumo_dashboard(
     if filtros_sql:
         clausula_where = " AND " + " AND ".join(filtros_sql)
 
-    # ==========================================
-    # 1. DADOS DOS CARDS (PIZZA E BARRAS)
-    # ==========================================
     
-    # Adicionamos o MAX(f.competencia) para saber de qual mês é esse arquivo
+    # ==========================================
+    # 1. CONSTRUÇÃO DO TÍTULO DINÂMICO
+    # ==========================================
+    partes_titulo = []
+    if codigo_convenio:
+        partes_titulo.append(codigo_convenio)
+    if consignataria:
+        partes_titulo.append(consignataria)
+    if produto:
+        partes_titulo.append(produto)
+        
+    # Junta as partes com um hífen. Ex: "71 - PREF. JOÃO PESSOA - CAPITAL - Cartão de Crédito"
+    titulo_base = " - ".join(partes_titulo) if partes_titulo else "Visão Consolidada"
+
+    # ==========================================
+    # 2. LÓGICA DE AGRUPAMENTO (DRILL-DOWN)
+    # ==========================================
+    # Se preencheu data (início ou fim), separamos os cards por mês. 
+    # Se não preencheu, juntamos tudo em um único card chamado 'consolidado'
+    quebrar_por_mes = bool(competencia_inicio or competencia_fim)
+    
+    if quebrar_por_mes:
+        coluna_agrupador = "f.competencia"
+    else:
+        coluna_agrupador = "'consolidado'"
+
+    # ==========================================
+    # 3. QUERIES SQL INTELIGENTES
+    # ==========================================
     query_pizza = text(f"""
         SELECT 
-            f.id_arquivo_origem,
-            MAX(h.nome_arquivo_original) as nome_arquivo,
-            MAX(f.codigo_convenio) as convenio,
+            {coluna_agrupador} as id_agrupador,
             f.status_acatamento, 
             COUNT(f.id) as quantidade,
-            MAX(f.competencia) as competencia_ref,
-            SUM(f.valor_lancado) as valor_financeiro 
+            SUM(f.valor_lancado) as valor_financeiro,
+            MAX(f.competencia) as competencia_ref
         FROM fato_retornos f
-        LEFT JOIN historico_uploads h ON f.id_arquivo_origem = h.id
-        WHERE f.id_arquivo_origem IS NOT NULL {clausula_where}
-        GROUP BY f.id_arquivo_origem, f.status_acatamento
+        WHERE 1=1 {clausula_where} 
+        GROUP BY {coluna_agrupador}, f.status_acatamento
     """)
     resultado_pizza = db.execute(query_pizza, parametros).fetchall()
 
     query_barras = text(f"""
         SELECT 
-            f.id_arquivo_origem,
-            f.texto_critica_original, 
+            {coluna_agrupador} as id_agrupador,
+            f.critica_retorno,
             COUNT(f.id) as quantidade
         FROM fato_retornos f
-        WHERE f.texto_critica_original IS NOT NULL 
-          AND f.texto_critica_original != '' 
-          AND f.texto_critica_original != 'OK' 
-          {clausula_where}
-        GROUP BY f.id_arquivo_origem, f.texto_critica_original
+        WHERE f.status_acatamento IN ('ZERADO', 'REJEITADO', 'ACATADO PARCIAL') {clausula_where}
+        GROUP BY {coluna_agrupador}, f.critica_retorno
     """)
     resultado_barras = db.execute(query_barras, parametros).fetchall()
 
+    # ==========================================
+    # 4. MONTAGEM DOS CARDS (Com o Título Novo)
+    # ==========================================
     cards_arquivos = {}
+
+    for row in resultado_pizza:
+        id_agrupador = str(row[0]) # Será 'consolidado' ou a data (ex: '2026-08-01')
+        status = row[1] if row[1] else "NAO INFORMADO"
+        qtd = row[2]
+        valor_fin = float(row[3] or 0.0)
+        comp_ref = row[4] 
+
+        # Define o nome que vai aparecer no topo do card
+        if id_agrupador == 'consolidado':
+            nome_card = titulo_base
+        else:
+            # Se dividiu por mês, adiciona o mês no título para o usuário saber qual é qual
+            mes_ano = str(comp_ref)[:7] # Pega apenas o YYYY-MM
+            nome_card = f"{titulo_base} (Ref: {mes_ano})"
+
+        if id_agrupador not in cards_arquivos:
+            cards_arquivos[id_agrupador] = {
+                "id_arquivo": id_agrupador, # Mantemos o nome da variável igual para não quebrar o Frontend!
+                "nome_arquivo": nome_card,  # O frontend vai imprimir isso no <h4>
+                "competencia_ref": comp_ref,
+                "grafico_pizza": {"labels": [], "quantidades": [], "valores_financeiros": []},
+                "grafico_barras": {"labels": [], "quantidades": []}
+            }
+        
+        cards_arquivos[id_agrupador]["grafico_pizza"]["labels"].append(status)
+        cards_arquivos[id_agrupador]["grafico_pizza"]["quantidades"].append(qtd)
+        cards_arquivos[id_agrupador]["grafico_pizza"]["valores_financeiros"].append(valor_fin)
 
     for row in resultado_pizza:
         id_arq = row[0]
@@ -310,6 +360,9 @@ def obter_resumo_dashboard(
         cards_arquivos[id_arq]["grafico_pizza"]["quantidades"].append(qtd)
         cards_arquivos[id_arq]["grafico_pizza"]["valores_financeiros"].append(valor_fin) # 4. Guardamos o valor
 
+    # ==========================================
+    # 5. DADOS DOS CARDS (PIZZA E BARRAS)
+    # ==========================================
     for row in resultado_barras:
         id_arq = row[0]
         critica = row[1]

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
 from services.processamento_orquestrado import orquestrar_processamento
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from core.database import get_db
 
@@ -27,6 +28,30 @@ async def receber_upload_retorno(
     if competencia_recebida:
         # Colamos o "-01" no final para cravar o primeiro dia do mês
         competencia_padronizada = f"{competencia_recebida}-01"
+
+
+    query_duplicidade = text("""
+        SELECT 1 FROM fato_retornos 
+        WHERE codigo_convenio = :conv 
+          AND consignataria = :banco 
+          AND produto = :prod 
+          AND competencia = :comp
+        LIMIT 1
+    """)
+    
+    # O .scalar() retorna o valor (1) se encontrar, ou None se não existir nada
+    lote_ja_existe = db.execute(query_duplicidade, {
+        "conv": codigo_convenio,
+        "banco": consignataria,
+        "prod": produto,
+        "comp": competencia_padronizada
+    }).scalar()
+
+    if lote_ja_existe:
+        raise HTTPException(
+            status_code=409, 
+            detail=f"Lote Duplicado: Já existe um arquivo processado para essa combinação de Convênio, Banco, Produto e Competência. Se precisar atualizar os dados, exclua o lote atual primeiro."
+        )
     
     
     try:
