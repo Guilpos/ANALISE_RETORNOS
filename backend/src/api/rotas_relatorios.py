@@ -207,6 +207,7 @@ def excluir_lote_arquivos(
 @router.get("/dashboard/resumo", summary="Dados mastigados e filtrados dinamicamente")
 def obter_resumo_dashboard(
     codigo_convenio: Optional[str] = None,
+    nome_convenio: Optional[str] = None, # <-- NOVO PARÂMETRO AQUI
     consignataria: Optional[str] = None,
     produto: Optional[str] = None,
     competencia_inicio: Optional[str] = None,
@@ -253,18 +254,22 @@ def obter_resumo_dashboard(
         clausula_where = " AND " + " AND ".join(filtros_sql)
 
     
-    # ==========================================
+    # # ==========================================
     # 1. CONSTRUÇÃO DO TÍTULO DINÂMICO
     # ==========================================
     partes_titulo = []
-    if codigo_convenio:
+    
+    # Se o nome_convenio chegou, usamos ele. Se não, usamos o código numérico.
+    if nome_convenio:
+        partes_titulo.append(nome_convenio)
+    elif codigo_convenio:
         partes_titulo.append(codigo_convenio)
+        
     if consignataria:
         partes_titulo.append(consignataria)
     if produto:
         partes_titulo.append(produto)
         
-    # Junta as partes com um hífen. Ex: "71 - PREF. JOÃO PESSOA - CAPITAL - Cartão de Crédito"
     titulo_base = " - ".join(partes_titulo) if partes_titulo else "Visão Consolidada"
 
     # ==========================================
@@ -335,7 +340,7 @@ def obter_resumo_dashboard(
             else:
                 mes_ano = "Data Indefinida"
                 
-            nome_card = f"{titulo_base} (Ref: {mes_ano})"
+            nome_card = f"{titulo_base} {mes_ano}"
 
         if id_agrupador not in cards_arquivos:
             cards_arquivos[id_agrupador] = {

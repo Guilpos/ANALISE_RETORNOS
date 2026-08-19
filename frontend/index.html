@@ -587,23 +587,35 @@
     async function carregarDashboard() {
       try {
         // 1. CAPTURAR OS FILTROS DA BARRA LATERAL
-        const convenio = document.getElementById("codigo_convenio").value;
+        const selectConvenio = document.getElementById("codigo_convenio");
+        const convenio = selectConvenio.value;
+        
+        // NOVO: Captura o texto que está aparecendo na tela para o usuário
+        let nomeConvenioTexto = "";
+        if (convenio && selectConvenio.selectedIndex >= 0) {
+            nomeConvenioTexto = selectConvenio.options[selectConvenio.selectedIndex].text;
+        }
+
         const consignataria = document.getElementById("consignataria").value;
         const produto = document.getElementById("produto").value;
         const compInicio = document.getElementById("competencia_inicio").value;
         const compFim = document.getElementById("competencia_fim").value;
 
         // 2. MONTAR A URL DINÂMICA
-        // O URLSearchParams ajuda a criar aquela string "?convenio=71&produto=EMPRESTIMO"
         const parametros = new URLSearchParams();
 
         if (convenio) parametros.append("codigo_convenio", convenio);
+        // NOVO: Envia o texto bonitinho para o backend usar no título
+        if (nomeConvenioTexto) parametros.append("nome_convenio", nomeConvenioTexto); 
+        
         if (consignataria) parametros.append("consignataria", consignataria);
         if (produto) parametros.append("produto", produto);
         if (compInicio) parametros.append("competencia_inicio", compInicio);
         if (compFim) parametros.append("competencia_fim", compFim);
 
         const queryString = parametros.toString();
+        
+        // ... (o restante do código com a urlFinal e o fetch continua exatamente igual) ...
         // Se tiver parâmetros, adiciona a interrogação. Se não, chama a rota pura (traz tudo).
         const endpoint = queryString
           ? `/api/relatorios/dashboard/resumo?${queryString}`
