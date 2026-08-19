@@ -302,7 +302,7 @@ def obter_resumo_dashboard(
             COUNT(f.id) as quantidade
         FROM fato_retornos f
         WHERE f.status_acatamento IN ('ZERADO', 'REJEITADO') 
-          AND f.valor_acatado = `0.00`
+          AND f.valor_acatado = '0.00'
           AND f.texto_critica_original IS NOT NULL
           AND TRIM(f.texto_critica_original) != ''
           {clausula_where}
