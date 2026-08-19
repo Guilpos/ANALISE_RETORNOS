@@ -312,24 +312,31 @@ def obter_resumo_dashboard(
     cards_arquivos = {}
 
     for row in resultado_pizza:
-        id_agrupador = str(row[0]) # Será 'consolidado' ou a data (ex: '2026-08-01')
+        id_agrupador = str(row[0]) 
         status = row[1] if row[1] else "NAO INFORMADO"
         qtd = row[2]
         valor_fin = float(row[3] or 0.0)
-        comp_ref = row[4] 
+        comp_ref = row[4] # CORREÇÃO: O índice correto agora é o 4!
 
         # Define o nome que vai aparecer no topo do card
         if id_agrupador == 'consolidado':
             nome_card = titulo_base
         else:
-            # Se dividiu por mês, adiciona o mês no título para o usuário saber qual é qual
-            mes_ano = str(comp_ref)[:7] # Pega apenas o YYYY-MM
+            # INVERSÃO DE DATA: Transforma '2026-08-01' em '08/2026'
+            data_str = str(comp_ref)
+            if len(data_str) >= 7:
+                ano = data_str[0:4]
+                mes = data_str[5:7]
+                mes_ano = f"{mes}/{ano}"
+            else:
+                mes_ano = "Data Indefinida"
+                
             nome_card = f"{titulo_base} (Ref: {mes_ano})"
 
         if id_agrupador not in cards_arquivos:
             cards_arquivos[id_agrupador] = {
-                "id_arquivo": id_agrupador, # Mantemos o nome da variável igual para não quebrar o Frontend!
-                "nome_arquivo": nome_card,  # O frontend vai imprimir isso no <h4>
+                "id_arquivo": id_agrupador, 
+                "nome_arquivo": nome_card,  
                 "competencia_ref": comp_ref,
                 "grafico_pizza": {"labels": [], "quantidades": [], "valores_financeiros": []},
                 "grafico_barras": {"labels": [], "quantidades": []}
