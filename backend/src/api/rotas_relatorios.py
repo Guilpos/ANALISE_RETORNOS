@@ -301,7 +301,11 @@ def obter_resumo_dashboard(
             f.texto_critica_original,
             COUNT(f.id) as quantidade
         FROM fato_retornos f
-        WHERE f.status_acatamento IN ('ZERADO', 'REJEITADO', 'ACATADO PARCIAL') {clausula_where}
+        WHERE f.status_acatamento IN ('ZERADO', 'REJEITADO', 'ACATADO PARCIAL') 
+          AND f.valor_acatado = 0
+          AND f.texto_critica_original IS NOT NULL
+          AND TRIM(f.texto_critica_original) != ''
+          {clausula_where}
         GROUP BY {coluna_agrupador}, f.texto_critica_original
     """)
     resultado_barras = db.execute(query_barras, parametros).fetchall()
