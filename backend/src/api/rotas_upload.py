@@ -74,5 +74,11 @@ async def receber_upload_retorno(
         }
         
     except Exception as e:
-        # Se algo falhar na gravação, ele avisa a tela
+        # Importamos a biblioteca de rastreio nativa do Python
+        import traceback 
+        
+        # Isso vai imprimir o erro gigante e detalhado no seu terminal do VS Code/CMD
+        traceback.print_exc() 
+        
+        # Mantemos o envio do erro para o Swagger/Frontend
         raise HTTPException(status_code=500, detail=str(e))

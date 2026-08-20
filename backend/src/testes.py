@@ -3,12 +3,13 @@ from utils.formatters import limpar_cpf, limpar_data, limpar_moeda_retorno_consi
 
 def processar_portal_exemplo(caminho: str):
     # 1. Leitura segura (todos os dados nascem como texto bruto)
-    df = ler_arquivo_seguro(caminho)
+    convenio = "82"
+    df = ler_arquivo_seguro(caminho, "Teste Pref João Pessoa 08-2026.xlsx", convenio)
 
     # print(f'Como está df antes de filtrar?\n{df.head(10)}\n\n')
 
     # Use o .iloc (todas as linhas ':', e as colunas nas posições desejadas):
-    df_filtrado = df.iloc[:, [3, 7, 16, 17, 18]].copy()
+    df_filtrado = df.iloc[:, [2, 3, 7, 16,18]].copy()
 
     # 2. Atribui os novos nomes na ordem exata dos índices selecionados
     df_filtrado.columns = ['CPF', 'Valor Lançado', 'Crítica', 'Data', 'Valor Acatado']
@@ -28,7 +29,7 @@ def processar_portal_exemplo(caminho: str):
 
     return df
 
-caminho = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\07 - Julho\PREF JOAO PESSOA\LANÇAMENTO E RETORNO\RETORNO PREF JOAO PESSOA 07.2062.csv"
+caminho = r"C:\Users\user\Downloads\Teste Pref João Pessoa 08-2026.xlsx"
 
 arquivo_lido = processar_portal_exemplo(caminho=caminho)
 
