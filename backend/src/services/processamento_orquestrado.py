@@ -46,6 +46,10 @@ def orquestrar_processamento(conteudo: bytes, nome_arquivo: str, convenio: str, 
         'Valor_descontado': 'valor_acatado'
     })
     
+
+    # Imprime no terminal a lista exata de colunas que o Pandas encontrou
+    print("COLUNAS ENCONTRADAS NO ARQUIVO:", df.columns.tolist())
+    
     # Como as colunas já estão com os nomes corretos e em float, 
     # apenas rodamos o classificador de status
     df['status_acatamento'] = classificar_status_acatamento(df)
