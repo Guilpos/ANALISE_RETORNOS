@@ -20,7 +20,14 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
         try:
             # Transformamos os bytes em um objeto que o Pandas entende como arquivo
             tabela_memoria = io.BytesIO(conteudo_bytes)
-            return pd.read_excel(tabela_memoria, dtype=str, header=None)
+            df = pd.read_excel(tabela_memoria, dtype=str, header=None)
+            
+            # --- AS DUAS LINHAS MÁGICAS QUE FALTAVAM ---
+            df = colunas_usadas(modelo=portal, df=df)
+            df_resultado = base_portal.decidir_layout_portal(portal=portal, convenio=nome_convenio, arquivo=df)
+            
+            return df_resultado
+            
         except Exception as e:
             raise ValueError(f"Erro ao ler arquivo Excel: {str(e)}")
 
