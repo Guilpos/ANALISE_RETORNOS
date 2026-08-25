@@ -167,13 +167,35 @@
       }
 
       /* 3. BARRA DIREITA (Tendência e IA) */
-      .barra-direita {
+      #barra-direita {
         width: 400px;
+        min-width: 400px;
         background-color: #d2c9eb; /* Roxo claro */
         padding: 20px;
         display: flex;
         flex-direction: column;
         gap: 20px;
+      }
+
+      /* Tamanho e trava da sua barra direita */
+      .sidebar {
+          width: 400px;      /* Tamanho inicial padrão */
+          min-width: 300px;  /* A TRAVA: Impede que o usuário diminua mais que o padrão */
+          background-color: #f8f9fa; /* Cor de exemplo */
+          overflow-x: hidden;
+      }
+
+      /* O estilo do puxador */
+      .resizer {
+          width: 6px;
+          cursor: ew-resize; /* Cursor de setinha dupla para os lados */
+          background-color: #e0e0e0; /* Uma cor sutil, pode colocar transparente se preferir */
+          transition: background-color 0.2s;
+      }
+
+      /* Dá um destaque visual quando o usuário passa o mouse por cima do puxador */
+      .resizer:hover, .resizer.resizing {
+          background-color: #0d6efd; /* Azul do Bootstrap, por exemplo */
       }
     </style>
 
@@ -311,8 +333,11 @@
         <div id="area-cards" style="display: flex; gap: 20px"></div>
       </main>
 
+      <!-- O NOVO PUXADOR -->
+      <div id="redimensionador" class="resizer"></div>
+
       <!-- BARRA DIREITA -->
-      <aside class="barra-direita">
+      <aside id="barra-direita">
         <h4 style="text-align: center; color: #555; margin-bottom: 0">
           Tendência (Mês a Mês)
         </h4>
@@ -1024,6 +1049,54 @@
         caixaIA.innerHTML = `<p style="color: #e74c3c; font-size: 13px; text-align: center;">Sem conexão com o serviço de Inteligência Artificial.</p>`;
       }
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+      const resizer = document.getElementById('redimensionador');
+      const barraDireita = document.getElementById('barra-direita');
+
+      let x_inicial = 0;
+      let largura_inicial = 0;
+
+      // Quando o usuário CLICA e SEGURA o puxador
+      const mousePressionado = function (e) {
+          // Pega a posição inicial do mouse e a largura atual da barra
+          x_inicial = e.clientX;
+          largura_inicial = barraDireita.getBoundingClientRect().width;
+
+          // Adiciona a classe visual para manter a cor do puxador acesa
+          resizer.classList.add('resizing');
+
+          // Escuta os movimentos do mouse na tela inteira para o drag ser fluido
+          document.addEventListener('mousemove', mouseMovendo);
+          document.addEventListener('mouseup', mouseSolto);
+          
+          // Impede que o texto da tela seja selecionado sem querer enquanto arrasta
+          document.body.style.userSelect = 'none';
+      };
+
+      // Quando o usuário ARRASTA o mouse
+      const mouseMovendo = function (e) {
+          // Calcula a distância. Como a barra está na direita, arrastar para a esquerda (negativo) aumenta a barra.
+          const diferenca_x = x_inicial - e.clientX;
+          const novaLargura = largura_inicial + diferenca_x;
+
+          // Aplica a nova largura. O min-width do CSS impede que fique menor que 300px automaticamente.
+          barraDireita.style.width = `${novaLargura}px`;
+      };
+
+      // Quando o usuário SOLTA o clique
+      const mouseSolto = function () {
+          resizer.classList.remove('resizing');
+          document.removeEventListener('mousemove', mouseMovendo);
+          document.removeEventListener('mouseup', mouseSolto);
+          document.body.style.userSelect = '';
+      };
+
+      // Ativa o evento no puxador
+      if (resizer) {
+          resizer.addEventListener('mousedown', mousePressionado);
+      }
+  });
 
     // Executa a função assim que a página é carregada
     // Atrela a função de carregar o dashboard ao clique do botão de filtro
