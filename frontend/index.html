@@ -3,13 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Validador de Convênios</title>
+    <title>Análise de Retornos</title>
     <!-- Importação do Bootstrap 5 para um visual corporativo instantâneo -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
     />
+    <!-- Coloque no <head> -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.bootstrap5.min.css"
+      rel="stylesheet"
+    />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
       /* 1. Preparamos a barra original para aceitar animações */
       .barra-esquerda {
@@ -179,26 +185,28 @@
 
       /* Tamanho e trava da sua barra direita */
       .sidebar {
-          width: 400px;      /* Tamanho inicial padrão */
-          min-width: 300px;  /* A TRAVA: Impede que o usuário diminua mais que o padrão */
-          background-color: #f8f9fa; /* Cor de exemplo */
-          overflow-x: hidden;
+        width: 400px; /* Tamanho inicial padrão */
+        min-width: 300px; /* A TRAVA: Impede que o usuário diminua mais que o padrão */
+        background-color: #f8f9fa; /* Cor de exemplo */
+        overflow-x: hidden;
       }
 
       /* O estilo do puxador */
       .resizer {
-          width: 6px;
-          cursor: ew-resize; /* Cursor de setinha dupla para os lados */
-          background-color: #e0e0e0; /* Uma cor sutil, pode colocar transparente se preferir */
-          transition: background-color 0.2s;
+        width: 6px;
+        cursor: ew-resize; /* Cursor de setinha dupla para os lados */
+        background-color: #e0e0e0; /* Uma cor sutil, pode colocar transparente se preferir */
+        transition: background-color 0.2s;
       }
 
       /* Dá um destaque visual quando o usuário passa o mouse por cima do puxador */
-      .resizer:hover, .resizer.resizing {
-          background-color: #0d6efd; /* Azul do Bootstrap, por exemplo */
+      .resizer:hover,
+      .resizer.resizing {
+        background-color: #0d6efd; /* Azul do Bootstrap, por exemplo */
       }
     </style>
-
+  </head>
+  <body>
     <!-- Novo Botão Flutuante Fixo -->
     <button
       id="btn-toggle-menu"
@@ -227,10 +235,89 @@
           <!-- PARÂMETROS GERAIS (Usados para Buscar, Upload e Excluir) -->
           <div class="grupo-form">
             <label>Código do Convênio</label>
-            <select id="codigo_convenio">
+            <select id="codigo_convenio" class="form-select">
               <option value="">-- Selecione --</option>
               <option value="1">1 - INSS</option>
+              <option value="2">2 - GOV. PARAÍBA</option>
+              <option value="3">3 - GOV. MINAS GERAIS - IPSM</option>
+              <option value="4">4 - GOV. MINAS GERAIS - CBMMG</option>
+              <option value="5">5 - GOV. MINAS GERAIS - PMMG</option>
+              <option value="6">6 - GOV. MINAS GERAIS - SEPLAG</option>
+              <option value="7">7 - GOV. MINAS GERAIS - IPSEMG</option>
+              <option value="8">8 - GOV. BAHIA</option>
+              <option value="9">9 - PREF. ARAGUAÍNA</option>
+              <option value="10">10 - PREF. DUQUE DE CAXIAS</option>
+              <option value="11">11 - PREF. DUQUE DE CAXIAS - COTAR</option>
+              <option value="12">12 - PREF. DUQUE DE CAXIAS - IMPDC</option>
+              <option value="13">13 - PREF. GOIÂNIA</option>
+              <option value="14">14 - PREVIDÊNCIA SÃO GONÇALO</option>
+              <option value="15">15 - PREF. RIBEIRÃO PRETO</option>
+              <option value="16">16 - PREF. TABOÃO DA SERRA</option>
+              <option value="17">17 - PREVIDÊNCIA SANTOS - IPREV</option>
+              <option value="18">18 - GOV. ESPÍRITO SANTO</option>
+              <option value="19">19 - GOV. PARANÁ</option>
+              <option value="20">20 - GOV. RIO DE JANEIRO</option>
+              <option value="21">21 - IGEPREV</option>
+              <option value="22">22 - PREF. BELO HORIZONTE</option>
+              <option value="23">23 - PREF. AÇAILÂNDIA</option>
+              <option value="24">24 - PREF. CAMPINAS</option>
+              <option value="25">25 - PREF. MACAÉ</option>
+              <option value="26">26 - PREF. SÃO JOSE DE RIBAMAR</option>
+              <option value="27">27 - PREF. SÃO PAULO-HMSP</option>
+              <option value="28">28 - PREF. SOBRAL</option>
+              <option value="29">29 - PREVIPALMAS</option>
+              <option value="30">30 - PREF. BARBACENA</option>
+              <option value="31">31 - GOV. ALAGOAS - TJAL</option>
+              <option value="32">32 - PREF. ANANINDEUA</option>
+              <option value="33">33 - PREF. ÁGUAS LINDAS DE GOIÁS</option>
+              <option value="34">34 - PREF. PIRACICABA</option>
+              <option value="35">35 - PREF. FLORIANÓPOLIS</option>
+              <option value="36">36 - PREF. PIRACICABA-SEMAE</option>
+              <option value="37">37 - PREV. PIRACICABA IPASP</option>
+              <option value="38">38 - GOV. TOCANTINS e IGEPREV</option>
+              <option value="39">39 - GOV. SANTA CATARINA</option>
+              <option value="40">40 - PREF. CONTAGEM</option>
+              <option value="41">41 - PREF. PLANALTINA</option>
+              <option value="42">42 - PREF. SÃO PAULO</option>
+              <option value="43">43 - GOV. SÃO PAULO</option>
+              <option value="44">44 - GOV. GOIÁS</option>
+              <option value="45">45 - PREF. SÃO GONÇALO</option>
+              <option value="46">46 - PREF. SÃO LUÍS</option>
+              <option value="47">47 - PREF. SOROCABA</option>
+              <option value="48">48 - PREF. SÃO JOSÉ DO RIO PRETO</option>
+              <option value="49">49 - PREVIDÊNCIA SÃO JOSÉ DO RIO PRETO</option>
+              <option value="50">50 - CÂMARA MUNICIPAL DE TERESÓPOLIS</option>
+              <option value="51">51 - PREF. JUÍZ DE FORA</option>
+              <option value="52">52 - PREF. RIO DE JANEIRO</option>
+              <option value="53">53 - PREF. PICOS</option>
+              <option value="54">54 - PREV. PICOS</option>
+              <option value="55">55 - PREF. TAUBATÉ</option>
+              <option value="56">56 - PREF. SANTOS</option>
+              <option value="57">57 - GOV. CEARÁ</option>
+              <option value="58">58 - GOV. ALAGOAS</option>
+              <option value="59">59 - GOV. MARANHÃO</option>
+              <option value="60">60 - GOV. MATO GROSSO</option>
+              <option value="61">61 - GOV. PIAUÍ</option>
+              <option value="62">62 - GOV. PERNAMBUCO</option>
+              <option value="63">63 - PREF. BAYEUX</option>
+              <option value="64">64 - PREF. CAJAMAR</option>
+              <option value="65">65 - PREF. CAMPINA GRANDE</option>
+              <option value="66">66 - PREF. CAMPO GRANDE</option>
+              <option value="67">67 - PREF. CUIABÁ</option>
+              <option value="68">68 - PREF. PORTO VELHO</option>
+              <option value="69">69 - PREF. IMPERATRIZ MA</option>
+              <option value="70">70 - PREF. ITU</option>
               <option value="71">71 - PREF. JOÃO PESSOA</option>
+              <option value="72">72 - PREF. JUAZEIRO DO NORTE</option>
+              <option value="73">73 - PREF. MARABÁ</option>
+              <option value="74">74 - PREF. NITERÓI</option>
+              <option value="75">75 - PREF. PAÇO DO LUMIAR</option>
+              <option value="76">76 - PREF. PALMAS</option>
+              <option value="77">77 - PREF. RECIFE</option>
+              <option value="78">78 - PREF. SANTA RITA</option>
+              <option value="79">79 - PREF. TERESINA</option>
+              <option value="80">80 - CÂMARA DE TERESÓPOLIS</option>
+              <option value="81">81 - GOV. RIO GRANDE DO NORTE</option>
               <option value="82">82 - PREF. NATAL</option>
             </select>
           </div>
@@ -420,7 +507,19 @@
         ></p>
       </aside>
     </div>
-  </head>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Transforma o select normal em um select pesquisável
+        new TomSelect("#codigo_convenio", {
+          create: false,
+          placeholder: "-- Selecione ou digite para buscar --",
+          maxOptions: null,
+        });
+      });
+    </script>
+  </body>
   <!-- O MOTOR: Aqui é onde o JavaScript puro faz a comunicação com o FastAPI -->
   <script>
     // 1. "Capturamos" os elementos que sobraram no novo layout
@@ -610,22 +709,23 @@
     let chartTendenciaInstancia = null;
 
     async function carregarDashboard() {
-      const btnFiltrar = document.getElementById("btn-buscar"); 
+      const btnFiltrar = document.getElementById("btn-buscar");
       const textoOriginal = btnFiltrar.innerHTML;
       try {
         if (btnFiltrar) {
-            btnFiltrar.disabled = true;
-            btnFiltrar.innerHTML = "⏳ Carregando...";
+          btnFiltrar.disabled = true;
+          btnFiltrar.innerHTML = "⏳ Carregando...";
         }
 
         // 1. CAPTURAR OS FILTROS DA BARRA LATERAL
         const selectConvenio = document.getElementById("codigo_convenio");
         const convenio = selectConvenio.value;
-        
+
         // NOVO: Captura o texto que está aparecendo na tela para o usuário
         let nomeConvenioTexto = "";
         if (convenio && selectConvenio.selectedIndex >= 0) {
-            nomeConvenioTexto = selectConvenio.options[selectConvenio.selectedIndex].text;
+          nomeConvenioTexto =
+            selectConvenio.options[selectConvenio.selectedIndex].text;
         }
 
         const consignataria = document.getElementById("consignataria").value;
@@ -638,15 +738,16 @@
 
         if (convenio) parametros.append("codigo_convenio", convenio);
         // NOVO: Envia o texto bonitinho para o backend usar no título
-        if (nomeConvenioTexto) parametros.append("nome_convenio", nomeConvenioTexto); 
-        
+        if (nomeConvenioTexto)
+          parametros.append("nome_convenio", nomeConvenioTexto);
+
         if (consignataria) parametros.append("consignataria", consignataria);
         if (produto) parametros.append("produto", produto);
         if (compInicio) parametros.append("competencia_inicio", compInicio);
         if (compFim) parametros.append("competencia_fim", compFim);
 
         const queryString = parametros.toString();
-        
+
         // ... (o restante do código com a urlFinal e o fetch continua exatamente igual) ...
         // Se tiver parâmetros, adiciona a interrogação. Se não, chama a rota pura (traz tudo).
         const endpoint = queryString
@@ -666,54 +767,56 @@
 
         // 4. DESENHAR OS GRÁFICOS
         const areaCards = document.getElementById("area-cards");
-        areaCards.innerHTML = ""; 
+        areaCards.innerHTML = "";
 
         // ==========================================
         // NOVO: TRATAMENTO DE FILTRO VAZIO
         // ==========================================
         // Verifica se a lista veio vazia (adapte caso sua API retorne 'dados.cards_arquivos')
-        const listaDeCards = Array.isArray(dados) ? dados : (dados.cards_arquivos || []);
+        const listaDeCards = Array.isArray(dados)
+          ? dados
+          : dados.cards_arquivos || [];
 
         if (listaDeCards.length === 0) {
-            // Desenha um aviso elegante na tela em vez dos gráficos
-            areaCards.innerHTML = `
+          // Desenha um aviso elegante na tela em vez dos gráficos
+          areaCards.innerHTML = `
                 <div style="width: 100%; text-align: center; padding: 50px; color: #7f8c8d;">
                     <h4 style="color: #34495e;">Nenhum dado encontrado</h4>
                     <p>Não existem inconsistências ou arquivos processados para esta combinação de filtros.</p>
                 </div>
             `;
-            
-            // Restaura o botão imediatamente e aborta o resto da função
-            if (btnFiltrar) {
-                btnFiltrar.innerHTML = textoOriginal;
-                btnFiltrar.disabled = false;
-            }
-            return; // A função para aqui e não tenta desenhar gráficos vazios
+
+          // Restaura o botão imediatamente e aborta o resto da função
+          if (btnFiltrar) {
+            btnFiltrar.innerHTML = textoOriginal;
+            btnFiltrar.disabled = false;
+          }
+          return; // A função para aqui e não tenta desenhar gráficos vazios
         }
 
         // ... (O seu laço de repetição forEach que desenha os gráficos continua AQUI para baixo) ...
 
         // FUNÇÃO AUXILIAR: Quebra textos longos para o Chart.js ler como múltiplas linhas
         function formatarLabelMultiplasLinhas(texto, tamanhoMaximo = 20) {
-            if (!texto) return ["Não Informado"];
-            if (texto.length <= tamanhoMaximo) return texto; // Se for curto, retorna normal
-            
-            const palavras = texto.split(' ');
-            const linhas = [];
-            let linhaAtual = '';
-            
-            palavras.forEach(palavra => {
-                // Se adicionar a próxima palavra for estourar o limite, guarda a linha e começa outra
-                if ((linhaAtual + palavra).length > tamanhoMaximo) {
-                    if (linhaAtual.trim() !== '') linhas.push(linhaAtual.trim());
-                    linhaAtual = palavra + ' ';
-                } else {
-                    linhaAtual += palavra + ' ';
-                }
-            });
-            if (linhaAtual.trim() !== '') linhas.push(linhaAtual.trim());
-            
-            return linhas; // Retorna a matriz que o Chart.js entende como quebra de linha
+          if (!texto) return ["Não Informado"];
+          if (texto.length <= tamanhoMaximo) return texto; // Se for curto, retorna normal
+
+          const palavras = texto.split(" ");
+          const linhas = [];
+          let linhaAtual = "";
+
+          palavras.forEach((palavra) => {
+            // Se adicionar a próxima palavra for estourar o limite, guarda a linha e começa outra
+            if ((linhaAtual + palavra).length > tamanhoMaximo) {
+              if (linhaAtual.trim() !== "") linhas.push(linhaAtual.trim());
+              linhaAtual = palavra + " ";
+            } else {
+              linhaAtual += palavra + " ";
+            }
+          });
+          if (linhaAtual.trim() !== "") linhas.push(linhaAtual.trim());
+
+          return linhas; // Retorna a matriz que o Chart.js entende como quebra de linha
         }
 
         // Varre a lista de arquivos e desenha os cards dinâmicos
@@ -740,40 +843,46 @@
           let htmlValores = `<div style="margin-top: 20px; background: #f4f6f9; border-radius: 8px; padding: 15px; width: 100%;">`;
           // ... (o trecho onde você calcula o totalFinanceiro e faz o forEach das fatias da pizza continua igual) ...
 
-            // -----------------------------------------------------------------
-            // NOVA LÓGICA: CÁLCULO DE VARIAÇÃO MÊS A MÊS (MoM)
-            // -----------------------------------------------------------------
-            let percentualDiferencaHtml = '';
-            
-            // O index indica em qual arquivo estamos (0 é o primeiro, 1 é o segundo...)
-            if (index === 0) {
-                // No primeiro cartão, não temos mês anterior para comparar
-                percentualDiferencaHtml = `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(--)</span>`;
+          // -----------------------------------------------------------------
+          // NOVA LÓGICA: CÁLCULO DE VARIAÇÃO MÊS A MÊS (MoM)
+          // -----------------------------------------------------------------
+          let percentualDiferencaHtml = "";
+
+          // O index indica em qual arquivo estamos (0 é o primeiro, 1 é o segundo...)
+          if (index === 0) {
+            // No primeiro cartão, não temos mês anterior para comparar
+            percentualDiferencaHtml = `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(--)</span>`;
+          } else {
+            // Captura os dados do arquivo imediatamente anterior na lista
+            const arquivoAnterior = dados.cards_arquivos[index - 1];
+            const totalAnterior =
+              arquivoAnterior.grafico_pizza.valores_financeiros.reduce(
+                (a, b) => a + b,
+                0,
+              );
+
+            if (totalAnterior > 0) {
+              // Fórmula clássica de variação percentual: ((Atual - Anterior) / Anterior) * 100
+              const diferenca =
+                ((totalFinanceiro - totalAnterior) / totalAnterior) * 100;
+
+              // Formata com 2 casas decimais e troca o ponto por vírgula no padrão brasileiro
+              const diferencaFormatada = Math.abs(diferenca)
+                .toFixed(2)
+                .replace(".", ",");
+
+              // Define a cor e o sinal (+ ou -) dinamicamente
+              if (diferenca > 0) {
+                percentualDiferencaHtml = `<span style="font-size: 11px; color: #2ecc71; margin-left: 5px;">(+${diferencaFormatada}%)</span>`; // Verde
+              } else if (diferenca < 0) {
+                percentualDiferencaHtml = `<span style="font-size: 11px; color: #e74c3c; margin-left: 5px;">(-${diferencaFormatada}%)</span>`; // Vermelho
+              } else {
+                percentualDiferencaHtml = `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(0,00%)</span>`; // Cinza
+              }
             } else {
-                // Captura os dados do arquivo imediatamente anterior na lista
-                const arquivoAnterior = dados.cards_arquivos[index - 1];
-                const totalAnterior = arquivoAnterior.grafico_pizza.valores_financeiros.reduce((a, b) => a + b, 0);
-                
-                if (totalAnterior > 0) {
-                    // Fórmula clássica de variação percentual: ((Atual - Anterior) / Anterior) * 100
-                    const diferenca = ((totalFinanceiro - totalAnterior) / totalAnterior) * 100;
-                    
-                    // Formata com 2 casas decimais e troca o ponto por vírgula no padrão brasileiro
-                    const diferencaFormatada = Math.abs(diferenca).toFixed(2).replace('.', ',');
-                    
-                    // Define a cor e o sinal (+ ou -) dinamicamente
-                    if (diferenca > 0) {
-                        percentualDiferencaHtml = `<span style="font-size: 11px; color: #2ecc71; margin-left: 5px;">(+${diferencaFormatada}%)</span>`; // Verde
-                    } else if (diferenca < 0) {
-                        percentualDiferencaHtml = `<span style="font-size: 11px; color: #e74c3c; margin-left: 5px;">(-${diferencaFormatada}%)</span>`; // Vermelho
-                    } else {
-                        percentualDiferencaHtml = `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(0,00%)</span>`; // Cinza
-                    }
-                } else {
-                    percentualDiferencaHtml = `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(--)</span>`;
-                }
+              percentualDiferencaHtml = `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(--)</span>`;
             }
-            
+          }
 
           arquivo.grafico_pizza.labels.forEach((label, index) => {
             const valor = arquivo.grafico_pizza.valores_financeiros[index];
@@ -796,8 +905,11 @@
           });
 
           // Formata o valor atual em Reais
-          const totalBRL = totalFinanceiro.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-          
+          const totalBRL = totalFinanceiro.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          });
+
           // Injeta o Total e o Percentual juntos na mesma linha
           htmlValores += `
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; border-top: 1px dashed #ccc; padding-top: 10px; font-weight: bold; font-size: 13px; color: #2c3e50;">
@@ -832,100 +944,125 @@
           areaCards.insertAdjacentHTML("beforeend", cardHTML);
 
           // Desenhando a Pizza com as cores fixadas e Tooltip inteligente
-          new Chart(document.getElementById(`pizza-${arquivo.id_arquivo}`).getContext('2d'), {
-                type: 'doughnut',
-                data: {
-                    labels: arquivo.grafico_pizza.labels,
-                    datasets: [{
-                        data: arquivo.grafico_pizza.quantidades,
-                        backgroundColor: coresExatas
-                    }]
-                },
-                options: { 
-                    responsive: true, 
-                    plugins: { 
-                        legend: { 
-                            position: 'bottom' 
-                        },
-                      // A MÁGICA DO TOOLTIP ACONTECE AQUI
-                      tooltip: {
-                          callbacks: {
-                              label: function(context) {
-                                  // 1. Pega o nome da fatia (ex: "Acatado Integral")
-                                  // let rotulo = context.label || '';
-                                  // if (rotulo) {
-                                  //     rotulo += ': ';
-                                  // }
-                                  let rotulo = '';
-                                  
-                                  // 2. Pega a quantidade bruta daquela fatia específica
-                                  const valor = context.raw;
-                                  
-                                  // 3. Soma todas as fatias do gráfico para descobrir quanto é o 100%
-                                  const total = context.dataset.data.reduce((acumulador, atual) => acumulador + atual, 0);
-                                  
-                                  // 4. Calcula a porcentagem com 1 casa decimal
-                                  const percentual = total > 0 ? ((valor / total) * 100).toFixed(1) : 0;
-                                  
-                                  // 5. Monta o texto final que vai aparecer na tela
-                                  rotulo += `${valor} registros (${percentual}%)`;
-                                  return rotulo;
-                              }
-                          }
-                      }
-                    } 
-                }
-            });
-
-          // Passamos as labels originais pelo nosso "cortador"
-          const labelsBarrasFormatadas = arquivo.grafico_barras.labels.map(label => formatarLabelMultiplasLinhas(label, 25));
-
-          // Desenhando o Gráfico de Barras com as legendas novas
-          new Chart(document.getElementById(`barras-${arquivo.id_arquivo}`).getContext('2d'), {
-              type: 'bar', // ou 'horizontalBar' se você estiver usando barras laterais
+          new Chart(
+            document
+              .getElementById(`pizza-${arquivo.id_arquivo}`)
+              .getContext("2d"),
+            {
+              type: "doughnut",
               data: {
-                  labels: labelsBarrasFormatadas, // A MÁGICA ACONTECE AQUI
-                  datasets: [{
-                      label: 'Quantidade',
-                      data: arquivo.grafico_barras.quantidades,
-                      backgroundColor: '#3498db'
-                  }]
+                labels: arquivo.grafico_pizza.labels,
+                datasets: [
+                  {
+                    data: arquivo.grafico_pizza.quantidades,
+                    backgroundColor: coresExatas,
+                  },
+                ],
               },
-              options: { 
-                  responsive: true, 
-                  plugins: { legend: { display: false }, 
+              options: {
+                responsive: true,
+                plugins: {
+                  legend: {
+                    position: "bottom",
+                  },
                   // A MÁGICA DO TOOLTIP ACONTECE AQUI
                   tooltip: {
                     callbacks: {
-                        label: function(context) {
-                            // 1. Pega o nome da fatia (ex: "Acatado Integral")
-                            // let rotulo = context.label || '';
-                            // if (rotulo) {
-                            //     rotulo += ': ';
-                            // }
-                            let rotulo = '';
-                            
-                            // 2. Pega a quantidade bruta daquela fatia específica
-                            const valor = context.raw;
-                            
-                            // 3. Soma todas as fatias do gráfico para descobrir quanto é o 100%
-                            const total = context.dataset.data.reduce((acumulador, atual) => acumulador + atual, 0);
-                            
-                            // 4. Calcula a porcentagem com 1 casa decimal
-                            const percentual = total > 0 ? ((valor / total) * 100).toFixed(1) : 0;
-                            
-                            // 5. Monta o texto final que vai aparecer na tela
-                            rotulo += `${valor} registros (${percentual}%)`;
-                            return rotulo;
-                        }
-                      }
-                    }  
+                      label: function (context) {
+                        // 1. Pega o nome da fatia (ex: "Acatado Integral")
+                        // let rotulo = context.label || '';
+                        // if (rotulo) {
+                        //     rotulo += ': ';
+                        // }
+                        let rotulo = "";
+
+                        // 2. Pega a quantidade bruta daquela fatia específica
+                        const valor = context.raw;
+
+                        // 3. Soma todas as fatias do gráfico para descobrir quanto é o 100%
+                        const total = context.dataset.data.reduce(
+                          (acumulador, atual) => acumulador + atual,
+                          0,
+                        );
+
+                        // 4. Calcula a porcentagem com 1 casa decimal
+                        const percentual =
+                          total > 0 ? ((valor / total) * 100).toFixed(1) : 0;
+
+                        // 5. Monta o texto final que vai aparecer na tela
+                        rotulo += `${valor} registros (${percentual}%)`;
+                        return rotulo;
+                      },
+                    },
                   },
-                  scales: {
-                      y: { beginAtZero: true }
+                },
+              },
+            },
+          );
+
+          // Passamos as labels originais pelo nosso "cortador"
+          const labelsBarrasFormatadas = arquivo.grafico_barras.labels.map(
+            (label) => formatarLabelMultiplasLinhas(label, 25),
+          );
+
+          // Desenhando o Gráfico de Barras com as legendas novas
+          new Chart(
+            document
+              .getElementById(`barras-${arquivo.id_arquivo}`)
+              .getContext("2d"),
+            {
+              type: "bar", // ou 'horizontalBar' se você estiver usando barras laterais
+              data: {
+                labels: labelsBarrasFormatadas, // A MÁGICA ACONTECE AQUI
+                datasets: [
+                  {
+                    label: "Quantidade",
+                    data: arquivo.grafico_barras.quantidades,
+                    backgroundColor: "#3498db",
                   },
-              }
-          });
+                ],
+              },
+              options: {
+                responsive: true,
+                plugins: {
+                  legend: { display: false },
+                  // A MÁGICA DO TOOLTIP ACONTECE AQUI
+                  tooltip: {
+                    callbacks: {
+                      label: function (context) {
+                        // 1. Pega o nome da fatia (ex: "Acatado Integral")
+                        // let rotulo = context.label || '';
+                        // if (rotulo) {
+                        //     rotulo += ': ';
+                        // }
+                        let rotulo = "";
+
+                        // 2. Pega a quantidade bruta daquela fatia específica
+                        const valor = context.raw;
+
+                        // 3. Soma todas as fatias do gráfico para descobrir quanto é o 100%
+                        const total = context.dataset.data.reduce(
+                          (acumulador, atual) => acumulador + atual,
+                          0,
+                        );
+
+                        // 4. Calcula a porcentagem com 1 casa decimal
+                        const percentual =
+                          total > 0 ? ((valor / total) * 100).toFixed(1) : 0;
+
+                        // 5. Monta o texto final que vai aparecer na tela
+                        rotulo += `${valor} registros (${percentual}%)`;
+                        return rotulo;
+                      },
+                    },
+                  },
+                },
+                scales: {
+                  y: { beginAtZero: true },
+                },
+              },
+            },
+          );
         });
 
         // Desenha a Barra Direita (Gráfico de Tendência Fixo)
@@ -984,17 +1121,17 @@
             '<p style="color: #aaa; text-align: center; font-size: 13px; margin-top: 50px;">⏸️ Modo de teste visual ativo.<br>Geração de insight desativada.</p>';
         }
         if (btnFiltrar) {
-            btnFiltrar.classList.remove('btn-primary'); // Troque 'btn-primary' pela classe de cor original do seu botão, se for diferente
-            btnFiltrar.classList.add('btn-success');
-            btnFiltrar.innerHTML = "✅ Concluído!";
+          btnFiltrar.classList.remove("btn-primary"); // Troque 'btn-primary' pela classe de cor original do seu botão, se for diferente
+          btnFiltrar.classList.add("btn-success");
+          btnFiltrar.innerHTML = "✅ Concluído!";
 
-            // Restaura o botão após 2 segundos
-            setTimeout(() => {
-                btnFiltrar.classList.remove('btn-success');
-                btnFiltrar.classList.add('btn-primary'); 
-                btnFiltrar.innerHTML = textoOriginal;
-                btnFiltrar.disabled = false;
-            }, 2000);
+          // Restaura o botão após 2 segundos
+          setTimeout(() => {
+            btnFiltrar.classList.remove("btn-success");
+            btnFiltrar.classList.add("btn-primary");
+            btnFiltrar.innerHTML = textoOriginal;
+            btnFiltrar.disabled = false;
+          }, 2000);
         }
       } catch (erro) {
         console.error("Erro ao desenhar gráficos:", erro);
@@ -1050,53 +1187,53 @@
       }
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-      const resizer = document.getElementById('redimensionador');
-      const barraDireita = document.getElementById('barra-direita');
+    document.addEventListener("DOMContentLoaded", function () {
+      const resizer = document.getElementById("redimensionador");
+      const barraDireita = document.getElementById("barra-direita");
 
       let x_inicial = 0;
       let largura_inicial = 0;
 
       // Quando o usuário CLICA e SEGURA o puxador
       const mousePressionado = function (e) {
-          // Pega a posição inicial do mouse e a largura atual da barra
-          x_inicial = e.clientX;
-          largura_inicial = barraDireita.getBoundingClientRect().width;
+        // Pega a posição inicial do mouse e a largura atual da barra
+        x_inicial = e.clientX;
+        largura_inicial = barraDireita.getBoundingClientRect().width;
 
-          // Adiciona a classe visual para manter a cor do puxador acesa
-          resizer.classList.add('resizing');
+        // Adiciona a classe visual para manter a cor do puxador acesa
+        resizer.classList.add("resizing");
 
-          // Escuta os movimentos do mouse na tela inteira para o drag ser fluido
-          document.addEventListener('mousemove', mouseMovendo);
-          document.addEventListener('mouseup', mouseSolto);
-          
-          // Impede que o texto da tela seja selecionado sem querer enquanto arrasta
-          document.body.style.userSelect = 'none';
+        // Escuta os movimentos do mouse na tela inteira para o drag ser fluido
+        document.addEventListener("mousemove", mouseMovendo);
+        document.addEventListener("mouseup", mouseSolto);
+
+        // Impede que o texto da tela seja selecionado sem querer enquanto arrasta
+        document.body.style.userSelect = "none";
       };
 
       // Quando o usuário ARRASTA o mouse
       const mouseMovendo = function (e) {
-          // Calcula a distância. Como a barra está na direita, arrastar para a esquerda (negativo) aumenta a barra.
-          const diferenca_x = x_inicial - e.clientX;
-          const novaLargura = largura_inicial + diferenca_x;
+        // Calcula a distância. Como a barra está na direita, arrastar para a esquerda (negativo) aumenta a barra.
+        const diferenca_x = x_inicial - e.clientX;
+        const novaLargura = largura_inicial + diferenca_x;
 
-          // Aplica a nova largura. O min-width do CSS impede que fique menor que 300px automaticamente.
-          barraDireita.style.width = `${novaLargura}px`;
+        // Aplica a nova largura. O min-width do CSS impede que fique menor que 300px automaticamente.
+        barraDireita.style.width = `${novaLargura}px`;
       };
 
       // Quando o usuário SOLTA o clique
       const mouseSolto = function () {
-          resizer.classList.remove('resizing');
-          document.removeEventListener('mousemove', mouseMovendo);
-          document.removeEventListener('mouseup', mouseSolto);
-          document.body.style.userSelect = '';
+        resizer.classList.remove("resizing");
+        document.removeEventListener("mousemove", mouseMovendo);
+        document.removeEventListener("mouseup", mouseSolto);
+        document.body.style.userSelect = "";
       };
 
       // Ativa o evento no puxador
       if (resizer) {
-          resizer.addEventListener('mousedown', mousePressionado);
+        resizer.addEventListener("mousedown", mousePressionado);
       }
-  });
+    });
 
     // Executa a função assim que a página é carregada
     // Atrela a função de carregar o dashboard ao clique do botão de filtro
