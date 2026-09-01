@@ -70,4 +70,33 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         df_filtrado = df.iloc[:, [2, 3, 7, 16, 18]].copy()
         df_filtrado.columns = ['Matrícula', 'CPF', 'Valor Lançado', 'Crítica', 'Valor Acatado']
         df = df_filtrado.copy()
+        
+    if modelo == "CONSIGFACIL_1":
+        # 1. Extrai os nomes das colunas reais que estão escondidos na primeira linha (índice 0)
+        nomes_colunas_conteudo = df.loc[0, 'Conteudo'].split(';')
+        
+        # 2. Divide a coluna 'Conteudo' usando o ';' e renomeia com os cabeçalhos extraídos
+        df_conteudo = df['Conteudo'].str.split(';', expand=True)
+        df_conteudo.columns = nomes_colunas_conteudo
+        
+        # 3. Divide a coluna 'Retorno'
+        # O expand=True cria colunas preenchendo com NaN onde não houver ponto e vírgula
+        df_retorno = df['Retorno'].str.split(';', expand=True)
+        
+        # Renomeia as colunas de retorno dinamicamente (ex: Retorno_1, Retorno_2, Retorno_3)
+        df_retorno.columns = [f"Retorno_{i+1}" for i in range(df_retorno.shape[1])]
+        
+        # 4. Junta as duas partes separadas em um único DataFrame
+        # Se quiser manter a coluna 'Linha' original, basta adicionar df[['Linha']] dentro do colchete abaixo
+        df = pd.concat([df_conteudo, df_retorno], axis=1)
+        
+        # 5. Remove a primeira linha (índice 0) que foi usada como molde e reseta o índice
+        df = df.iloc[1:].reset_index(drop=True)
+
+        df['VALOR'] = df['VALOR'].str.replace(',', '.', regex=False).astype(float)
+    
+        # ['Matrícula', 'CPF', 'Valor Lançado', 'Crítica', 'Valor Acatado']
+    
+        df.rename(columns={"MATRICULA": "Matrícula", "VALOR": "Valor Lançado", "Retorno_1": "Crítica", "Retorno_3": "Valor Acatado"}, inplace=True)
+
     return df
