@@ -73,6 +73,11 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         
     if modelo == "CONSIGFACIL_1":
         # 1. Extrai os nomes das colunas reais que estão escondidos na primeira linha (índice 0)
+        # Atribui os valores da primeira linha (índice 0) aos cabeçalhos
+        df.columns = df.iloc[0]
+    
+        # 2. Remove a primeira linha dos dados e reseta o índice
+        df = df[1:].reset_index(drop=True)
         print(f'Como está df antes de filtrar?\n{df.head(10)}\n\n')
 
         nomes_colunas_conteudo = df.loc[0, 'Conteudo'].split(';')

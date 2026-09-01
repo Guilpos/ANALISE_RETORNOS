@@ -5,7 +5,15 @@ import pandas as pd
 def processar_portal_exemplo(caminho: str):
     # 1. Leitura segura (todos os dados nascem como texto bruto)
     convenio = "62"
-    df = pd.read_csv(caminho, encoding="ISO-8859-1", sep=";", on_bad_lines="skip")
+    df = pd.read_csv(caminho, encoding="ISO-8859-1", sep=";", on_bad_lines="skip", header=None)
+
+    # 1. Atribui os valores da primeira linha (índice 0) aos cabeçalhos
+    df.columns = df.iloc[0]
+
+    # 2. Remove a primeira linha dos dados e reseta o índice
+    df = df[1:].reset_index(drop=True)
+
+    print(f'Como está df antes de filtrar?\n{df.head(10)}\n\n')
 
     # 1. Extrai os nomes das colunas reais que estão escondidos na primeira linha (índice 0)
     nomes_colunas_conteudo = df.loc[0, 'Conteudo'].split(';')
