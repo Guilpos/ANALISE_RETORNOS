@@ -106,15 +106,13 @@ def portal_escolhido(nome_convenio: str) -> list:
             "PREF. TABOÃO DA SERRA", "PREVIDÊNCIA SANTOS - IPREV"
         ],
 
-        "ECONSIG_1": ["PREF. BELO HORIZONTE"],
+        "ECONSIG_1": ["PREF. BELO HORIZONTE","GOV. ESPÍRITO SANTO", "GOV. PARANÁ", "GOV. RIO DE JANEIRO", 
+                    "IGEPREV", "PREF. AÇAILÂNDIA", 
+                    "PREF. MACAÉ", "PREF. SÃO JOSE DE RIBAMAR", 
+                    "PREF. SÃO PAULO-HMSP", "PREF. SOBRAL", "PREVIPALMAS", 
+                    "PREF. BARBACENA", "GOV. ALAGOAS - TJAL"],
         
-        "ECONSIG": [
-            "GOV. ESPÍRITO SANTO", "GOV. PARANÁ", "GOV. RIO DE JANEIRO", 
-            "IGEPREV", "PREF. AÇAILÂNDIA", 
-            "PREF. CAMPINAS", "PREF. MACAÉ", "PREF. SÃO JOSE DE RIBAMAR", 
-            "PREF. SÃO PAULO-HMSP", "PREF. SOBRAL", "PREVIPALMAS", 
-            "PREF. BARBACENA", "GOV. ALAGOAS - TJAL"
-        ],
+        "ECONSIG_2": ["PREF. CAMPINAS",],
         
         "RF1": ["PREF. ANANINDEUA"],
         
