@@ -18,7 +18,9 @@ def processar_portal_econsig(df_bruto: pd.DataFrame, convenio: str, portal: str)
     else:
         df['Valor_lancado'] = limpar_moeda(df['Valor Lançado'])
 
-    df.loc[df['Crítica'] == 'INCLUSAO VALIDADA', 'Valor Acatado'] = df['Valor Lançado']
+    print('Valor lançado:', df['Valor_lancado'].head(10))
+
+    df.loc[df['Crítica'] == 'INCLUSAO VALIDADA.', 'Valor Acatado'] = df['Valor Lançado']
     df['Valor Acatado'] = df['Valor Acatado'].fillna(0)    
 
     df['Valor_descontado'] = limpar_moeda_delimitador_ponto(df['Valor Acatado'])
