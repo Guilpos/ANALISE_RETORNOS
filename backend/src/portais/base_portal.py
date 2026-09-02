@@ -23,7 +23,11 @@ def decidir_layout_portal(portal: str, convenio: str, arquivo: pd.DataFrame) -> 
         },
         "ECONSIG_1": {
             "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica", "Valor Acatado"]
+        },
+        "ECONSIG_2": {
+            "colunas_obrigatorias": ["Matrícula", "Valor Lançado", "Crítica"]
         }
+
         # Adicione outros portais e convênios conforme necessário
     }
 
@@ -34,7 +38,7 @@ def decidir_layout_portal(portal: str, convenio: str, arquivo: pd.DataFrame) -> 
     if portal in layouts:
         if portal in ["CONSIGFACIL_1", "CONSIGFACIL_2"]:
             resultado = Consigfacil_portal.processar_portal_consigfacil(arquivo, convenio=convenio, portal=portal)
-        elif portal == "ECONSIG_1":
+        elif portal in ["ECONSIG_1", "ECONSIG_2"]:
             resultado = Econsig_portal.processar_portal_econsig(arquivo, convenio=convenio, portal=portal)
         return resultado
     else:
