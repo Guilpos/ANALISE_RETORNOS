@@ -53,14 +53,81 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
                 nomes_colunas = ['Matrícula', 'CPF', 'Nome', 'Codigo', 'Valor Lançado', 'Competencia', 'Tipo', 'Crítica']
 
                 # Coloque isso antes de chamar o pd.read_fwf ou pd.read_csv
-                print(f"Tamanho do conteúdo detectado: {len(tabela_memoria.getvalue())} caracteres")
-                print(f"Amostra inicial do arquivo:\n{tabela_memoria.getvalue()[:150]}")
+                # print(f"Tamanho do conteúdo detectado: {len(tabela_memoria.getvalue())} caracteres")
+                # print(f"Amostra inicial do arquivo:\n{tabela_memoria.getvalue()[:150]}")
 
                 # skiprows=12 pula o cabeçalho inicial para ler apenas os dados reais[cite: 1]
                 df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str)
             elif portal == "ECONSIG_2":
                 larguras = [10, 8, 10, 8, 100]
                 nomes_colunas = ['Matrícula', 'Rubrica', 'Valor Lançado', 'Competencia', 'Crítica']
+                df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str)
+            elif portal == 'ECONSIG_3':
+                # Aplica a régua posicional exata do layout
+                larguras = [10, 11, 50, 10, 11, 9, 1, 100]
+                nomes_colunas = ['Matrícula', 'CPF', 'Nome', 'Codigo', 'Valor Lançado', 'Competencia', 'Tipo', 'Crítica']
+
+                # Coloque isso antes de chamar o pd.read_fwf ou pd.read_csv
+                # print(f"Tamanho do conteúdo detectado: {len(tabela_memoria.getvalue())} caracteres")
+                # print(f"Amostra inicial do arquivo:\n{tabela_memoria.getvalue()[:150]}")
+
+                # skiprows=12 pula o cabeçalho inicial para ler apenas os dados reais[cite: 1]
+                df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str)
+            elif portal == 'ECONSIG_4':
+                # Aplica a régua posicional exata do layout
+                larguras = [10, 11, 50, 9, 10, 9, 1, 100]
+                nomes_colunas = ['Matrícula', 'CPF', 'Nome', 'Codigo', 'Valor Lançado', 'Competencia', 'Tipo', 'Crítica']
+
+                # Coloque isso antes de chamar o pd.read_fwf ou pd.read_csv
+                # print(f"Tamanho do conteúdo detectado: {len(tabela_memoria.getvalue())} caracteres")
+                # print(f"Amostra inicial do arquivo:\n{tabela_memoria.getvalue()[:150]}")
+
+                # skiprows=12 pula o cabeçalho inicial para ler apenas os dados reais[cite: 1]
+                df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str)
+            elif portal == 'ECONSIG_5':
+                # Aplica a régua posicional exata do layout
+                larguras = [20, 11, 50, 17, 10, 9, 1, 100]
+                nomes_colunas = ['Matrícula', 'CPF', 'Nome', 'Detalhes', 'Valor Lançado', 'Competencia', 'Tipo', 'Crítica']
+
+                # Coloque isso antes de chamar o pd.read_fwf ou pd.read_csv
+                # print(f"Tamanho do conteúdo detectado: {len(tabela_memoria.getvalue())} caracteres")
+                # print(f"Amostra inicial do arquivo:\n{tabela_memoria.getvalue()[:150]}")
+
+                # skiprows=12 pula o cabeçalho inicial para ler apenas os dados reais[cite: 1]
+                df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str)
+            elif portal == 'ECONSIG_6':
+                # Aplica a régua posicional exata do layout
+                larguras = [12, 11, 50, 9, 10, 9, 1, 100]
+                nomes_colunas = ['Matrícula', 'CPF', 'Nome', 'Codigo', 'Valor Lançado', 'Competencia', 'Tipo', 'Crítica']
+
+                # Coloque isso antes de chamar o pd.read_fwf ou pd.read_csv
+                # print(f"Tamanho do conteúdo detectado: {len(tabela_memoria.getvalue())} caracteres")
+                # print(f"Amostra inicial do arquivo:\n{tabela_memoria.getvalue()[:150]}")
+
+                # skiprows=12 pula o cabeçalho inicial para ler apenas os dados reais[cite: 1]
+                df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str)
+            elif portal == "ECONSIG_7":
+                # Aplica a régua posicional exata do layout
+                larguras = [10, 11, 50, 12, 10, 9, 1, 100]
+                nomes_colunas = ['Matrícula', 'CPF', 'Nome', 'Codigo', 'Valor Lançado', 'Competencia', 'Tipo', 'Crítica']
+
+                # Coloque isso antes de chamar o pd.read_fwf ou pd.read_csv
+                # print(f"Tamanho do conteúdo detectado: {len(tabela_memoria.getvalue())} caracteres")
+                # print(f"Amostra inicial do arquivo:\n{tabela_memoria.getvalue()[:150]}")
+
+                # skiprows=12 pula o cabeçalho inicial para ler apenas os dados reais[cite: 1]
+                df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str)
+
+            elif portal == 'ECONSIG_8':
+                # Aplica a régua posicional exata do layout
+                larguras = [20, 11, 50, 11, 10, 9, 1, 100]
+                nomes_colunas = ['Matrícula', 'CPF', 'Nome', 'Codigo', 'Valor Lançado', 'Competencia', 'Tipo', 'Crítica']
+
+                # Coloque isso antes de chamar o pd.read_fwf ou pd.read_csv
+                # print(f"Tamanho do conteúdo detectado: {len(tabela_memoria.getvalue())} caracteres")
+                # print(f"Amostra inicial do arquivo:\n{tabela_memoria.getvalue()[:150]}")
+
+                # skiprows=12 pula o cabeçalho inicial para ler apenas os dados reais[cite: 1]
                 df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str)
             else:
                 # Leitura genérica para outros TXTs
@@ -150,7 +217,7 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
     
         df.rename(columns={"MATRICULA": "Matrícula", "VALOR": "Valor Lançado", "Retorno_1": "Crítica", "Retorno_3": "Valor Acatado"}, inplace=True)
 
-    if modelo in ["ECONSIG_1", "ECONSIG_2"]:
+    if modelo in ["ECONSIG_1", "ECONSIG_2", "ECONSIG_3", "ECONSIG_4", "ECONSIG_5", "ECONSIG_6", "ECONSIG_7", "ECONSIG_8"]:
         pass
 
     return df
