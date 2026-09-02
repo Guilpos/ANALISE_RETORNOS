@@ -1,5 +1,5 @@
 from utils.file_readers import ler_arquivo_seguro
-from utils.formatters import limpar_cpf, limpar_data, limpar_moeda_retorno_consigfacil, alinhar_tipagem_chaves
+from utils.formatters import limpar_cpf, limpar_data, limpar_moeda_delimitador_ponto, alinhar_tipagem_chaves
 import pandas as pd
 
 def processar_portal_exemplo(caminho: str):

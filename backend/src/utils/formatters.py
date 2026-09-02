@@ -27,12 +27,12 @@ def limpar_cpf(cpf_series: pd.Series) -> pd.Series:
     )
 
 
-def limpar_moeda_retorno_consigfacil(valor_series: pd.Series) -> pd.Series:
+def limpar_moeda_delimitador_ponto(valor_series: pd.Series) -> pd.Series:
     """
     Converte strings de moeda (ex: 'R$ 1500.45' ou '1500,45') para float numérico.
     """
 
-    print('limpar_moeda_retorno_consigfacil ativado')
+    print('limpar_moeda_delimitador_ponto ativado')
     v = valor_series.astype(str)
     
     # Remove símbolos e espaços
@@ -119,7 +119,7 @@ def gerar_hash_registro(df: pd.DataFrame) -> pd.Series:
         lambda x: hashlib.md5(x.encode('utf-8')).hexdigest()
     )
 
-# [Suas funções limpar_cpf, limpar_moeda_retorno_consigfacil e limpar_moeda ficam aqui]
+# [Suas funções limpar_cpf, limpar_moeda_delimitador_ponto e limpar_moeda ficam aqui]
 
 def classificar_status_acatamento(df: pd.DataFrame) -> pd.Series:
     """

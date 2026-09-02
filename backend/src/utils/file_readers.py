@@ -34,14 +34,19 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
     if caminho_lower.endswith('.txt'):
         try:
             tabela_memoria = io.BytesIO(conteudo_bytes)
-            
+
+            # Ao contrário de Consigfacil, Econsig não terá outro tratamento de dado, ele irá direto para base portal
             if portal == "ECONSIG_1":
                 # Aplica a régua posicional exata do layout
                 larguras = [10, 11, 50, 10, 10, 9, 1, 100]
                 nomes_colunas = ['Matrícula', 'CPF', 'Nome', 'Codigo', 'Valor Lançado', 'Competencia', 'Tipo', 'Crítica']
                 
                 # skiprows=9 pula o cabeçalho inicial para ler apenas os dados reais[cite: 1]
-                df = pd.read_fwf(tabela_memoria, skiprows=9, widths=larguras, names=nomes_colunas, dtype=str)
+                df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str)
+            if portal == "ECONSIG_2":
+                larguras = [10, 8, 10, 8, 100]
+                nomes_colunas = ['Matrícula', 'Rubrica', 'Valor Lançado', 'Competencia', 'Crítica']
+                df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str)
             else:
                 # Leitura genérica para outros TXTs
                 df = pd.read_fwf(tabela_memoria, dtype=str)
@@ -131,16 +136,6 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         df.rename(columns={"MATRICULA": "Matrícula", "VALOR": "Valor Lançado", "Retorno_1": "Crítica", "Retorno_3": "Valor Acatado"}, inplace=True)
 
     if modelo == "ECONSIG_1":
-        nomes_colunas = [
-            'Matricula',   # 10 caracteres
-            'CPF',         # 11 caracteres 
-            'Nome',        # 50 caracteres
-            'Codigo',      # 10 caracteres
-            'Valor',       # 10 caracteres
-            'Competencia', # 9 caracteres
-            'Tipo',        # 1 caractere
-            'Mensagem'     # Restante (ajustado para 100 caracteres de margem)
-        ]
-        larguras = [10, 11, 50, 10, 10, 9, 1, 100] 
+        pass
 
     return df
