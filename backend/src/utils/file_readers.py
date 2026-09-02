@@ -51,7 +51,11 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
                 # Aplica a régua posicional exata do layout
                 larguras = [10, 11, 50, 10, 10, 9, 1, 100]
                 nomes_colunas = ['Matrícula', 'CPF', 'Nome', 'Codigo', 'Valor Lançado', 'Competencia', 'Tipo', 'Crítica']
-                
+
+                # Coloque isso antes de chamar o pd.read_fwf ou pd.read_csv
+                print(f"Tamanho do conteúdo detectado: {len(tabela_memoria.getvalue())} caracteres")
+                print(f"Amostra inicial do arquivo:\n{tabela_memoria.getvalue()[:150]}")
+
                 # skiprows=9 pula o cabeçalho inicial para ler apenas os dados reais[cite: 1]
                 df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str)
             if portal == "ECONSIG_2":
