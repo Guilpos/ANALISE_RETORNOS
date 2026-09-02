@@ -135,7 +135,7 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
     
         df.rename(columns={"MATRICULA": "Matrícula", "VALOR": "Valor Lançado", "Retorno_1": "Crítica", "Retorno_3": "Valor Acatado"}, inplace=True)
 
-    if modelo == "ECONSIG_1":
+    if modelo in ["ECONSIG_1", "ECONSIG_2"]:
         pass
 
     return df
