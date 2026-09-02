@@ -105,10 +105,12 @@ def portal_escolhido(nome_convenio: str) -> list:
             "PREF. GOIÂNIA", "PREVIDÊNCIA SÃO GONÇALO", "PREF. RIBEIRÃO PRETO", 
             "PREF. TABOÃO DA SERRA", "PREVIDÊNCIA SANTOS - IPREV"
         ],
+
+        "ECONSIG_1": ["PREF. BELO HORIZONTE"],
         
-        "ZETRA": [
+        "ECONSIG": [
             "GOV. ESPÍRITO SANTO", "GOV. PARANÁ", "GOV. RIO DE JANEIRO", 
-            "IGEPREV", "PREF. BELO HORIZONTE", "PREF. AÇAILÂNDIA", 
+            "IGEPREV", "PREF. AÇAILÂNDIA", 
             "PREF. CAMPINAS", "PREF. MACAÉ", "PREF. SÃO JOSE DE RIBAMAR", 
             "PREF. SÃO PAULO-HMSP", "PREF. SOBRAL", "PREVIPALMAS", 
             "PREF. BARBACENA", "GOV. ALAGOAS - TJAL"

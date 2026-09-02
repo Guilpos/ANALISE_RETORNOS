@@ -30,6 +30,30 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
             
         except Exception as e:
             raise ValueError(f"Erro ao ler arquivo Excel: {str(e)}")
+    
+    if caminho_lower.endswith('.txt'):
+        try:
+            tabela_memoria = io.BytesIO(conteudo_bytes)
+            
+            if portal == "ECONSIG_1":
+                # Aplica a régua posicional exata do layout
+                larguras = [10, 11, 50, 10, 10, 9, 1, 100]
+                nomes_colunas = ['Matrícula', 'CPF', 'Nome', 'Codigo', 'Valor Lançado', 'Competencia', 'Tipo', 'Crítica']
+                
+                # skiprows=9 pula o cabeçalho inicial para ler apenas os dados reais[cite: 1]
+                df = pd.read_fwf(tabela_memoria, skiprows=9, widths=larguras, names=nomes_colunas, dtype=str)
+            else:
+                # Leitura genérica para outros TXTs
+                df = pd.read_fwf(tabela_memoria, dtype=str)
+            
+            # --- AS DUAS LINHAS MÁGICAS QUE FALTAVAM ---
+            df = colunas_usadas(modelo=portal, df=df)
+            df_resultado = base_portal.decidir_layout_portal(portal=portal, convenio=nome_convenio, arquivo=df)
+            
+            return df_resultado
+            
+        except Exception as e:
+            raise ValueError(f"Erro ao ler arquivo TXT: {str(e)}")
 
     # 2. ARQUIVOS CSV / TXT
     encodings_comuns = ['utf-8', 'latin-1', 'cp1252', 'iso-8859-1']
@@ -105,5 +129,18 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         # ['Matrícula', 'CPF', 'Valor Lançado', 'Crítica', 'Valor Acatado']
     
         df.rename(columns={"MATRICULA": "Matrícula", "VALOR": "Valor Lançado", "Retorno_1": "Crítica", "Retorno_3": "Valor Acatado"}, inplace=True)
+
+    if modelo == "ECONSIG_1":
+        nomes_colunas = [
+            'Matricula',   # 10 caracteres
+            'CPF',         # 11 caracteres 
+            'Nome',        # 50 caracteres
+            'Codigo',      # 10 caracteres
+            'Valor',       # 10 caracteres
+            'Competencia', # 9 caracteres
+            'Tipo',        # 1 caractere
+            'Mensagem'     # Restante (ajustado para 100 caracteres de margem)
+        ]
+        larguras = [10, 11, 50, 10, 10, 9, 1, 100] 
 
     return df
