@@ -20,6 +20,11 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
         print("Convenio não encontrado na lista de convenios.")
 
     portal = portal_escolhido(nome_convenio)
+
+    try:
+        print('Portal escolhido:', portal)
+    except KeyError:
+        print("Portal não encontrado na lista de portais.")
     
     # 1. ARQUIVOS EXCEL (.xlsx, .xls)
     if caminho_lower.endswith('.xlsx') or caminho_lower.endswith('.xls'):
