@@ -73,6 +73,29 @@
         cursor: pointer;
       }
 
+      /* 1. Garante que o contêiner atue como Flexbox */
+      .ts-wrapper .ts-control {
+        display: flex !important;
+        align-items: center !important;
+      }
+
+      /* 2. A MÁGICA: O flex: 1 obriga a div do texto a esticar pela caixa inteira, ativando o centro */
+      .ts-wrapper .ts-control .item {
+        flex: 1 !important;
+        text-align: center !important;
+        display: block !important;
+      }
+
+      /* 3. Centraliza o texto enquanto o usuário digita a pesquisa */
+      .ts-wrapper .ts-control input {
+        text-align: center !important;
+      }
+
+      /* 4. BÔNUS: Centraliza também os convênios na lista quando ela é aberta para pesquisa */
+      .ts-dropdown .option {
+        text-align: center !important;
+      }
+
       /* Campos de data lado a lado para o período */
       .grupo-datas {
         display: flex;

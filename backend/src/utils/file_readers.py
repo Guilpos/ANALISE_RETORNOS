@@ -13,6 +13,12 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
     
     # A sua lógica de escolha de portal!
     nome_convenio = convenio_escolher()[convenio]
+
+    try:
+        print('Nome Convenio:', nome_convenio)
+    except KeyError:
+        print("Convenio não encontrado na lista de convenios.")
+
     portal = portal_escolhido(nome_convenio)
     
     # 1. ARQUIVOS EXCEL (.xlsx, .xls)
