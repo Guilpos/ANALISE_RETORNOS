@@ -22,7 +22,7 @@ def decidir_layout_portal(portal: str, convenio: str, arquivo: pd.DataFrame) -> 
             "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica", "Valor Acatado"]
         },
         "ECONSIG_1": {
-            "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica", "Valor Acatado"]
+            "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica"]
         },
         "ECONSIG_2": {
             "colunas_obrigatorias": ["Matrícula", "Valor Lançado", "Crítica"]
