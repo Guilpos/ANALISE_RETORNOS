@@ -12,27 +12,33 @@ def processar_portal_econsig(df_bruto: pd.DataFrame, convenio: str, portal: str)
         df['CPF'] = df['Matrícula'].str.zfill(11)  # Supondo que os primeiros 11 caracteres da matrícula sejam o CPF
     df['cpf_formatado'] = limpar_cpf(df['CPF'])
 
-    # Verificar se o delimitador de casa decimal de Valor Lançado e Valor Acatado é ponto ou vírgula
-    if df['Valor Lançado'].str.contains('\.').any():
-        df['Valor_lancado'] = limpar_moeda_delimitador_ponto(df['Valor Lançado'])
+    # 1. Limpeza do Valor Lançado (Garantindo leitura segura contra nulos)
+    if df['Valor Lançado'].astype(str).str.contains('\.').any():
+        df['Valor_lancado'] = limpar_moeda_delimitador_ponto(df['Valor Lançado'].astype(str))
     else:
-        df['Valor_lancado'] = limpar_moeda(df['Valor Lançado'])
+        df['Valor_lancado'] = limpar_moeda(df['Valor Lançado'].astype(str))
 
     print('Valor lançado:', df['Valor_lancado'].head(10))
 
-    df.loc[df['Crítica'] == 'INCLUSAO VALIDADA.', 'Valor Acatado'] = df['Valor_lancado']
-    df['Valor Acatado'] = df['Valor Acatado'].fillna(0) 
-
-    # Se a crítica MARGEM INSUFICIENTE. SERA INCLUIDO APENAS O VALOR DE estiver em alguma linha do arquivo, vamos pegar o que está na frente de 'VALOR DE ' e colocar em Valor Atacado
-    if df['Crítica'].str.contains('MARGEM INSUFICIENTE. SERA INCLUIDO APENAS O VALOR DE').any():
+    # 2. Extração de texto da 'Crítica' (Sem limpar a moeda ainda!)
+    mask_margem = df['Crítica'].fillna('').str.contains('MARGEM INSUFICIENTE. SERA INCLUIDO APENAS O VALOR DE')
+    if mask_margem.any():
         df['Valor Acatado'] = df.apply(
-            lambda row: row['Crítica'].split('VALOR DE ')[1].split(' ')[0] if 'MARGEM INSUFICIENTE. SERA INCLUIDO APENAS O VALOR DE' in row['Crítica'] else row['Valor Acatado'],
+            lambda row: row['Crítica'].split('VALOR DE ')[1].split(' ')[0] if 'MARGEM INSUFICIENTE' in str(row['Crítica']) else row['Valor Acatado'],
             axis=1
         )
 
-        df['Valor Acatado'] = df['Valor Acatado'].fillna(0)
+    # 3. Limpeza do Valor Acatado (Aplica a mesma lógica inteligente do Valor Lançado)
+    if df['Valor Acatado'].astype(str).str.contains('\.').any():
+        df['Valor_descontado'] = limpar_moeda_delimitador_ponto(df['Valor Acatado'].astype(str))
+    else:
+        df['Valor_descontado'] = limpar_moeda(df['Valor Acatado'].astype(str))
 
-    df['Valor_descontado'] = limpar_moeda_delimitador_ponto(df['Valor Acatado'])
+    # 4. Atribuição direta dos valores já numéricos (Sobrescreve o que foi limpo acima)
+    df.loc[df['Crítica'] == 'INCLUSAO VALIDADA.', 'Valor_descontado'] = df['Valor_lancado']
+
+    # Preenche vazios com 0
+    df['Valor_descontado'] = df['Valor_descontado'].fillna(0)
     # df['Data_formatada'] = limpar_data(df['Data'])
 
     # 3. Alinhamento Estrito de Tipos para Cruzamento
