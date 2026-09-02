@@ -75,7 +75,7 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
                 df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str)
             elif portal == 'ECONSIG_4':
                 # Aplica a régua posicional exata do layout
-                larguras = [10, 11, 50, 9, 10, 9, 1, 100]
+                larguras = [10, 11, 50, 9, 10, 9, 4, 100]
                 nomes_colunas = ['Matrícula', 'CPF', 'Nome', 'Codigo', 'Valor Lançado', 'Competencia', 'Tipo', 'Crítica']
 
                 # Coloque isso antes de chamar o pd.read_fwf ou pd.read_csv
@@ -94,7 +94,7 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
                 # print(f"Amostra inicial do arquivo:\n{tabela_memoria.getvalue()[:150]}")
 
                 # skiprows=12 pula o cabeçalho inicial para ler apenas os dados reais[cite: 1]
-                df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str)
+                df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str, encoding='latin-1')
             elif portal == 'ECONSIG_6':
                 # Aplica a régua posicional exata do layout
                 larguras = [12, 11, 50, 9, 10, 9, 1, 100]
@@ -128,7 +128,7 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
                 # print(f"Amostra inicial do arquivo:\n{tabela_memoria.getvalue()[:150]}")
 
                 # skiprows=12 pula o cabeçalho inicial para ler apenas os dados reais[cite: 1]
-                df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str)
+                df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str, encoding='latin-1')
             else:
                 # Leitura genérica para outros TXTs
                 df = pd.read_fwf(tabela_memoria, dtype=str)
