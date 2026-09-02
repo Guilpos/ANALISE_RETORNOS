@@ -56,9 +56,9 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
                 print(f"Tamanho do conteúdo detectado: {len(tabela_memoria.getvalue())} caracteres")
                 print(f"Amostra inicial do arquivo:\n{tabela_memoria.getvalue()[:150]}")
 
-                # skiprows=9 pula o cabeçalho inicial para ler apenas os dados reais[cite: 1]
+                # skiprows=12 pula o cabeçalho inicial para ler apenas os dados reais[cite: 1]
                 df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str)
-            if portal == "ECONSIG_2":
+            elif portal == "ECONSIG_2":
                 larguras = [10, 8, 10, 8, 100]
                 nomes_colunas = ['Matrícula', 'Rubrica', 'Valor Lançado', 'Competencia', 'Crítica']
                 df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str)
