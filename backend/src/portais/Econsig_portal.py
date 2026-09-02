@@ -20,6 +20,10 @@ def processar_portal_econsig(df_bruto: pd.DataFrame, convenio: str, portal: str)
 
     print('Valor lançado:', df['Valor_lancado'].head(10))
 
+    # 1. Garante que a coluna nasça vazia para todo o arquivo
+    if 'Valor Acatado' not in df.columns:
+        df['Valor Acatado'] = ""
+
     # 2. Extração de texto da 'Crítica' (Sem limpar a moeda ainda!)
     mask_margem = df['Crítica'].fillna('').str.contains('MARGEM INSUFICIENTE. SERA INCLUIDO APENAS O VALOR DE')
     if mask_margem.any():
