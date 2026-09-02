@@ -21,7 +21,16 @@ def processar_portal_econsig(df_bruto: pd.DataFrame, convenio: str, portal: str)
     print('Valor lançado:', df['Valor_lancado'].head(10))
 
     df.loc[df['Crítica'] == 'INCLUSAO VALIDADA.', 'Valor Acatado'] = df['Valor_lancado']
-    df['Valor Acatado'] = df['Valor Acatado'].fillna(0)    
+    df['Valor Acatado'] = df['Valor Acatado'].fillna(0) 
+
+    # Se a crítica MARGEM INSUFICIENTE. SERA INCLUIDO APENAS O VALOR DE estiver em alguma linha do arquivo, vamos pegar o que está na frente de 'VALOR DE ' e colocar em Valor Atacado
+    if df['Crítica'].str.contains('MARGEM INSUFICIENTE. SERA INCLUIDO APENAS O VALOR DE').any():
+        df['Valor Acatado'] = df.apply(
+            lambda row: row['Crítica'].split('VALOR DE ')[1].split(' ')[0] if 'MARGEM INSUFICIENTE. SERA INCLUIDO APENAS O VALOR DE' in row['Crítica'] else row['Valor Acatado'],
+            axis=1
+        )
+
+        df['Valor Acatado'] = df['Valor Acatado'].fillna(0)
 
     df['Valor_descontado'] = limpar_moeda_delimitador_ponto(df['Valor Acatado'])
     # df['Data_formatada'] = limpar_data(df['Data'])
