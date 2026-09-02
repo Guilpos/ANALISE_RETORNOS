@@ -29,7 +29,7 @@ def processar_portal_econsig(df_bruto: pd.DataFrame, convenio: str, portal: str)
     if mask_margem.any():
         print('Encontradas críticas de margem insuficiente. Extraindo valores...')
         df['Valor Acatado'] = df.apply(
-            lambda row: row['Crítica'].split('VALOR DE ')[1].split(' ')[0] if 'MARGEM INSUFICIENTE' in str(row['Crítica']) else row['Valor Acatado'],
+            lambda row: row['Crítica'].split('VALOR DE R$')[1].split(' ')[0] if 'MARGEM INSUFICIENTE' in str(row['Crítica']) else row['Valor Acatado'],
             axis=1
         )
 
