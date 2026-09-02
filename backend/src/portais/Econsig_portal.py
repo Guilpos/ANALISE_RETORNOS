@@ -27,10 +27,13 @@ def processar_portal_econsig(df_bruto: pd.DataFrame, convenio: str, portal: str)
     # 2. Extração de texto da 'Crítica' (Sem limpar a moeda ainda!)
     mask_margem = df['Crítica'].fillna('').str.contains('MARGEM INSUFICIENTE. SERA INCLUIDO APENAS O VALOR DE')
     if mask_margem.any():
+        print('Encontradas críticas de margem insuficiente. Extraindo valores...')
         df['Valor Acatado'] = df.apply(
             lambda row: row['Crítica'].split('VALOR DE ')[1].split(' ')[0] if 'MARGEM INSUFICIENTE' in str(row['Crítica']) else row['Valor Acatado'],
             axis=1
         )
+
+        print('Valores extraídos da crítica:', df.loc[mask_margem, 'Valor Acatado'].head(10))
 
     # 3. Limpeza do Valor Acatado (Aplica a mesma lógica inteligente do Valor Lançado)
     if df['Valor Acatado'].astype(str).str.contains('\.').any():
