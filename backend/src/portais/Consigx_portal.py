@@ -12,6 +12,16 @@ def processar_portal_consigx(df_bruto: pd.DataFrame, convenio: str, portal: str)
     # 1. Limpeza do Valor Lançado (Garantindo leitura segura contra nulos)
     # Aplicação limpa e direta no DataFrame:
     df['Valor_lancado'] = df['Valor Lançado'].apply(limpar_moeda_universal)
+
+    # 2. Extração de texto da 'Crítica' (Sem limpar a moeda ainda!)
+    mask_margem = df['Crítica'].fillna('').str.contains('valor acatado')
+    
+    if mask_margem.any():
+        print('Encontradas críticas de margem insuficiente. Extraindo valores...')
+        df['Valor Acatado'] = df.apply(
+            lambda row: row['Crítica'].split('valor acatado: ')[1].split(' ')[0].rstrip('.') if 'valor acatado' in str(row['Crítica']) else row['Valor Acatado'],
+            axis=1
+        )
     df['Valor_descontado'] = df['Valor Acatado'].apply(limpar_moeda_universal)
     # df['Data_formatada'] = limpar_data(df['Data'])
 

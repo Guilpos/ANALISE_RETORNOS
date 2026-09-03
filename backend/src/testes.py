@@ -16,9 +16,9 @@ def processar_portal_exemplo(caminho: str):
         df.insert(5, "Valor Acatado", 0)
 
     # NOME/CPF/MATRICULA/cod_orgao/VALOR/CODIGO DA VERBA/ADE/Critica/Valor/Margem
-    df.rename(columns={"MATRICULA": "Matrícula", "VALOR": "Valor Lançado"}, inplace=True)
+    df.rename(columns={"MATRICULA": "Matrícula", "Critica": "Crítica", "VALOR": "Valor Lançado"}, inplace=True)
 
-    df = df[["Matrícula", "CPF", "Valor Lançado", "Critica", "Valor Acatado"]].copy()
+    df = df[["Matrícula", "CPF", "Valor Lançado", "Crítica", "Valor Acatado"]].copy()
 
     def limpar_moeda_universal(valor):
         valor_str = str(valor).strip()
@@ -38,14 +38,23 @@ def processar_portal_exemplo(caminho: str):
         except ValueError:
             return 0.00
 
+    mask_margem = df['Crítica'].fillna('').str.contains('valor acatado')
+        
+    if mask_margem.any():
+        print('Encontradas críticas de margem insuficiente. Extraindo valores...')
+        df['Valor Acatado'] = df.apply(
+            lambda row: row['Crítica'].split('valor acatado: ')[1].split(' ')[0].rstrip('.') if 'valor acatado' in str(row['Crítica']) else row['Valor Acatado'],
+            axis=1
+        )
+
     # Aplicação limpa e direta no DataFrame:
     df['Valor_lancado'] = df['Valor Lançado'].apply(limpar_moeda_universal)
     df['Valor_descontado'] = df['Valor Acatado'].apply(limpar_moeda_universal)
 
     return df
 
-caminho = r"C:\PESSOAL\TESTE PROJETO DE ANALISE DE RETORNOS\Critica_LANÇAMENTO CARTÃO PREF RIBEIRAO PRETO 07.2026_20260710_1152.xlsx"
+caminho = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\08 - Agosto\PREF GOIANIA\LANCAMENTOS E RETORNOS\Critica_LANCAMENTO CARTÃO PREF GOIANIA 08-2026.xlsx"
 
 arquivo_lido = processar_portal_exemplo(caminho=caminho)
 
-print(arquivo_lido.head())
+print(arquivo_lido.head(30))
