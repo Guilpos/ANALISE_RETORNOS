@@ -234,7 +234,7 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
             df.insert(5, "Valor Acatado", 0)
 
         # NOME/CPF/MATRICULA/cod_orgao/VALOR/CODIGO DA VERBA/ADE/Critica/Valor/Margem
-        df.rename(columns={"MATRICULA": "Matrícula", "VALOR": "Valor Lançado"}, inplace=True)
+        df.rename(columns={"MATRICULA": "Matrícula", "Critica": "Crítica", "VALOR": "Valor Lançado"}, inplace=True)
 
         df = df[["Matrícula", "CPF", "Valor Lançado", "Crítica", "Valor Acatado"]].copy()
 
