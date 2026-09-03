@@ -12,11 +12,21 @@ def processar_portal_exemplo(caminho: str):
     
     print(f'Como está df antes de filtrar?\n{df.head(10)}\n\n')
 
+    if "Critica" not in df.columns:
+        df.insert(9, "Critica", "SUCESSO")
+
+    
+
     if "Valor Acatado" not in df.columns:
         df.insert(5, "Valor Acatado", 0)
 
+    
+
     # NOME/CPF/MATRICULA/cod_orgao/VALOR/CODIGO DA VERBA/ADE/Critica/Valor/Margem
     df.rename(columns={"MATRICULA": "Matrícula", "Critica": "Crítica", "VALOR": "Valor Lançado"}, inplace=True)
+
+    # Se a crítica for SUCESSO e Valor Acatado estiver vazio, preenche com o Valor Lançado
+    df.loc[(df['Crítica'] == 'SUCESSO') & (df['Valor Acatado'].isnull() | (df['Valor Acatado'] == '')), 'Valor Acatado'] = df['Valor Lançado']
 
     df = df[["Matrícula", "CPF", "Valor Lançado", "Crítica", "Valor Acatado"]].copy()
 
@@ -53,7 +63,7 @@ def processar_portal_exemplo(caminho: str):
 
     return df
 
-caminho = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\08 - Agosto\PREF GOIANIA\LANCAMENTOS E RETORNOS\Critica_LANCAMENTO CARTÃO PREF GOIANIA 08-2026.xlsx"
+caminho = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\07 - Julho\PREF GOIANIA\LANCAMENTOS E RETORNOS\SUCESSO LANCAMENTO CARTÃO PREF GOIANIA 07-2026.xlsx"
 
 arquivo_lido = processar_portal_exemplo(caminho=caminho)
 

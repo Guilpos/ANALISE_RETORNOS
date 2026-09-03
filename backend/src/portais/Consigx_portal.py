@@ -6,6 +6,9 @@ import pandas as pd
 def processar_portal_consigx(df_bruto: pd.DataFrame, convenio: str, portal: str) -> pd.DataFrame:
     # 1. Leitura segura (todos os dados nascem como texto bruto)
     df = df_bruto.copy()
+
+    # Se a crítica for SUCESSO e Valor Acatado estiver vazio, preenche com o Valor Lançado
+    df.loc[(df['Crítica'] == 'SUCESSO') & (df['Valor Acatado'].isnull() | (df['Valor Acatado'] == '')), 'Valor Acatado'] = df['Valor Lançado']
     
     # 2. Higienização das colunas padrão
     df['cpf_formatado'] = limpar_cpf(df['CPF'])
