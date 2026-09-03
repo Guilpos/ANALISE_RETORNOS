@@ -3,6 +3,7 @@ import pandas as pd
 from utils.portais_convenios_lista import portal_escolhido, convenio_escolher
 from portais import base_portal
 import csv
+import xlrd
 import io
 
 def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) -> pd.DataFrame:
@@ -240,6 +241,32 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         # NOME/CPF/MATRICULA/cod_orgao/VALOR/CODIGO DA VERBA/ADE/Critica/Valor/Margem
         df.rename(columns={"MATRICULA": "Matrícula", "Critica": "Crítica", "VALOR": "Valor Lançado"}, inplace=True)
 
+        df = df[["Matrícula", "CPF", "Valor Lançado", "Crítica", "Valor Acatado"]].copy()
+
+    if modelo == 'QUANTUM':
+        df.columns = df.iloc[4]
+        
+        # Remove a primeira linha (índice 0) que foi usada como molde e reseta o índice
+        df = df.iloc[5:].reset_index(drop=True)
+    
+        # Remover colunas vazias
+        df = df.dropna(axis=1, how='all')
+        
+        print(f'Como está df antes de filtrar?\n{df.head(10)}\n\n')
+    
+        
+    
+        if "Valor Acatado" not in df.columns:
+            df.insert(5, "Valor Acatado", 0)
+            df['Valor Acatado'] = df['Valor Acatado'].astype(str)
+    
+        
+    
+        # NOME/CPF/MATRICULA/cod_orgao/VALOR/CODIGO DA VERBA/ADE/Critica/Valor/Margem
+        df.rename(columns={"Descrição da crítica": "Crítica", "Valor": "Valor Lançado"}, inplace=True)
+    
+        
+    
         df = df[["Matrícula", "CPF", "Valor Lançado", "Crítica", "Valor Acatado"]].copy()
 
 

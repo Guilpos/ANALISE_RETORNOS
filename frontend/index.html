@@ -561,16 +561,10 @@
 
     // 2. Interceptamos o clique direto no botão de Upload
     btnEnviar.addEventListener("click", async function () {
-      const arquivos = document.getElementById("arquivo").files;
-      const formData = new FormData();
+      const inputArquivo = document.getElementById("arquivo");
 
-      // Adiciona todos os arquivos selecionados com a mesma chave 'arquivos'
-      for (let i = 0; i < arquivos.length; i++) {
-        formData.append("arquivos", arquivos[i]);
-      }
-
-      // Trava de segurança: se o usuário esquecer de anexar, avisa e cancela o envio
-      if (arquivos.length === 0) {
+      // 1. Trava de segurança: verifica a quantidade de arquivos (length)
+      if (inputArquivo.files.length === 0) {
         mostrarAlerta(
           "Por favor, anexe um arquivo antes de processar.",
           "#e74c3c",
@@ -584,8 +578,10 @@
       btnEnviar.disabled = true;
       caixaAlerta.style.display = "none"; // Esconde mensagens anteriores
 
-      // 3. Montamos o pacote de dados EXATAMENTE como o FastAPI pede
+      // 2. Cria o pacote ÚNICO de dados
       const dadosFormulario = new FormData();
+
+      // Anexa os campos de texto
       dadosFormulario.append(
         "codigo_convenio",
         document.getElementById("codigo_convenio").value,
@@ -598,12 +594,19 @@
         "produto",
         document.getElementById("produto").value,
       );
-      // Atenção aqui: estamos pegando a data do novo campo "competencia_inicio"
       dadosFormulario.append(
         "competencia",
         document.getElementById("competencia_inicio").value,
       );
-      dadosFormulario.append("arquivo", arquivoFisico);
+
+      // 3. AQUI ESTÁ A MÁGICA: O loop substitui a antiga linha do arquivoFisico
+      for (let i = 0; i < inputArquivo.files.length; i++) {
+        // Atenção: Use "arquivos" (plural) ou "arquivo" (singular) dependendo
+        // de como você nomeou o parâmetro lá na sua rota do FastAPI.
+        dadosFormulario.append("arquivos", inputArquivo.files[i]);
+      }
+
+      // ... A partir daqui vem o seu comando fetch(url, { body: dadosFormulario }) ...
 
       try {
         // 4. Mandamos os dados para a nuvem
