@@ -211,7 +211,7 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         # 5. Remove a primeira linha (índice 0) que foi usada como molde e reseta o índice
         df = df.iloc[1:].reset_index(drop=True)
 
-        df['VALOR'] = df['VALOR'].str.replace(',', '.', regex=False).astype(float)
+        # df['VALOR'] = df['VALOR'].str.replace(',', '.', regex=False).astype(float)
     
         # ['Matrícula', 'CPF', 'Valor Lançado', 'Crítica', 'Valor Acatado']
     
@@ -219,5 +219,25 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
 
     if modelo in ["ECONSIG_1", "ECONSIG_2", "ECONSIG_3", "ECONSIG_4", "ECONSIG_5", "ECONSIG_6", "ECONSIG_7", "ECONSIG_8"]:
         pass
+
+    if modelo in ["CONSIGX"]:
+        # 1. Extrai os nomes das colunas reais que estão escondidos na primeira linha (índice 0)
+        # Atribui os valores da primeira linha (índice 0) aos cabeçalhos
+        df.columns = df.iloc[0]
+
+        # Remove a primeira linha (índice 0) que foi usada como molde e reseta o índice
+        df = df.iloc[1:].reset_index(drop=True)
+
+        print(f'Como está df antes de filtrar?\n{df.head(10)}\n\n')
+
+        if "Valor Acatado" not in df.columns:
+            df.insert(5, "Valor Acatado", 0)
+
+        # NOME/CPF/MATRICULA/cod_orgao/VALOR/CODIGO DA VERBA/ADE/Critica/Valor/Margem
+        df.rename(columns={"MATRICULA": "Matrícula", "VALOR": "Valor Lançado"}, inplace=True)
+
+        df = df[["Matrícula", "CPF", "Valor Lançado", "Critica", "Valor Acatado"]].copy()
+
+
 
     return df

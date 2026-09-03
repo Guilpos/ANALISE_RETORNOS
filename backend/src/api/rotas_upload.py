@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
+from typing import List
 from services.processamento_orquestrado import orquestrar_processamento
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -9,7 +10,7 @@ router = APIRouter()
 
 @router.post("/upload")
 async def receber_upload_retorno(
-    arquivo: UploadFile = File(...),
+    arquivos: List[UploadFile] = File(...),
     codigo_convenio: str = Form(...),
     consignataria: str = Form(...),
     produto: str = Form(...),
@@ -55,12 +56,20 @@ async def receber_upload_retorno(
     
     
     try:
-        conteudo_em_bytes = await arquivo.read()
+        # conteudo_em_bytes = await arquivo.read()
+
+        # 1. Lê todos os arquivos de forma assíncrona antes de chamar o orquestrador
+        arquivos_para_processar = []
+        for arquivo in arquivos:
+            conteudo_em_bytes = await arquivo.read()
+            arquivos_para_processar.append({
+                "conteudo": conteudo_em_bytes,
+                "nome_arquivo": arquivo.filename
+            })
         
         # Passamos a sessão de banco (db) e a competencia para o orquestrador
         resultado_df = orquestrar_processamento(
-            conteudo=conteudo_em_bytes,
-            nome_arquivo=arquivo.filename,
+            arquivos_lista=arquivos_para_processar, 
             convenio=codigo_convenio,
             banco=consignataria,
             tipo_produto=produto,

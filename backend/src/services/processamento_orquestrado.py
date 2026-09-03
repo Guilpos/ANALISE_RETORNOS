@@ -2,12 +2,47 @@ import pandas as pd
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from utils.file_readers import ler_arquivo_seguro
+from utils.portais_convenios_lista import convenio_escolher, portal_escolhido
 from utils.formatters import classificar_status_acatamento, gerar_hash_registro
 
-def orquestrar_processamento(conteudo: bytes, nome_arquivo: str, convenio: str, banco: str, tipo_produto: str, competencia: str, db: Session):
+def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, tipo_produto: str, competencia: str, db: Session):
+
+    # Vamos pegar o codigo que vem em convenio e descobrir qual o nome do convenio e por seguinte descobrir a qual portal ele pertence
+    # A sua lógica de escolha de portal!
+    nome_convenio = convenio_escolher()[convenio]
+
+    try:
+        print('Nome Convenio:', nome_convenio)
+    except KeyError:
+        print("Convenio não encontrado na lista de convenios.")
+
+    portal = portal_escolhido(nome_convenio)
+
+    # Consigx será o único portal que vai receber múltiplos arquivos, então vamos tratar ele de forma especial
+    if portal == "CONSIGX":
+        lista_dfs = []
     
-    # 1. Leitura e Limpeza (A mágica acontece lá nos seus módulos base_portal e Consigfacil_portal)
-    df = ler_arquivo_seguro(conteudo_bytes=conteudo, nome_arquivo=nome_arquivo, convenio=convenio)
+        # Processa cada arquivo que chegou na lista
+        for arq in arquivos_lista:
+            conteudo = arq["conteudo"]
+            nome_arquivo = arq["nome_arquivo"]
+            
+            # Lê o arquivo atual e transforma em DataFrame
+            df_temporario = ler_arquivo_seguro(conteudo_bytes=conteudo, nome_arquivo=nome_arquivo, convenio=convenio)
+            lista_dfs.append(df_temporario)
+            
+        # Junta o arquivo de sucesso com o de críticas colocando um embaixo do outro
+        df = pd.concat(lista_dfs, ignore_index=True)
+    elif portal != "CONSIGX" and len(arquivos_lista) > 1:
+        # Se houver mais de um arquivo e o portal não for CONSIGX vamos lançar um erro
+        raise ValueError("Apenas um arquivo pode ser enviado para este portal.")
+    else:
+        # Se for apenas um arquivo, pegamos o primeiro da lista
+        conteudo = arquivos_lista[0]["conteudo"]
+        nome_arquivo = arquivos_lista[0]["nome_arquivo"]
+
+        # 1. Leitura e Limpeza (A mágica acontece lá nos seus módulos base_portal e Consigfacil_portal)
+        df = ler_arquivo_seguro(conteudo_bytes=conteudo, nome_arquivo=nome_arquivo, convenio=convenio)
     
     # 2. Injeção das dimensões da interface
     df['codigo_convenio'] = convenio

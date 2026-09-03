@@ -412,6 +412,7 @@
           <input
             type="file"
             id="arquivo"
+            multiple
             style="border: 1px solid #7f8c8d; background: #ecf0f1"
           />
         </div>
@@ -560,12 +561,16 @@
 
     // 2. Interceptamos o clique direto no botão de Upload
     btnEnviar.addEventListener("click", async function () {
-      // Pega o arquivo físico anexado no input
-      const inputArquivo = document.getElementById("arquivo");
-      const arquivoFisico = inputArquivo.files[0];
+      const arquivos = document.getElementById("arquivo").files;
+      const formData = new FormData();
+
+      // Adiciona todos os arquivos selecionados com a mesma chave 'arquivos'
+      for (let i = 0; i < arquivos.length; i++) {
+        formData.append("arquivos", arquivos[i]);
+      }
 
       // Trava de segurança: se o usuário esquecer de anexar, avisa e cancela o envio
-      if (!arquivoFisico) {
+      if (arquivos.length === 0) {
         mostrarAlerta(
           "Por favor, anexe um arquivo antes de processar.",
           "#e74c3c",

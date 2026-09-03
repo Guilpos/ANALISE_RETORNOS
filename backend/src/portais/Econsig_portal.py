@@ -1,4 +1,4 @@
-from utils.formatters import limpar_cpf, limpar_data, limpar_moeda_delimitador_ponto, limpar_moeda, alinhar_tipagem_chaves
+from utils.formatters import limpar_cpf, limpar_data, limpar_moeda_delimitador_ponto, limpar_moeda, limpar_moeda_universal, alinhar_tipagem_chaves
 from utils.validators import validar_matematica_descontos
 from utils.analisador import analisar_dados
 import pandas as pd
@@ -13,10 +13,12 @@ def processar_portal_econsig(df_bruto: pd.DataFrame, convenio: str, portal: str)
     df['cpf_formatado'] = limpar_cpf(df['CPF'])
 
     # 1. Limpeza do Valor Lançado (Garantindo leitura segura contra nulos)
-    if df['Valor Lançado'].astype(str).str.contains('\.').any():
-        df['Valor_lancado'] = limpar_moeda_delimitador_ponto(df['Valor Lançado'].astype(str))
-    else:
-        df['Valor_lancado'] = limpar_moeda(df['Valor Lançado'].astype(str))
+    # if df['Valor Lançado'].astype(str).str.contains('\.').any():
+    #     df['Valor_lancado'] = limpar_moeda_delimitador_ponto(df['Valor Lançado'].astype(str))
+    # else:
+    #     df['Valor_lancado'] = limpar_moeda(df['Valor Lançado'].astype(str))
+
+    df['Valor_lancado'] = df['Valor Lançado'].apply(limpar_moeda_universal)
 
     print('Valor lançado:', df['Valor_lancado'].head(10))
 
@@ -37,10 +39,12 @@ def processar_portal_econsig(df_bruto: pd.DataFrame, convenio: str, portal: str)
         print('Valores extraídos da crítica:', df.loc[mask_margem, 'Valor Acatado'].head(10))
 
     # 3. Limpeza do Valor Acatado (Aplica a mesma lógica inteligente do Valor Lançado)
-    if df['Valor Acatado'].astype(str).str.contains('\.').any():
-        df['Valor_descontado'] = limpar_moeda_delimitador_ponto(df['Valor Acatado'].astype(str))
-    else:
-        df['Valor_descontado'] = limpar_moeda(df['Valor Acatado'].astype(str))
+    # if df['Valor Acatado'].astype(str).str.contains('\.').any():
+    #     df['Valor_descontado'] = limpar_moeda_delimitador_ponto(df['Valor Acatado'].astype(str))
+    # else:
+    #     df['Valor_descontado'] = limpar_moeda(df['Valor Acatado'].astype(str))
+
+    df['Valor_descontado'] = df['Valor Acatado'].apply(limpar_moeda_universal)
 
     # 4. Atribuição direta dos valores já numéricos (Sobrescreve o que foi limpo acima)
     df.loc[df['Crítica'] == 'INCLUSAO VALIDADA.', 'Valor_descontado'] = df['Valor_lancado']

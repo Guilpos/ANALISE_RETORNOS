@@ -63,6 +63,26 @@ def limpar_moeda(valor_series: pd.Series) -> pd.Series:
     # Converte para float (valores não convertíveis viram NaN)
     return pd.to_numeric(v, errors='coerce')
 
+def limpar_moeda_universal(valor_series: pd.Series) -> pd.Series:
+    valor_str = str(valor_series).strip()
+
+    valor_str = valor_str.replace('R$', '').replace(' ', '')
+    
+    # Ignora nulos
+    if valor_str.lower() in ['nan', 'none', '']:
+        return 0.00 
+        
+    # Se tiver vírgula (Padrão BR: 1.000,00 ou 50,45)
+    if ',' in valor_str:
+        # Remove o ponto de milhar e converte a vírgula decimal para ponto
+        valor_str = valor_str.replace('.', '').replace(',', '.')
+    
+    # Converte para float de forma segura
+    try:
+        return float(valor_str)
+    except ValueError:
+        return 0.00
+
 def alinhar_tipagem_chaves(df: pd.DataFrame, coluna: str) -> pd.Series:
     """
     Garante que colunas utilizadas para cruzamento tenham o mesmo tipo estrito (string limpa).
