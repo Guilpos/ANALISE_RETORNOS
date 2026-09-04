@@ -63,6 +63,16 @@ def processar_portal_serha(df_bruto: pd.DataFrame, convenio: str, portal: str) -
             "26": "CONSIGNADO BLOQUEADO PARA CARTAO",
             })
 
+    
+    # 2. Higienização das colunas padrão
+    df['cpf_formatado'] = limpar_cpf(df['CPF'])
+    
+    # df['Data_formatada'] = limpar_data(df['Data'])
+
+    # 3. Alinhamento Estrito de Tipos para Cruzamento
+    # Garante que as chaves de relacionamento estejam exatamente no mesmo tipo (string)
+    df['Matricula_formatada'] = alinhar_tipagem_chaves(df, 'Matrícula')
+
 
     # Aplicação limpa e direta no DataFrame:
     df['Valor_lancado'] = df['Valor Lançado'].apply(limpar_moeda_universal)
