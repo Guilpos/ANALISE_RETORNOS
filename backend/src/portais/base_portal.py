@@ -1,6 +1,6 @@
 import pandas as pd
 from utils.validators import validar_colunas_obrigatorias, validar_matematica_descontos, validar_chaves_nulas, validar_nome_portal_convenio
-from portais import Consigfacil_portal, Econsig_portal, Consigx_portal, Quantum_portal
+from portais import Consigfacil_portal, Econsig_portal, Consigx_portal, Quantum_portal, Serha_portal
 
 
 def decidir_layout_portal(portal: str, convenio: str, arquivo: pd.DataFrame) -> dict:
@@ -25,6 +25,9 @@ def decidir_layout_portal(portal: str, convenio: str, arquivo: pd.DataFrame) -> 
             "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica"]
         },
         "QUANTUM":{
+            "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica"]
+        },
+        "SERHA": {
             "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica"]
         },
         "ECONSIG_1": {
@@ -69,6 +72,8 @@ def decidir_layout_portal(portal: str, convenio: str, arquivo: pd.DataFrame) -> 
             resultado = Consigx_portal.processar_portal_consigx(arquivo, convenio=convenio, portal=portal)
         elif portal == "QUANTUM":
             resultado = Quantum_portal.processar_portal_consigx(arquivo, convenio=convenio, portal=portal)
+        elif portal == "SERHA":
+            resultado = Serha_portal.processar_portal_serha(arquivo, convenio=convenio, portal=portal)
         return resultado
     else:
         raise ValueError(f"Layout não definido para o portal '{portal}' e convênio '{convenio}'.")

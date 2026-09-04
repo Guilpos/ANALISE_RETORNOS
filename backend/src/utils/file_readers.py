@@ -269,6 +269,21 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
     
         df = df[["Matrícula", "CPF", "Valor Lançado", "Crítica", "Valor Acatado"]].copy()
 
+    if modelo == 'SERHA':
+        for column in df.columns:
+                if column in ['x', 'X']:
+                    df.columns = df.iloc[1]
+        
+        # Remove a primeira linha (índice 0) que foi usada como molde e reseta o índice
+        df = df.iloc[2:].reset_index(drop=True)
+    
+        # Remover colunas vazias
+        df = df.dropna(axis=1, how='all')
+        
+        print(f'Como está df antes de filtrar?\n{df.head(10)}\n\n')
+    
+        df.columns = ["Consignante", "CPF", "Matrícula", "N_Processo", "Consignatario", "Consignacao", "Valor Lançado", "Contrato", "Taxa", "MesAno", "Crítica"]
+
 
 
     return df
