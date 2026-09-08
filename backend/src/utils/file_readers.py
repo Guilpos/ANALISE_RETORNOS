@@ -284,6 +284,24 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
     
         df.columns = ["Consignante", "CPF", "Matrícula", "N_Processo", "Consignatario", "Consignacao", "Valor Lançado", "Contrato", "Taxa", "MesAno", "Crítica"]
 
+    if modelo == 'INFOCONSIG':
+        df.columns = df.iloc[0]
+        
+        # Remove a primeira linha (índice 0) que foi usada como molde e reseta o índice
+        df = df.iloc[1:].reset_index(drop=True)
+        
+        print(f'Como está df antes de filtrar?\n{df.head(10)}\n\n')
+    
+        # NM_PESSOA|NR_CPF	NR_MATRICULA|VL_PREVISAO_DESCONTO|valor acatado|críticas
+    
+        df = df.rename(columns={
+            'NR_CPF': 'CPF',
+            'NR_MATRICULA': 'Matrícula',
+            'VL_PREVISAO_DESCONTO': 'Valor Lançado',
+            'valor acatado': 'Valor Acatado',
+            'críticas': 'Crítica'
+        })
+
 
 
     return df
