@@ -293,14 +293,46 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         print(f'Como está df antes de filtrar?\n{df.head(10)}\n\n')
     
         # NM_PESSOA|NR_CPF	NR_MATRICULA|VL_PREVISAO_DESCONTO|valor acatado|críticas
+        # Servidor|CPf|Matricula|Valor Informado|Parcela|Mês	Prazo|Critica
+
+        if 'Critica' in df.columns or 'DS_OBSERVACAO' in df.columns or 'CRITICA' in df.columns:
+            df = df.rename(columns={'DS_OBSERVACAO': 'Critica', 'CRITICA': 'Critica'}, errors='ignore')
+            # 1. Garante a existência da coluna
+            if 'Valor Acatado' not in df.columns:
+                df['Valor Acatado'] = '0'
+    
+            # 2. Cria a máscara para focar apenas nas linhas de acatamento
+            mask = df['Critica'].str.contains('Valor acatado parcialmente|Valor acatado integralmente', case=False, na=False)
+    
+            # 3. A MÁGICA: Pega o texto da 'Critica', divide no '|' e pega a última parte (str[-1])
+            df.loc[mask, 'Valor Acatado'] = (
+                df.loc[mask, 'Critica']
+                .astype(str)
+                .str.split('|')
+                .str[-1]       # Pega o que vier depois do pipe
+                .str.strip()   # Remove espaços invisíveis das pontas
+            )
+    
+            # 4. Garante que quem NÃO foi acatado (~mask) e estiver vazio vire '0'
+            vazios_ou_nulos = df['Valor Acatado'].isna() | (df['Valor Acatado'] == '')
+            df.loc[~mask & vazios_ou_nulos, 'Valor Acatado'] = '0'
+
     
         df = df.rename(columns={
-            'NR_CPF': 'CPF',
-            'NR_MATRICULA': 'Matrícula',
-            'VL_PREVISAO_DESCONTO': 'Valor Lançado',
-            'valor acatado': 'Valor Acatado',
-            'críticas': 'Crítica'
-        })
+                'NR_CPF': 'CPF',
+                'NR_MATRICULA': 'Matrícula',
+                'MATRICULA': 'Matrícula',
+                'VL_PREVISAO_DESCONTO': 'Valor Lançado',
+                'VL_PARCELA_PREVISTA': 'Valor Lançado',
+                'VALOR': 'Valor Lançado',
+                'valor acatado': 'Valor Acatado',
+                'críticas': 'Crítica',
+                'Cpf': 'CPF',
+                'CPf': 'CPF',
+                'Matricula': 'Matrícula',
+                'Valor Informado': 'Valor Lançado',
+                'Critica': 'Crítica'
+            })
 
 
 
