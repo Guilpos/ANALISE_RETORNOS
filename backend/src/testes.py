@@ -4,62 +4,61 @@ import openpyxl
 import pandas as pd
 import xlrd
 
-def processar_portal_exemplo(caminho: str):
-    # A partir do Pandas 1.3.0:
-    df = pd.read_excel(caminho, dtype=str, header=None)
-
-    df.columns = df.iloc[0]
-
-    # Remove a primeira linha (índice 0) que foi usada como molde e reseta o índice
-    df = df.iloc[1:].reset_index(drop=True)
+def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:
+    # 1. Decodifica os bytes para texto (logs de sistemas geralmente usam utf-8 ou latin-1)
+    texto = conteudo_bytes.decode('utf-8', errors='ignore')
     
+    dados_limpos = []
     
-
-    # NM_PESSOA|NR_CPF	NR_MATRICULA|VL_PREVISAO_DESCONTO|valor acatado|críticas
-
-    if 'Critica' in df.columns or 'DS_OBSERVACAO' in df.columns or 'CRITICA' in df.columns:
-        df = df.rename(columns={'DS_OBSERVACAO': 'Critica', 'CRITICA': 'Critica'}, errors='ignore')
-        # 1. Garante a existência da coluna
-        if 'Valor Acatado' not in df.columns:
-            df['Valor Acatado'] = '0'
-
-        # 2. Cria a máscara para focar apenas nas linhas de acatamento
-        mask = df['Critica'].str.contains('Valor acatado parcialmente|Valor acatado integralmente', case=False, na=False)
-
-        # 3. A MÁGICA: Pega o texto da 'Critica', divide no '|' e pega a última parte (str[-1])
-        df.loc[mask, 'Valor Acatado'] = (
-            df.loc[mask, 'Critica']
-            .astype(str)
-            .str.split('|')
-            .str[-1]       # Pega o que vier depois do pipe
-            .str.strip()   # Remove espaços invisíveis das pontas
-        )
-
-        # 4. Garante que quem NÃO foi acatado (~mask) e estiver vazio vire '0'
-        vazios_ou_nulos = df['Valor Acatado'].isna() | (df['Valor Acatado'] == '')
-        df.loc[~mask & vazios_ou_nulos, 'Valor Acatado'] = '0'
-
-        print(f'DF\n{df.head(-30)}')
+    # 2. Lê o arquivo linha por linha
+    for linha in texto.splitlines():
+        linha = linha.strip()
         
-
-    df = df.rename(columns={
-        'NR_CPF': 'CPF',
-        'NR_MATRICULA': 'Matrícula',
-        'MATRICULA': 'Matrícula',
-        'VL_PREVISAO_DESCONTO': 'Valor Lançado',
-        'VL_PARCELA_PREVISTA': 'Valor Lançado',
-        'VALOR': 'Valor Lançado',
-        'valor acatado': 'Valor Acatado',
-        'críticas': 'Crítica',
-        'Cpf': 'CPF',
-        'CPf': 'CPF',
-        'Matricula': 'Matrícula',
-        'Valor Informado': 'Valor Lançado',
-        'Critica': 'Crítica'
-    })
-
-
-
+        # 3. Filtra: Ignora cabeçalhos e rodapés, focando apenas nos dados reais
+        if linha.startswith('linha('):
+            # O arquivo é separado por tabulações (\t)
+            partes = linha.split('\t')
+            
+            # Estrutura esperada:
+            # partes[0] = "linha(1)"
+            # partes[1] = "mat: 23811"
+            # partes[2] = "cpf: 82339929334"
+            # partes[3] = "rub: 1005"
+            # partes[4] = "ope_id: 207414" (ou "-")
+            # partes[5] = "Valor no arquivo: R$ 431.1 "
+            # partes[6] = "Enviado corretamente para débito"
+            
+            try:
+                # Removemos os rótulos (ex: "mat: ") e os espaços em branco de cada pedaço
+                matricula = partes[1].replace('mat:', '').strip()
+                cpf = partes[2].replace('cpf:', '').strip()
+                rubrica = partes[3].replace('rub:', '').strip()
+                ope_id = partes[4].replace('ope_id:', '').strip()
+                valor_str = partes[5].replace('Valor no arquivo: R$', '').strip()
+                critica = partes[6].strip()
+                
+                dados_limpos.append({
+                    'Matrícula': matricula,
+                    'CPF': cpf,
+                    'Rubrica': rubrica,
+                    'ID Operação': ope_id,
+                    'Valor Lançado': float(valor_str), # Já converte o 431.1 para float
+                    'Crítica': critica
+                })
+            except IndexError:
+                # Caso alguma linha venha corrompida, ela não quebra o loop
+                continue
+                
+    # 4. Transforma a lista de dicionários num DataFrame consolidado
+    df = pd.DataFrame(dados_limpos)
+    
+    # OPCIONAL: Se quiser adicionar o Valor Acatado seguindo o padrão que fizemos antes
+    if not df.empty:
+        df['Valor Acatado'] = 0.00
+        # Se a crítica for "Enviado corretamente", acata o valor lançado
+        sucesso_mask = df['Crítica'].str.contains('Enviado corretamente', case=False, na=False)
+        df.loc[sucesso_mask, 'Valor Acatado'] = df.loc[sucesso_mask, 'Valor Lançado']
+        
     def limpar_moeda_universal(valor):
         valor_str = str(valor).strip()
         
@@ -87,8 +86,17 @@ def processar_portal_exemplo(caminho: str):
 
     return df
 
-caminho = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\08 - Agosto\PREF FLORIANÓPOLIS\LANÇAMENTOS E RETORNOS\RETORNO PREF FLORIANOPOLIS COMPRAS 08-2026.xlsx"
+# Coloque o caminho exato onde você salvou o arquivo de teste
+caminho_do_arquivo = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\08 - Agosto\PREF SÃO GONÇALO\LANÇAMENTOS E RETORNOS\log_LAYOUT CARTAO PREF SAO GONCALO 08-2026.txt"
 
-arquivo_lido = processar_portal_exemplo(caminho=caminho)
+# O parâmetro 'rb' significa "Read Bytes" (Ler em bytes)
+with open(caminho_do_arquivo, 'rb') as arquivo:
+    conteudo_em_bytes = arquivo.read()
 
-print(arquivo_lido.head(-30))
+# Chama a função que criamos passando os bytes simulados
+df_teste = processar_portal_exemplo(conteudo_em_bytes)
+
+# Exibe o resultado no terminal para você conferir as colunas
+print(df_teste.head(15))
+print("\nTipos de dados gerados:")
+print(df_teste.dtypes)

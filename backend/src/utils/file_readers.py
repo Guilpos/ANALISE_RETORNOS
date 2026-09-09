@@ -130,6 +130,53 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
 
                 # skiprows=12 pula o cabeçalho inicial para ler apenas os dados reais[cite: 1]
                 df = pd.read_fwf(tabela_memoria, skiprows=12, widths=larguras, names=nomes_colunas, dtype=str, encoding='latin-1')
+            elif portal == 'NEOCONSIG':
+                # 1. Transformamos os bytes puros em texto legível ignorando possíveis erros de encoding
+                texto = conteudo_bytes.decode('utf-8', errors='ignore')
+
+                dados_limpos = []
+
+                # 2. Lê o arquivo linha por linha
+                for linha in tabela_memoria.splitlines():
+                    linha = linha.strip()
+                    
+                    # 3. Filtra: Ignora cabeçalhos e rodapés, focando apenas nos dados reais
+                    if linha.startswith('linha('):
+                        # O arquivo é separado por tabulações (\t)
+                        partes = linha.split('\t')
+                        
+                        # Estrutura esperada:
+                        # partes[0] = "linha(1)"
+                        # partes[1] = "mat: 23811"
+                        # partes[2] = "cpf: 82339929334"
+                        # partes[3] = "rub: 1005"
+                        # partes[4] = "ope_id: 207414" (ou "-")
+                        # partes[5] = "Valor no arquivo: R$ 431.1 "
+                        # partes[6] = "Enviado corretamente para débito"
+                        
+                        try:
+                            # Removemos os rótulos (ex: "mat: ") e os espaços em branco de cada pedaço
+                            matricula = partes[1].replace('mat:', '').strip()
+                            cpf = partes[2].replace('cpf:', '').strip()
+                            rubrica = partes[3].replace('rub:', '').strip()
+                            ope_id = partes[4].replace('ope_id:', '').strip()
+                            valor_str = partes[5].replace('Valor no arquivo: R$', '').strip()
+                            critica = partes[6].strip()
+                            
+                            dados_limpos.append({
+                                'Matrícula': matricula,
+                                'CPF': cpf,
+                                'Rubrica': rubrica,
+                                'ID Operação': ope_id,
+                                'Valor Lançado': float(valor_str), # Já converte o 431.1 para float
+                                'Crítica': critica
+                            })
+                        except IndexError:
+                            # Caso alguma linha venha corrompida, ela não quebra o loop
+                            continue
+                            
+                # 4. Transforma a lista de dicionários num DataFrame consolidado
+                df = pd.DataFrame(dados_limpos)
             else:
                 # Leitura genérica para outros TXTs
                 df = pd.read_fwf(tabela_memoria, dtype=str)
@@ -218,7 +265,7 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
     
         df.rename(columns={"MATRICULA": "Matrícula", "VALOR": "Valor Lançado", "Retorno_1": "Crítica", "Retorno_3": "Valor Acatado"}, inplace=True)
 
-    if modelo in ["ECONSIG_1", "ECONSIG_2", "ECONSIG_3", "ECONSIG_4", "ECONSIG_5", "ECONSIG_6", "ECONSIG_7", "ECONSIG_8"]:
+    if modelo in ["NEOCONSIG", "ECONSIG_1", "ECONSIG_2", "ECONSIG_3", "ECONSIG_4", "ECONSIG_5", "ECONSIG_6", "ECONSIG_7", "ECONSIG_8"]:
         pass
 
     if modelo in ["CONSIGX"]:
