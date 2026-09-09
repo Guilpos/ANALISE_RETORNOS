@@ -8,10 +8,24 @@ def processar_portal_neoconsig(df_bruto: pd.DataFrame, convenio: str, portal: st
 
     # OPCIONAL: Se quiser adicionar o Valor Acatado seguindo o padrão que fizemos antes
     if not df.empty:
-        df['Valor Acatado'] = 0.00
-        # Se a crítica for "Enviado corretamente", acata o valor lançado
-        sucesso_mask = df['Crítica'].str.contains('Enviado corretamente', case=False, na=False)
-        df.loc[sucesso_mask, 'Valor Acatado'] = df.loc[sucesso_mask, 'Valor Lançado']
+            df['Valor Acatado'] = 0.00
+            
+            # Criação das máscaras
+            sucesso_mask = df['Crítica'].str.contains('Enviado corretamente|Valor no sistema:', case=False, na=False)
+            parcial_mask = df['Crítica'].str.contains('Valor acima do limite,', case=False, na=False)
+            
+            # 1. Aloca o valor lançado para os sucessos
+            df.loc[sucesso_mask, 'Valor Acatado'] = df.loc[sucesso_mask, 'Valor Lançado']
+            
+            # 2. Limpa o texto, remove pontuações e converte para float
+            df.loc[parcial_mask, 'Valor Acatado'] = (
+                df.loc[parcial_mask, 'Crítica']
+                .str.replace('Valor acima do limite, enviado para débito no limite (R$', '', regex=False)
+                .str.replace(')', '', regex=False)
+                .str.rstrip('.') # O acessor .str é obrigatório aqui
+                .str.strip()     # Remove espaços residuais
+                .astype(float)   # Transforma a string extraída em número real
+            )
         
     # 2. Higienização das colunas padrão
     df['cpf_formatado'] = limpar_cpf(df['CPF'])

@@ -55,9 +55,23 @@ def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:
     # OPCIONAL: Se quiser adicionar o Valor Acatado seguindo o padrão que fizemos antes
     if not df.empty:
         df['Valor Acatado'] = 0.00
-        # Se a crítica for "Enviado corretamente", acata o valor lançado
-        sucesso_mask = df['Crítica'].str.contains('Enviado corretamente', case=False, na=False)
+        
+        # Criação das máscaras
+        sucesso_mask = df['Crítica'].str.contains('Enviado corretamente|Valor no sistema:', case=False, na=False)
+        parcial_mask = df['Crítica'].str.contains('Valor acima do limite,', case=False, na=False)
+        
+        # 1. Aloca o valor lançado para os sucessos
         df.loc[sucesso_mask, 'Valor Acatado'] = df.loc[sucesso_mask, 'Valor Lançado']
+        
+        # 2. Limpa o texto, remove pontuações e converte para float
+        df.loc[parcial_mask, 'Valor Acatado'] = (
+            df.loc[parcial_mask, 'Crítica']
+            .str.replace('Valor acima do limite, enviado para débito no limite (R$', '', regex=False)
+            .str.replace(')', '', regex=False)
+            .str.rstrip('.') # O acessor .str é obrigatório aqui
+            .str.strip()     # Remove espaços residuais
+            .astype(float)   # Transforma a string extraída em número real
+        )
         
     def limpar_moeda_universal(valor):
         valor_str = str(valor).strip()
@@ -87,7 +101,7 @@ def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:
     return df
 
 # Coloque o caminho exato onde você salvou o arquivo de teste
-caminho_do_arquivo = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\08 - Agosto\PREF SÃO GONÇALO\LANÇAMENTOS E RETORNOS\log_LAYOUT CARTAO PREF SAO GONCALO 08-2026.txt"
+caminho_do_arquivo = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\09 - Setembro\PREF SÃO GONÇALO\LANÇAMENTOS E RETORNOS\log_LAYOUT CARTAO PREF SAO GONCALO 09-2026.txt"
 
 # O parâmetro 'rb' significa "Read Bytes" (Ler em bytes)
 with open(caminho_do_arquivo, 'rb') as arquivo:
