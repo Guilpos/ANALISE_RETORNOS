@@ -380,6 +380,20 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
                 'Valor Informado': 'Valor Lançado',
                 'Critica': 'Crítica'
             })
+    if modelo == 'SAFECONSIG':
+        df.columns = df.iloc[1]
+        df = df.iloc[2:].reset_index(drop=True)
+        # 1. Separar a coluna 'Linha' em múltiplas colunas
+        # O expand=True transforma o resultado do split em um novo DataFrame.
+        df_separado = df['Linha'].str.split(';', expand=True)
+        
+        # Como a string termina com um ';', o split vai criar uma última coluna vazia.
+        # Vamos pegar apenas as 6 primeiras colunas que nos interessam:
+        df_separado = df_separado.iloc[:, :6]
+        df_separado.columns = ['Matrícula', 'CPF', 'Valor Lançado', 'Serviço', 'Competência', 'Nome']
+        
+        # 2. Juntar as novas colunas com as colunas originais (removendo a velha 'Linha')
+        df = pd.concat([df_separado, df.drop(columns=['Linha'])], axis=1)
 
 
 
