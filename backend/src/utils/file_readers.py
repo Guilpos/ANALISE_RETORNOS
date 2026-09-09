@@ -137,7 +137,7 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
                 dados_limpos = []
 
                 # 2. Lê o arquivo linha por linha
-                for linha in tabela_memoria.splitlines():
+                for linha in texto.splitlines():
                     linha = linha.strip()
                     
                     # 3. Filtra: Ignora cabeçalhos e rodapés, focando apenas nos dados reais
