@@ -72,7 +72,7 @@ def processar_portal_exemplo(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 # Coloque o caminho exato onde você salvou o arquivo de teste
-caminho_do_arquivo = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\08 - Agosto\GOV AL\Linhas Processadas RBC 617-00.xlsx"
+caminho_do_arquivo = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\08 - Agosto\GOV CE\LANÇAMENTOS E RETORNOS\Linhas Processadas_GOV CE 08-2026.xlsx"
 
 df_tratamento = pd.read_excel(caminho_do_arquivo, header=None)
 

@@ -395,6 +395,8 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         # 2. Juntar as novas colunas com as colunas originais (removendo a velha 'Linha')
         df = pd.concat([df_separado, df.drop(columns=['Linha'])], axis=1)
 
+        df = df.rename(columns={"Critica": "Crítica"})
+
 
 
     return df
