@@ -30,6 +30,15 @@ def processar_portal_safeconsig(df_bruto: pd.DataFrame, convenio: str, portal: s
         .str[-1]                              # Pega a última parte (onde ficou o número)
         .str.strip()                          # Remove espaços sobrando
     )
+
+    # 2. Higienização das colunas padrão
+    df['cpf_formatado'] = limpar_cpf(df['CPF'])
+    
+    # df['Data_formatada'] = limpar_data(df['Data'])
+
+    # 3. Alinhamento Estrito de Tipos para Cruzamento
+    # Garante que as chaves de relacionamento estejam exatamente no mesmo tipo (string)
+    df['Matricula_formatada'] = alinhar_tipagem_chaves(df, 'Matrícula')
         
     # Aplicação limpa e direta no DataFrame:
     df['Valor_lancado'] = df['Valor Lançado'].apply(limpar_moeda_universal)
