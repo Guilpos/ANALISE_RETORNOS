@@ -384,6 +384,7 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         df.columns = df.iloc[1].astype(str).str.strip()
         df = df.iloc[2:].reset_index(drop=True)
         print(f"DEBUG: Como está o DataFrame depois de reorganizar o cabeçalho?\n{df}\n")
+        print(f"DEBUG: Colunas de df: {df.columns}")
         # 1. Separar a coluna 'Linha' em múltiplas colunas
         # O expand=True transforma o resultado do split em um novo DataFrame.
         df_separado = df['Linha'].str.split(';', expand=True)
