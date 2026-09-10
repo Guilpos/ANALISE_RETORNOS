@@ -383,6 +383,7 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
     if modelo == 'SAFECONSIG':
         df.columns = df.iloc[1]
         df = df.iloc[2:].reset_index(drop=True)
+        print(f"DEBUG: Como está o DataFrame depois de reorganizar o cabeçalho?\n{df}")
         # 1. Separar a coluna 'Linha' em múltiplas colunas
         # O expand=True transforma o resultado do split em um novo DataFrame.
         df_separado = df['Linha'].str.split(';', expand=True)
