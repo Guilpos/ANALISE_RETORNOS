@@ -16,16 +16,16 @@ def processar_portal_safeconsig(df_bruto: pd.DataFrame, convenio: str, portal: s
     # --- LÓGICA DE ACATAMENTO ---
     
     # A) Tratamento do SUCESSO TOTAL
-    mask_sucesso = df['Critica'].str.strip() == 'SUCESSO'
+    mask_sucesso = df['Crítica'].str.strip() == 'SUCESSO'
     df.loc[mask_sucesso, 'Valor Acatado'] = df.loc[mask_sucesso, 'Valor Lançado']
     
     # B) Tratamento do SUCESSO PARCIAL
     # Identifica as linhas que contêm a palavra "PARCIAL" na crítica
-    mask_parcial = df['Critica'].str.contains('SUCESSO PARCIAL', na=False, case=False)
+    mask_parcial = df['Crítica'].str.contains('SUCESSO PARCIAL', na=False, case=False)
     
     # Extrai dinamicamente apenas o número que vem depois do "R$"
     df.loc[mask_parcial, 'Valor Acatado'] = (
-        df.loc[mask_parcial, 'Critica']
+        df.loc[mask_parcial, 'Crítica']
         .str.split('R\$')                     # Corta o texto exatamente no 'R$'
         .str[-1]                              # Pega a última parte (onde ficou o número)
         .str.strip()                          # Remove espaços sobrando
