@@ -851,9 +851,57 @@
           return linhas; // Retorna a matriz que o Chart.js entende como quebra de linha
         }
 
-        // Varre a lista de arquivos e desenha os cards dinâmicos
-        dados.cards_arquivos.forEach((arquivo, index) => {
-          // 1. O Robô Mapeador de Cores que já fizemos
+        // FUNÇÃO AUXILIAR: Quebra textos longos para o Chart.js ler como múltiplas linhas
+        function formatarLabelMultiplasLinhas(texto, tamanhoMaximo = 20) {
+          if (!texto) return ["Não Informado"];
+          if (texto.length <= tamanhoMaximo) return texto;
+
+          const palavras = texto.split(" ");
+          const linhas = [];
+          let linhaAtual = "";
+
+          palavras.forEach((palavra) => {
+            if ((linhaAtual + palavra).length > tamanhoMaximo) {
+              if (linhaAtual.trim() !== "") linhas.push(linhaAtual.trim());
+              linhaAtual = palavra + " ";
+            } else {
+              linhaAtual += palavra + " ";
+            }
+          });
+          if (linhaAtual.trim() !== "") linhas.push(linhaAtual.trim());
+
+          return linhas;
+        }
+
+        // NOVA FUNÇÃO AUXILIAR MATEMÁTICA: Calcula e formata a variação mês a mês
+        function calcularVariacaoHTML(valorAtual, valorAnterior) {
+          if (
+            valorAnterior === undefined ||
+            valorAnterior === null ||
+            isNaN(valorAnterior)
+          ) {
+            return `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(--)</span>`;
+          }
+          if (valorAnterior === 0) {
+            return valorAtual > 0
+              ? `<span style="font-size: 11px; color: #2ecc71; margin-left: 5px;">(+100,00%)</span>`
+              : `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(0,00%)</span>`;
+          }
+
+          const diferenca =
+            ((valorAtual - valorAnterior) / valorAnterior) * 100;
+          const formatado = Math.abs(diferenca).toFixed(2).replace(".", ",");
+
+          if (diferenca > 0) {
+            return `<span style="font-size: 11px; color: #2ecc71; margin-left: 5px;">(+${formatado}%)</span>`;
+          } else if (diferenca < 0) {
+            return `<span style="font-size: 11px; color: #e74c3c; margin-left: 5px;">(-${formatado}%)</span>`;
+          }
+          return `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(0,00%)</span>`;
+        }
+
+        // Varre a lista de arquivos e desenha os cards dinâmicos (renomeamos index para arquivoIndex)
+        dados.cards_arquivos.forEach((arquivo, arquivoIndex) => {
           const coresExatas = arquivo.grafico_pizza.labels.map((label) => {
             const texto = label.toUpperCase();
             if (texto.includes("ACATADO INTEGRAL") || texto === "ACATADO")
@@ -865,106 +913,111 @@
           });
 
           // 2. CONSTRUÇÃO DO RESUMO FINANCEIRO
-          // Soma todos os valores para descobrir o 100%
           const totalFinanceiro =
             arquivo.grafico_pizza.valores_financeiros.reduce(
               (a, b) => a + b,
               0,
             );
 
+          // NOVO: SOMA DOS CASOS (Quantidades brutas)
+          const totalCasosBrutos = arquivo.grafico_pizza.quantidades.reduce(
+            (a, b) => a + b,
+            0,
+          );
+
           let htmlValores = `<div style="margin-top: 20px; background: #f4f6f9; border-radius: 8px; padding: 15px; width: 100%;">`;
-          // ... (o trecho onde você calcula o totalFinanceiro e faz o forEach das fatias da pizza continua igual) ...
 
-          // -----------------------------------------------------------------
-          // NOVA LÓGICA: CÁLCULO DE VARIAÇÃO MÊS A MÊS (MoM)
-          // -----------------------------------------------------------------
-          let percentualDiferencaHtml = "";
+          // Variável para armazenar o arquivo do mês anterior (se existir)
+          const arquivoAnterior =
+            arquivoIndex > 0 ? dados.cards_arquivos[arquivoIndex - 1] : null;
 
-          // O index indica em qual arquivo estamos (0 é o primeiro, 1 é o segundo...)
-          if (index === 0) {
-            // No primeiro cartão, não temos mês anterior para comparar
-            percentualDiferencaHtml = `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(--)</span>`;
-          } else {
-            // Captura os dados do arquivo imediatamente anterior na lista
-            const arquivoAnterior = dados.cards_arquivos[index - 1];
-            const totalAnterior =
-              arquivoAnterior.grafico_pizza.valores_financeiros.reduce(
-                (a, b) => a + b,
-                0,
-              );
-
-            if (totalAnterior > 0) {
-              // Fórmula clássica de variação percentual: ((Atual - Anterior) / Anterior) * 100
-              const diferenca =
-                ((totalFinanceiro - totalAnterior) / totalAnterior) * 100;
-
-              // Formata com 2 casas decimais e troca o ponto por vírgula no padrão brasileiro
-              const diferencaFormatada = Math.abs(diferenca)
-                .toFixed(2)
-                .replace(".", ",");
-
-              // Define a cor e o sinal (+ ou -) dinamicamente
-              if (diferenca > 0) {
-                percentualDiferencaHtml = `<span style="font-size: 11px; color: #2ecc71; margin-left: 5px;">(+${diferencaFormatada}%)</span>`; // Verde
-              } else if (diferenca < 0) {
-                percentualDiferencaHtml = `<span style="font-size: 11px; color: #e74c3c; margin-left: 5px;">(-${diferencaFormatada}%)</span>`; // Vermelho
-              } else {
-                percentualDiferencaHtml = `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(0,00%)</span>`; // Cinza
-              }
-            } else {
-              percentualDiferencaHtml = `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(--)</span>`;
-            }
-          }
-
-          arquivo.grafico_pizza.labels.forEach((label, index) => {
-            const valor = arquivo.grafico_pizza.valores_financeiros[index];
+          // Laço de repetição das fatias (renomeamos index para labelIndex)
+          arquivo.grafico_pizza.labels.forEach((label, labelIndex) => {
+            const valorAtual =
+              arquivo.grafico_pizza.valores_financeiros[labelIndex];
             const percentual =
               totalFinanceiro > 0
-                ? ((valor / totalFinanceiro) * 100).toFixed(1)
+                ? ((valorAtual / totalFinanceiro) * 100).toFixed(1)
                 : 0;
-            const valorBRL = valor.toLocaleString("pt-BR", {
+            const valorBRL = valorAtual.toLocaleString("pt-BR", {
               style: "currency",
               currency: "BRL",
             });
-            const cor = coresExatas[index];
+            const cor = coresExatas[labelIndex];
+
+            // Calcula a variação desta fatia específica
+            let tagVariacaoFatia = "";
+            if (!arquivoAnterior) {
+              tagVariacaoFatia = `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(--)</span>`;
+            } else {
+              const valorAnteriorFatia =
+                arquivoAnterior.grafico_pizza.valores_financeiros[labelIndex] ||
+                0;
+              tagVariacaoFatia = calcularVariacaoHTML(
+                valorAtual,
+                valorAnteriorFatia,
+              );
+            }
 
             htmlValores += `
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px; border-left: 4px solid ${cor}; padding-left: 8px; font-size: 12px;">
                         <span style="color: #555;">${label}</span>
-                        <span style="font-weight: bold; color: #333;">${valorBRL} <span style="font-size: 10px; color: #888; margin-left: 5px;">(${percentual}%)</span></span>
+                        <span style="font-weight: bold; color: #333;">
+                            ${valorBRL} 
+                            <span style="font-size: 10px; color: #888; margin-left: 5px;">(${percentual}%)</span>
+                            ${tagVariacaoFatia}
+                        </span>
                     </div>
                 `;
           });
 
-          // Formata o valor atual em Reais
           const totalBRL = totalFinanceiro.toLocaleString("pt-BR", {
             style: "currency",
             currency: "BRL",
           });
 
-          // Injeta o Total e o Percentual juntos na mesma linha
+          // Calcula a variação do TOTAL GERAL
+          let tagVariacaoTotal = "";
+          if (!arquivoAnterior) {
+            tagVariacaoTotal = `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(--)</span>`;
+          } else {
+            const totalFinanceiroAnterior =
+              arquivoAnterior.grafico_pizza.valores_financeiros.reduce(
+                (a, b) => a + b,
+                0,
+              );
+            tagVariacaoTotal = calcularVariacaoHTML(
+              totalFinanceiro,
+              totalFinanceiroAnterior,
+            );
+          }
+
           htmlValores += `
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; border-top: 1px dashed #ccc; padding-top: 10px; font-weight: bold; font-size: 13px; color: #2c3e50;">
                   <span>TOTAL PROCESSADO</span>
-                  <span>${totalBRL} ${percentualDiferencaHtml}</span>
+                  <span>${totalBRL} ${tagVariacaoTotal}</span>
               </div>
           </div>`;
 
-          // 3. Montagem do HTML com o Resumo Injetado
+          // 3. Montagem do HTML (Substituindo o "0" fixo pela variável totalCasosBrutos)
           const cardHTML = `
                 <div class="card-arquivo">
                     <h4 style="text-align: center; color: #555; margin-top: 0; margin-bottom: 20px;">${arquivo.nome_arquivo}</h4>
                     
                     <div style="display: flex; gap: 20px; align-items: flex-start;">
-                        <!-- Coluna da Esquerda: Pizza + Valores Financeiros -->
                         <div style="flex: 1; min-width: 290px; display: flex; flex-direction: column; align-items: center;">
                             <div style="width: 100%; max-width: 220px;">
                                 <canvas id="pizza-${arquivo.id_arquivo}"></canvas>
+                                
+                                <div style="text-align: center; margin-top: 0px; margin-bottom: 20px;">
+                                    <span style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px;">Casos Processados</span>
+                                    <br>
+                                    <strong style="font-size: 28px; color: #2c3e50;">${totalCasosBrutos.toLocaleString("pt-BR")}</strong>
+                                </div>
                             </div>
                             ${htmlValores}
                         </div>
                         
-                        <!-- Coluna da Direita: Gráfico de Barras -->
                         <div style="flex: 1; min-width: 500px; display: flex; flex-direction: column;">
                             <h5 style="text-align: center; margin-top: 0; margin-bottom: 10px; color: #666; font-size: 13px; font-weight: normal;">Volume de Inconsistências</h5>
                             <canvas id="barras-${arquivo.id_arquivo}"></canvas>
@@ -975,7 +1028,7 @@
 
           areaCards.insertAdjacentHTML("beforeend", cardHTML);
 
-          // Desenhando a Pizza com as cores fixadas e Tooltip inteligente
+          // Desenhando a Pizza
           new Chart(
             document
               .getElementById(`pizza-${arquivo.id_arquivo}`)
@@ -994,34 +1047,18 @@
               options: {
                 responsive: true,
                 plugins: {
-                  legend: {
-                    position: "bottom",
-                  },
-                  // A MÁGICA DO TOOLTIP ACONTECE AQUI
+                  legend: { display: false },
                   tooltip: {
                     callbacks: {
                       label: function (context) {
-                        // 1. Pega o nome da fatia (ex: "Acatado Integral")
-                        // let rotulo = context.label || '';
-                        // if (rotulo) {
-                        //     rotulo += ': ';
-                        // }
                         let rotulo = "";
-
-                        // 2. Pega a quantidade bruta daquela fatia específica
                         const valor = context.raw;
-
-                        // 3. Soma todas as fatias do gráfico para descobrir quanto é o 100%
                         const total = context.dataset.data.reduce(
                           (acumulador, atual) => acumulador + atual,
                           0,
                         );
-
-                        // 4. Calcula a porcentagem com 1 casa decimal
                         const percentual =
                           total > 0 ? ((valor / total) * 100).toFixed(1) : 0;
-
-                        // 5. Monta o texto final que vai aparecer na tela
                         rotulo += `${valor} registros (${percentual}%)`;
                         return rotulo;
                       },
@@ -1032,20 +1069,19 @@
             },
           );
 
-          // Passamos as labels originais pelo nosso "cortador"
           const labelsBarrasFormatadas = arquivo.grafico_barras.labels.map(
             (label) => formatarLabelMultiplasLinhas(label, 25),
           );
 
-          // Desenhando o Gráfico de Barras com as legendas novas
+          // Desenhando o Gráfico de Barras
           new Chart(
             document
               .getElementById(`barras-${arquivo.id_arquivo}`)
               .getContext("2d"),
             {
-              type: "bar", // ou 'horizontalBar' se você estiver usando barras laterais
+              type: "bar",
               data: {
-                labels: labelsBarrasFormatadas, // A MÁGICA ACONTECE AQUI
+                labels: labelsBarrasFormatadas,
                 datasets: [
                   {
                     label: "Quantidade",
@@ -1058,40 +1094,24 @@
                 responsive: true,
                 plugins: {
                   legend: { display: false },
-                  // A MÁGICA DO TOOLTIP ACONTECE AQUI
                   tooltip: {
                     callbacks: {
                       label: function (context) {
-                        // 1. Pega o nome da fatia (ex: "Acatado Integral")
-                        // let rotulo = context.label || '';
-                        // if (rotulo) {
-                        //     rotulo += ': ';
-                        // }
                         let rotulo = "";
-
-                        // 2. Pega a quantidade bruta daquela fatia específica
                         const valor = context.raw;
-
-                        // 3. Soma todas as fatias do gráfico para descobrir quanto é o 100%
                         const total = context.dataset.data.reduce(
                           (acumulador, atual) => acumulador + atual,
                           0,
                         );
-
-                        // 4. Calcula a porcentagem com 1 casa decimal
                         const percentual =
                           total > 0 ? ((valor / total) * 100).toFixed(1) : 0;
-
-                        // 5. Monta o texto final que vai aparecer na tela
                         rotulo += `${valor} registros (${percentual}%)`;
                         return rotulo;
                       },
                     },
                   },
                 },
-                scales: {
-                  y: { beginAtZero: true },
-                },
+                scales: { y: { beginAtZero: true } },
               },
             },
           );
