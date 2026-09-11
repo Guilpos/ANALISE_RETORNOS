@@ -47,4 +47,6 @@ def processar_portal_safeconsig(df_bruto: pd.DataFrame, convenio: str, portal: s
 
     df['Valor_descontado'] = df['Valor Acatado'].apply(limpar_moeda_universal)
 
+    print(f'DEBUG: coluna descontado de SAFECONSIG:\n{df["Valor_descontado"]}')
+
     return df
