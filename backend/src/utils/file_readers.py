@@ -400,8 +400,12 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         df = df.rename(columns={"Critica": "Crítica"})
 
     if modelo == 'KONEXIA':
-         df.columns = df.iloc[1].astype(str).str.strip()
-         df = df.iloc[2:].reset_index(drop=True)
+         if "Servidor" in df.loc[0][0]:
+             df.columns = df.iloc[0].astype(str).str.strip()
+             df = df.iloc[1:].reset_index(drop=True)
+         else:
+             df.columns = df.iloc[1].astype(str).str.strip()
+             df = df.iloc[2:].reset_index(drop=True)
         
          print(f"DEBUG: Como está o DataFrame depois de reorganizar o cabeçalho?\n{df}\n")
          print(f"DEBUG: Colunas de df: {df.columns}")

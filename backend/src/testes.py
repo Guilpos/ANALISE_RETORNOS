@@ -6,8 +6,13 @@ import xlrd
 
 def processar_portal_exemplo(df: pd.DataFrame) -> pd.DataFrame:
 
-    df.columns = df.iloc[1].astype(str).str.strip()
-    df = df.iloc[2:].reset_index(drop=True)
+    print(f"PRIMEIRA LINHA\n", df.loc[0][0])
+    if "Servidor" in df.loc[0][0]:
+        df.columns = df.iloc[0].astype(str).str.strip()
+        df = df.iloc[1:].reset_index(drop=True)
+    else:
+        df.columns = df.iloc[1].astype(str).str.strip()
+        df = df.iloc[2:].reset_index(drop=True)
     
     print(f"DEBUG: Como está o DataFrame depois de reorganizar o cabeçalho?\n{df}\n")
     print(f"DEBUG: Colunas de df: {df.columns}")
@@ -61,7 +66,7 @@ def processar_portal_exemplo(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 # Coloque o caminho exato onde você salvou o arquivo de teste
-caminho_do_arquivo = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\08 - Agosto\PREF PLANALTINA+PREVIPLAN\RELATÓRIO\RETORNO - PREF. PLANALTINA - CIASPREV - 08.2026.xls"
+caminho_do_arquivo = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\08 - Agosto\PREF CONTAGEM\LANÇAMENTOS E RETORNOS\relatorioAjusteDescontoPREF CONTAGEM 08-2026.xls"
 df_tratamento = pd.read_excel(caminho_do_arquivo, header=None)
 
 # Chama a função que criamos passando os bytes simulados
