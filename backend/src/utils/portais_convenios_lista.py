@@ -82,7 +82,8 @@ def convenio_escolher():
     "80": "CÂMARA DE TERESÓPOLIS",
     "81": "GOV. RIO GRANDE DO NORTE",
     "82": "PREF. NATAL",
-    "83": "PREF. SERRA"
+    "83": "PREF. SERRA",
+    "84": "PREF. CAUCAIA"
 }
 
     return mapa_convenios
@@ -149,7 +150,7 @@ def portal_escolhido(nome_convenio: str) -> list:
         
         "LINECONSIG": ["PREF. PICOS", "PREV. PICOS"],
         
-        "SAFECONSIG": ["PREF. TAUBATÉ", "PREF. SANTOS", "GOV. CEARÁ", "GOV. ALAGOAS"],
+        "SAFECONSIG": ["PREF. TAUBATÉ", "PREF. SANTOS", "GOV. CEARÁ", "GOV. ALAGOAS", "PREF. CAUCAIA"],
         
         "CONSIGFACIL_1": ["GOV. MATO GROSSO",
                           "PREF. TUTÓIA",
