@@ -399,6 +399,25 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
 
         df = df.rename(columns={"Critica": "Crítica"})
 
+    if modelo == 'KONEXIA':
+         df.columns = df.iloc[1].astype(str).str.strip()
+         df = df.iloc[2:].reset_index(drop=True)
+        
+         print(f"DEBUG: Como está o DataFrame depois de reorganizar o cabeçalho?\n{df}\n")
+         print(f"DEBUG: Colunas de df: {df.columns}")
+         # 1. Separar a coluna 'Linha' em múltiplas colunas
+          # O expand=True transforma o resultado do split em um novo DataFrame.    
+         # Como a string termina com um ';', o split vai criar uma última coluna vazia.
+         # Vamos pegar apenas as 6 primeiras colunas que nos interessam:
+    
+         # 2. Higienização das colunas padrão
+         if 'CPF' not in df.columns:
+            df['CPF'] = df['Matrícula'].str.zfill(11)  # Supondo que os primeiros 11 caracteres da matrícula sejam o CPF
+    
+        
+    
+         df = df.rename(columns={'Valor parcela': 'Valor Lançado', 'Valor ajuste': 'Valor Acatado', "Observação": "Crítica"})
+
 
 
     return df

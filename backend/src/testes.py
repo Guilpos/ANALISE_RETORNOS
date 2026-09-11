@@ -8,22 +8,28 @@ def processar_portal_exemplo(df: pd.DataFrame) -> pd.DataFrame:
 
     df.columns = df.iloc[1].astype(str).str.strip()
     df = df.iloc[2:].reset_index(drop=True)
+    
     print(f"DEBUG: Como está o DataFrame depois de reorganizar o cabeçalho?\n{df}\n")
     print(f"DEBUG: Colunas de df: {df.columns}")
     # 1. Separar a coluna 'Linha' em múltiplas colunas
-    # O expand=True transforma o resultado do split em um novo DataFrame.
-    df_separado = df['Linha'].str.split(';', expand=True)
-    
+    # O expand=True transforma o resultado do split em um novo DataFrame.    
     # Como a string termina com um ';', o split vai criar uma última coluna vazia.
     # Vamos pegar apenas as 6 primeiras colunas que nos interessam:
-    df_separado = df_separado.iloc[:, :6]
-    df_separado.columns = ['Matrícula', 'CPF', 'Valor Lançado', 'Serviço', 'Competência', 'Nome']
-    
-    # 2. Juntar as novas colunas com as colunas originais (removendo a velha 'Linha')
-    df = pd.concat([df_separado, df.drop(columns=['Linha'])], axis=1)
 
-    df = df.rename(columns={"Critica": "Crítica"})
-        
+    # 2. Higienização das colunas padrão
+    if 'CPF' not in df.columns:
+        df['CPF'] = df['Matrícula'].str.zfill(11)  # Supondo que os primeiros 11 caracteres da matrícula sejam o CPF
+
+    
+
+    df = df.rename(columns={'Valor parcela': 'Valor Lançado', 'Valor ajuste': 'Valor Acatado', "Observação": "Crítica"})
+
+    mask_servidor = df['Servidor'] == 'Servidor'
+
+    df = df.loc[~mask_servidor]
+
+    df = df.iloc[:-1]
+     
     def limpar_moeda_universal(valor):
         valor_str = str(valor).strip()
         
@@ -41,27 +47,9 @@ def processar_portal_exemplo(df: pd.DataFrame) -> pd.DataFrame:
             return float(valor_str)
         except ValueError:
             return 0.00
-
-    # 4. Criar a coluna 'Valor Acatado' partindo do zero
-    df['Valor Acatado'] = ''
     
     # --- LÓGICA DE ACATAMENTO ---
-    
-    # A) Tratamento do SUCESSO TOTAL
-    mask_sucesso = df['Crítica'].str.strip() == 'SUCESSO'
-    df.loc[mask_sucesso, 'Valor Acatado'] = df.loc[mask_sucesso, 'Valor Lançado']
-    
-    # B) Tratamento do SUCESSO PARCIAL
-    # Identifica as linhas que contêm a palavra "PARCIAL" na crítica
-    mask_parcial = df['Crítica'].str.contains('SUCESSO PARCIAL', na=False, case=False)
-    
-    # Extrai dinamicamente apenas o número que vem depois do "R$"
-    df.loc[mask_parcial, 'Valor Acatado'] = (
-        df.loc[mask_parcial, 'Crítica']
-        .str.split('R\$')                     # Corta o texto exatamente no 'R$'
-        .str[-1]                              # Pega a última parte (onde ficou o número)
-        .str.strip()                          # Remove espaços sobrando
-    )
+
 
     # Aplicação limpa e direta no DataFrame:
     df['Valor_lancado'] = df['Valor Lançado'].apply(limpar_moeda_universal)
@@ -73,14 +61,13 @@ def processar_portal_exemplo(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 # Coloque o caminho exato onde você salvou o arquivo de teste
-caminho_do_arquivo = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\09 - Setembro\PREF CAUCAIA\LANCAMENTOS E RETORNOS\RETORNO LANCAMENTO PREF CAUCAIA 09-2026.xlsx"
-
+caminho_do_arquivo = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\08 - Agosto\PREF PLANALTINA+PREVIPLAN\RELATÓRIO\RETORNO - PREF. PLANALTINA - CIASPREV - 08.2026.xls"
 df_tratamento = pd.read_excel(caminho_do_arquivo, header=None)
 
 # Chama a função que criamos passando os bytes simulados
 df_teste = processar_portal_exemplo(df_tratamento)
 
 # Exibe o resultado no terminal para você conferir as colunas
-print(df_teste.head(-30))
+print(df_teste.tail(10))
 print("\nTipos de dados gerados:")
 print(df_teste.dtypes)

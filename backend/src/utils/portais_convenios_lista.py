@@ -40,7 +40,7 @@ def convenio_escolher():
     "38": "GOV. TOCANTINS e IGEPREV",
     "39": "GOV. SANTA CATARINA",
     "40": "PREF. CONTAGEM",
-    "41": "PREF. PLANALTINA",
+    "41": "PREF. PLANALTINA DE GOIÁS",
     "42": "PREF. SÃO PAULO",
     "43": "GOV. SÃO PAULO",
     "44": "GOV. GOIÁS",
@@ -106,6 +106,10 @@ def portal_escolhido(nome_convenio: str) -> list:
             "PREF. DUQUE DE CAXIAS - COTAR", "PREF. DUQUE DE CAXIAS - IMPDC", 
             "PREF. GOIÂNIA", "PREVIDÊNCIA SÃO GONÇALO", "PREF. RIBEIRÃO PRETO", 
             "PREF. TABOÃO DA SERRA", "PREVIDÊNCIA SANTOS - IPREV"
+        ],
+
+        "KONEXIA": [
+            "PREF. CONTAGEM", "PREF. PLANALTINA DE GOIÁS", "PREVIPLAN"
         ],
 
         "ECONSIG_1": ["PREF. BELO HORIZONTE",  

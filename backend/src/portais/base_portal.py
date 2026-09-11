@@ -1,6 +1,6 @@
 import pandas as pd
 from utils.validators import validar_colunas_obrigatorias, validar_matematica_descontos, validar_chaves_nulas, validar_nome_portal_convenio
-from portais import Consigfacil_portal, Econsig_portal, Consigx_portal, Quantum_portal, Serha_portal, Infoconsig_portal, Neoconsig_portal, Safeconsig_portal
+from portais import Consigfacil_portal, Econsig_portal, Consigx_portal, Quantum_portal, Serha_portal, Infoconsig_portal, Neoconsig_portal, Safeconsig_portal, Konexia_portal
 
 
 def decidir_layout_portal(portal: str, convenio: str, arquivo: pd.DataFrame) -> dict:
@@ -38,6 +38,9 @@ def decidir_layout_portal(portal: str, convenio: str, arquivo: pd.DataFrame) -> 
         },
         "SAFECONSIG":{
             "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica"]
+        },
+        "KONEXIA": {
+            "colunas_obrigatorias": ["Matrícula", "Valor Lançado", "Crítica"]
         },
         "ECONSIG_1": {
             "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica"]
@@ -89,6 +92,8 @@ def decidir_layout_portal(portal: str, convenio: str, arquivo: pd.DataFrame) -> 
             resultado = Neoconsig_portal.processar_portal_neoconsig(arquivo, convenio=convenio, portal=portal)
         elif portal == 'SAFECONSIG':
             resultado = Safeconsig_portal.processar_portal_safeconsig(arquivo, convenio=convenio, portal=portal)
+        elif portal == 'KONEXIA':
+            resultado = Konexia_portal.processar_portal_konexia(arquivo, convenio=convenio, portal=portal)
         return resultado
     else:
         raise ValueError(f"Layout não definido para o portal '{portal}' e convênio '{convenio}'.")
