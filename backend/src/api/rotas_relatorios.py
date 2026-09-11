@@ -294,7 +294,7 @@ def obter_resumo_dashboard(
             COUNT(f.id) as quantidade,
             SUM(
                 CASE 
-                    WHEN f.status_acatamento = 'ACATADO PARCIAL' THEN f.valor_descontado
+                    WHEN f.status_acatamento = 'ACATADO PARCIAL' THEN f.valor_acatado
                     WHEN f.status_acatamento = 'ZERADO/REJEITADO' THEN f.valor_lancado
                     ELSE f.valor_lancado
                 END
