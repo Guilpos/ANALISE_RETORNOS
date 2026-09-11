@@ -81,7 +81,8 @@ def convenio_escolher():
     "79": "PREF. TERESINA",
     "80": "CÂMARA DE TERESÓPOLIS",
     "81": "GOV. RIO GRANDE DO NORTE",
-    "82": "PREF. NATAL"
+    "82": "PREF. NATAL",
+    "83": "PREF. SERRA"
 }
 
     return mapa_convenios
@@ -107,7 +108,8 @@ def portal_escolhido(nome_convenio: str) -> list:
         ],
 
         "ECONSIG_1": ["PREF. BELO HORIZONTE",  
-                    "PREF. BARBACENA"],
+                    "PREF. BARBACENA",
+                    "PREF. SERRA"],
         
         "ECONSIG_2": ["PREF. CAMPINAS",],
 
