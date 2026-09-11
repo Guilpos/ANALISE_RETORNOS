@@ -292,7 +292,7 @@ def obter_resumo_dashboard(
             {coluna_agrupador} as id_agrupador,
             f.status_acatamento, 
             COUNT(f.id) as quantidade,
-            SUM(f.valor_lancado) as valor_financeiro,
+            SUM(f.valor_acatado) as valor_financeiro,
             MAX(f.competencia) as competencia_ref
         FROM fato_retornos f
         WHERE 1=1 {clausula_where} 
