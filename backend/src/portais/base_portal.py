@@ -12,7 +12,7 @@ def decidir_layout_portal(portal: str, convenio: str, arquivo: pd.DataFrame) -> 
         "INSS": {
             "colunas_obrigatorias": ["CPF", "NOME", "VALOR_LANCADO", "VALOR_ACATADO"]
         },
-        "GOV. PARAÍBA": {
+        "CODATA": {
             "colunas_obrigatorias": ["CPF", "NOME", "VALOR_LANCADO", "VALOR_ACATADO"]
         },
         "CONSIGFACIL_1": {
