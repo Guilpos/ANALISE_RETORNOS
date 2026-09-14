@@ -31,32 +31,29 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
     # 1. ARQUIVOS EXCEL (.xlsx, .xls)
     if caminho_lower.endswith('.xlsx') or caminho_lower.endswith('.xls'):
         try:
-            # Transformamos os bytes em um objeto que o Pandas entende como arquivo
+            # TENTATIVA 1: Ler como Excel normal
             tabela_memoria = io.BytesIO(conteudo_bytes)
             df = pd.read_excel(tabela_memoria, dtype=str, header=None)
             
-            # --- AS DUAS LINHAS MÁGICAS QUE FALTAVAM ---
             df = colunas_usadas(modelo=portal, df=df)
             df_resultado = base_portal.decidir_layout_portal(portal=portal, convenio=nome_convenio, arquivo=df)
-            
             return df_resultado
             
-        except Exception as e:
-            # 1. Transforma os bytes em um objeto de memória
-            tabela_memoria = io.BytesIO(conteudo_bytes)
-            
-            # 2. O read_html captura a tabela HTML disfarçada de .xls
-            # Ele retorna uma lista de tabelas, então pegamos a primeira ([0])
-            # Os parâmetros decimal e thousands garantem a conversão segura se o arquivo mudar para padrão BR
-            tabelas = pd.read_html(tabela_memoria, header=0, decimal=',', thousands='.')
-            df = tabelas[0]
+        except Exception:
+            try:
+                # TENTATIVA 2: Se o Excel falhar, tenta ler como HTML disfarçado
+                # Precisamos recriar o BytesIO porque a tentativa anterior consumiu a leitura do arquivo original
+                tabela_memoria = io.BytesIO(conteudo_bytes)
+                tabelas = pd.read_html(tabela_memoria, header=0, decimal=',', thousands='.')
+                df = tabelas[0]
 
-            # --- AS DUAS LINHAS MÁGICAS QUE FALTAVAM ---
-            df = colunas_usadas(modelo=portal, df=df)
-            df_resultado = base_portal.decidir_layout_portal(portal=portal, convenio=nome_convenio, arquivo=df)
+                df = colunas_usadas(modelo=portal, df=df)
+                df_resultado = base_portal.decidir_layout_portal(portal=portal, convenio=nome_convenio, arquivo=df)
+                return df_resultado # O retorno que faltava!
 
-        finally:
-            raise ValueError(f"Erro ao ler arquivo Excel: {str(e)}")
+            except Exception as erro_final:
+                # TENTATIVA 3: Se as duas falharem, encerra com o erro real
+                raise ValueError(f"Erro ao ler arquivo: Não é um Excel nem um HTML válido. Detalhe: {str(erro_final)}")
     
     if caminho_lower.endswith('.txt'):
         try:
