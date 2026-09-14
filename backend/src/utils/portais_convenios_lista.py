@@ -112,6 +112,10 @@ def portal_escolhido(nome_convenio: str) -> list:
             "PREF. CONTAGEM", "PREF. PLANALTINA DE GOIÁS", "PREVIPLAN"
         ],
 
+        "CODATA": [
+            "GOV. PARAÍBA"
+        ],
+
         "ECONSIG_1": ["PREF. BELO HORIZONTE",  
                     "PREF. BARBACENA",
                     "PREF. SERRA"],

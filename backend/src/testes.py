@@ -6,34 +6,12 @@ import xlrd
 
 def processar_portal_exemplo(df: pd.DataFrame) -> pd.DataFrame:
 
-    print(f"PRIMEIRA LINHA\n", df.loc[0][0])
-    if "Servidor" in df.loc[0][0]:
-        df.columns = df.iloc[0].astype(str).str.strip()
-        df = df.iloc[1:].reset_index(drop=True)
-    else:
-        df.columns = df.iloc[1].astype(str).str.strip()
-        df = df.iloc[2:].reset_index(drop=True)
-    
-    print(f"DEBUG: Como está o DataFrame depois de reorganizar o cabeçalho?\n{df}\n")
-    print(f"DEBUG: Colunas de df: {df.columns}")
-    # 1. Separar a coluna 'Linha' em múltiplas colunas
-    # O expand=True transforma o resultado do split em um novo DataFrame.    
-    # Como a string termina com um ';', o split vai criar uma última coluna vazia.
-    # Vamos pegar apenas as 6 primeiras colunas que nos interessam:
-
-    # 2. Higienização das colunas padrão
-    if 'CPF' not in df.columns:
-        df['CPF'] = df['Matrícula'].str.zfill(11)  # Supondo que os primeiros 11 caracteres da matrícula sejam o CPF
-
+    df.columns = df.iloc[0].astype(str).str.strip()
+    df = df.iloc[1:].reset_index(drop=True)
     
 
-    df = df.rename(columns={'Valor parcela': 'Valor Lançado', 'Valor ajuste': 'Valor Acatado', "Observação": "Crítica"})
+    df = df.rename(columns={"cpf": "CPF", "matricula": "Matrícula", 'valor_informado': 'Valor Lançado', 'valor_registrado': 'Valor Acatado', "crÃ­tica": "Crítica"})
 
-    mask_servidor = df['Servidor'] == 'Servidor'
-
-    df = df.loc[~mask_servidor]
-
-    df = df.iloc[:-1]
      
     def limpar_moeda_universal(valor):
         valor_str = str(valor).strip()
@@ -52,10 +30,11 @@ def processar_portal_exemplo(df: pd.DataFrame) -> pd.DataFrame:
             return float(valor_str)
         except ValueError:
             return 0.00
+
+    df['Matricula_formatada'] = alinhar_tipagem_chaves(df, 'Matrícula')
+    df['cpf_formatado'] = limpar_cpf(df['CPF'])
     
     # --- LÓGICA DE ACATAMENTO ---
-
-
     # Aplicação limpa e direta no DataFrame:
     df['Valor_lancado'] = df['Valor Lançado'].apply(limpar_moeda_universal)
     df['Valor_lancado'] = df['Valor_lancado']
@@ -66,13 +45,13 @@ def processar_portal_exemplo(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 # Coloque o caminho exato onde você salvou o arquivo de teste
-caminho_do_arquivo = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\08 - Agosto\PREF CONTAGEM\LANÇAMENTOS E RETORNOS\relatorioAjusteDescontoPREF CONTAGEM 08-2026.xls"
-df_tratamento = pd.read_excel(caminho_do_arquivo, header=None)
+caminho_do_arquivo = r"C:\RETORNOS\GOV PB\RETORNOS_UNIF_GOV_PB_CAPITAL_09-2026.csv"
+df_tratamento = pd.read_csv(caminho_do_arquivo, encoding='latin-1', sep=";", header=None)
 
 # Chama a função que criamos passando os bytes simulados
 df_teste = processar_portal_exemplo(df_tratamento)
 
 # Exibe o resultado no terminal para você conferir as colunas
-print(df_teste.tail(10))
+print(df_teste.head(15))
 print("\nTipos de dados gerados:")
 print(df_teste.dtypes)

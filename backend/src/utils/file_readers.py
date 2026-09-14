@@ -422,6 +422,12 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
     
          df = df.rename(columns={'Valor parcela': 'Valor Lançado', 'Valor ajuste': 'Valor Acatado', "Observação": "Crítica"})
 
+    if modelo == "CODATA":
+        df.columns = df.iloc[0].astype(str).str.strip()
+        df = df.iloc[1:].reset_index(drop=True)
+            
+        
+        df = df.rename(columns={"cpf": "CPF", "matricula": "Matrícula", 'valor_informado': 'Valor Lançado', 'valor_registrado': 'Valor Acatado', "crÃ­tica": "Crítica"})
 
 
     return df
