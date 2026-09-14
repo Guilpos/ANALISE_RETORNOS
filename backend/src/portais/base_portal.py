@@ -10,10 +10,10 @@ def decidir_layout_portal(portal: str, convenio: str, arquivo: pd.DataFrame) -> 
     # Mapeamento de layouts por portal e convênio
     layouts = {
         "INSS": {
-            "colunas_obrigatorias": ["CPF", "NOME", "VALOR_LANCADO", "VALOR_ACATADO"]
+            "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica", "Valor Acatado"]
         },
         "CODATA": {
-            "colunas_obrigatorias": ["CPF", "NOME", "VALOR_LANCADO", "VALOR_ACATADO"]
+            "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica", "Valor Acatado"]
         },
         "CONSIGFACIL_1": {
             "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica", "Valor Acatado"]
