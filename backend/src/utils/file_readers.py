@@ -5,6 +5,7 @@ from portais import base_portal
 import csv
 import xlrd
 import io
+import lxml
 
 def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) -> pd.DataFrame:
     """
@@ -41,6 +42,20 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
             return df_resultado
             
         except Exception as e:
+            # 1. Transforma os bytes em um objeto de memória
+            tabela_memoria = io.BytesIO(conteudo_bytes)
+            
+            # 2. O read_html captura a tabela HTML disfarçada de .xls
+            # Ele retorna uma lista de tabelas, então pegamos a primeira ([0])
+            # Os parâmetros decimal e thousands garantem a conversão segura se o arquivo mudar para padrão BR
+            tabelas = pd.read_html(tabela_memoria, header=0, decimal=',', thousands='.')
+            df = tabelas[0]
+
+            # --- AS DUAS LINHAS MÁGICAS QUE FALTAVAM ---
+            df = colunas_usadas(modelo=portal, df=df)
+            df_resultado = base_portal.decidir_layout_portal(portal=portal, convenio=nome_convenio, arquivo=df)
+
+        finally:
             raise ValueError(f"Erro ao ler arquivo Excel: {str(e)}")
     
     if caminho_lower.endswith('.txt'):
@@ -429,5 +444,7 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         
         df = df.rename(columns={"cpf": "CPF", "matricula": "Matrícula", 'valor_informado': 'Valor Lançado', 'valor_registrado': 'Valor Acatado', "crÃ­tica": "Crítica"})
 
+    if modelo == "SIGRH":
+        df = df.rename(columns={'Valor_Parcela': 'Valor Lançado', "Motivo_Rejeicao": "Crítica"})
 
     return df
