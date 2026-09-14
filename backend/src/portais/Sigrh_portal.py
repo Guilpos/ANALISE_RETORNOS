@@ -1,5 +1,6 @@
-from utils.file_readers import ler_arquivo_seguro
 from utils.formatters import limpar_cpf, limpar_data, limpar_moeda_universal, alinhar_tipagem_chaves
+from utils.validators import validar_matematica_descontos
+from utils.analisador import analisar_dados
 import openpyxl
 import pandas as pd
 import xlrd
