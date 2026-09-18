@@ -19,7 +19,7 @@ def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, t
     portal = portal_escolhido(nome_convenio)
 
     # Consigx será o único portal que vai receber múltiplos arquivos, então vamos tratar ele de forma especial
-    if portal == "CONSIGX":
+    if portal in ["CONSIGX", "VIABILIZE"]:
         lista_dfs = []
     
         # Processa cada arquivo que chegou na lista
@@ -33,7 +33,7 @@ def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, t
             
         # Junta o arquivo de sucesso com o de críticas colocando um embaixo do outro
         df = pd.concat(lista_dfs, ignore_index=True)
-    elif portal != "CONSIGX" and len(arquivos_lista) > 1:
+    elif portal not in ["CONSIGX", "VIABILIZE"] and len(arquivos_lista) > 1:
         # Se houver mais de um arquivo e o portal não for CONSIGX vamos lançar um erro
         raise ValueError("Apenas um arquivo pode ser enviado para este portal.")
     else:

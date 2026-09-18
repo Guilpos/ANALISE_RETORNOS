@@ -7,40 +7,49 @@ import io
 import lxml
 
 def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:
-
-    # 1. Transforma os bytes em um objeto de memória
-    tabela_memoria = io.BytesIO(conteudo_bytes)
+    # 1. Lê o arquivo separando pelos pontos e vírgulas (;)
+    # Definimos 4 colunas, já que o Valor e a Crítica virão grudados na última
+    nomes_colunas = ['Competência', 'Matrícula', 'Rúbrica', 'Valor_Misto']
     
-    # 2. O read_html captura a tabela HTML disfarçada de .xls
-    # Ele retorna uma lista de tabelas, então pegamos a primeira ([0])
-    # Os parâmetros decimal e thousands garantem a conversão segura se o arquivo mudar para padrão BR
-    tabelas = pd.read_csv(tabela_memoria, header=None, sep=";", encoding='latin-1')
-    df = tabelas
-    # print(f'O que está em df\n{df}\n')
-    df.columns = df.iloc[0].astype(str).str.strip()
-
-    df = df.iloc[1:].reset_index(drop=True)
-
-    df_mensagem = df['Mensagem']
-
-    # 1. Divide a coluna 'Obs' em 3 novas colunas usando o '|' como separador
-    # O expand=True força o resultado a virar colunas no DataFrame
-    df[['Matrícula_Sujo', 'CPF_Sujo', 'Valor_Sujo']] = df['Obs'].str.split('|', expand=True)
+    df = pd.read_csv(
+        io.BytesIO(conteudo_bytes), 
+        sep=';', 
+        names=nomes_colunas, 
+        dtype=str
+    )
     
-    # 2. Limpa a coluna Matrícula (Remove o texto "Matrícula:" e espaços)
-    df['Matrícula'] = df['Matrícula_Sujo'].str.replace('Matrícula:', '', case=False).str.strip()
+    # 2. Divide a coluna 'Valor_Misto' no PRIMEIRO espaço (n=1)
+    # Isso separa o "67.59" do "ACEITO: Parcela criada." e cria duas colunas novas
+    df[['Valor Lançado', 'Crítica']] = df['Valor_Misto'].str.split(' ', n=1, expand=True)
+
     
-    # 3. Limpa a coluna CPF (Remove o texto "CPF:" e espaços)
-    df['CPF'] = df['CPF_Sujo'].str.replace('CPF:', '', case=False).str.strip()
+    # 3. Converte o Valor Lançado para decimal puro
+    df['Valor Lançado'] = df['Valor Lançado'].astype(float)
+    
+    print(f'Como está a coluna Valor Lançado?\n{df['Valor Lançado'].head(15)}')
 
-    df['Valor Lançado'] = df['Valor_Sujo']
-        
-    # 5. Descarta as colunas temporárias e a original (opcional)
-    df = df.drop(columns=['Obs', 'Matrícula_Sujo', 'CPF_Sujo', 'Valor_Sujo'])
+    # --- TRATAMENTO DA CRÍTICA ---
+    # 4. Cria a máscara para focar apenas nas linhas que foram rejeitadas
+    mask_rejeitado = df['Crítica'].str.contains('REJEITADO', case=False, na=False)
+    
+    # 5. Extrai a palavra que vem depois de 'Motivo:'
+    motivos_extraidos = (
+        df.loc[mask_rejeitado, 'Crítica']
+        .str.split('Motivo:')
+        .str[-1]          # Pega a última parte da string (o motivo em si)
+        .str.strip()      # Remove espaços em branco antes ou depois
+        .str.rstrip('.')  # Remove o ponto final (.)
+    )
+    
+    # 6. Sobrescreve a coluna Crítica com o formato exigido apenas para os rejeitados
+    df.loc[mask_rejeitado, 'Crítica'] = 'REJEITADO: ' + motivos_extraidos
+    
+    # Opcional: descarta a coluna mista original, que não é mais necessária
+    df = df.drop(columns=['Valor_Misto'])
 
-    df = df.rename(columns={"Mensagem": "Crítica"})
+    df.insert(2, "CPF", "")
 
-    print(f'O que está em df depois de tratar\n{df}\n')
+    df["CPF"] = df["Matrícula"].astype(str).str.zfill(11)
      
     def limpar_moeda_universal(valor):
         valor_str = str(valor).strip()
@@ -73,6 +82,9 @@ def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:
     if "Valor Acatado" in df.columns:
         df["Valor Acatado"] = ''
 
+    df.loc[df["Crítica"].str.contains("ACEITO"), "Valor Acatado"] = df["Valor_lancado"]
+    df["Valor Acatado"] = df["Valor Acatado"].fillna(0)
+
     df['Crítica'] = df['Crítica'].fillna("")
     df.loc[df['Crítica'] == 'Desconto implantado com sucesso', 'Valor Acatado'] = df['Valor_lancado']
 
@@ -83,7 +95,7 @@ def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:
     return df
 
 # Coloque o caminho exato onde você salvou o arquivo de teste
-caminho_do_arquivo = r"C:\RETORNOS\RETORNO UBERABA 09-2026.csv"
+caminho_do_arquivo = r"C:\RETORNOS\RETORNO GOV TO\Output_LANCAMENTO CARTAO GOV TO CAPITAL CCI 08-2026.txt"
 # Chama a função que criamos passando os bytes simulados
 
 # 2. Leia o arquivo em bytes

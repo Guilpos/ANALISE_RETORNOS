@@ -37,7 +37,7 @@ def convenio_escolher():
     "35": "PREF. FLORIANÓPOLIS",
     "36": "SEMAE - SERVIÇO MUNICIPAL DE ÁGUA E ESGOTO DE PIRACICABA",
     "37": "PREV. PIRACICABA IPASP",
-    "38": "GOV. TOCANTINS e IGEPREV",
+    "38": "IGEPREV",
     "39": "GOV. SANTA CATARINA",
     "40": "PREF. CONTAGEM",
     "41": "PREF. PLANALTINA DE GOIÁS",
@@ -85,7 +85,8 @@ def convenio_escolher():
     "83": "PREF. SERRA",
     "84": "PREF. CAUCAIA",
     "85": "PREF. VÁRZEA GRANDE",
-    "86": "PREF. UBERABA"
+    "86": "PREF. UBERABA",
+    "87": "GOV. TOCANTINS"
 }
 
     return mapa_convenios
@@ -126,6 +127,10 @@ def portal_escolhido(nome_convenio: str) -> list:
             "PREF. UBERABA"
         ],
 
+        "VIABILIZE": [
+            "GOV. TOCANTINS"
+        ],        
+
         "ECONSIG_1": ["PREF. BELO HORIZONTE",  
                     "PREF. BARBACENA",
                     "PREF. SERRA"],
@@ -150,9 +155,7 @@ def portal_escolhido(nome_convenio: str) -> list:
             "PREF. ÁGUAS LINDAS DE GOIÁS", "PREF. PIRACICABA", "PREF. FLORIANÓPOLIS",
             "SEMAE - SERVIÇO MUNICIPAL DE ÁGUA E ESGOTO DE PIRACICABA", "PREV. PIRACICABA IPASP"
         ],
-        
-        "TO_IGEPREV": ["GOV. TOCANTINS e IGEPREV"],
-        
+                
         "SIGRH": ["GOV. SANTA CATARINA"],
                 
         "CIP": ["PREF. SÃO PAULO", "GOV. SÃO PAULO"],

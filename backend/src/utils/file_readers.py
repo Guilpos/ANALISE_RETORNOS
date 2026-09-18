@@ -189,6 +189,46 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
                             
                 # 4. Transforma a lista de dicionários num DataFrame consolidado
                 df = pd.DataFrame(dados_limpos)
+            elif portal == 'VIABILIZE':
+                # 1. Lê o arquivo separando pelos pontos e vírgulas (;)
+                # Definimos 4 colunas, já que o Valor e a Crítica virão grudados na última
+                nomes_colunas = ['Competência', 'Matrícula', 'Rúbrica', 'Valor_Misto']
+                
+                df = pd.read_csv(
+                    io.BytesIO(conteudo_bytes), 
+                    sep=';', 
+                    names=nomes_colunas, 
+                    dtype=str
+                )
+                
+                # 2. Divide a coluna 'Valor_Misto' no PRIMEIRO espaço (n=1)
+                # Isso separa o "67.59" do "ACEITO: Parcela criada." e cria duas colunas novas
+                df[['Valor Lançado', 'Crítica']] = df['Valor_Misto'].str.split(' ', n=1, expand=True)
+            
+                
+                # 3. Converte o Valor Lançado para decimal puro
+                df['Valor Lançado'] = df['Valor Lançado'].astype(float)
+                
+                print(f'Como está a coluna Valor Lançado?\n{df['Valor Lançado'].head(15)}')
+            
+                # --- TRATAMENTO DA CRÍTICA ---
+                # 4. Cria a máscara para focar apenas nas linhas que foram rejeitadas
+                mask_rejeitado = df['Crítica'].str.contains('REJEITADO', case=False, na=False)
+                
+                # 5. Extrai a palavra que vem depois de 'Motivo:'
+                motivos_extraidos = (
+                    df.loc[mask_rejeitado, 'Crítica']
+                    .str.split('Motivo:')
+                    .str[-1]          # Pega a última parte da string (o motivo em si)
+                    .str.strip()      # Remove espaços em branco antes ou depois
+                    .str.rstrip('.')  # Remove o ponto final (.)
+                )
+                
+                # 6. Sobrescreve a coluna Crítica com o formato exigido apenas para os rejeitados
+                df.loc[mask_rejeitado, 'Crítica'] = 'REJEITADO: ' + motivos_extraidos
+                
+                # Opcional: descarta a coluna mista original, que não é mais necessária
+                df = df.drop(columns=['Valor_Misto'])
             else:
                 # Leitura genérica para outros TXTs
                 df = pd.read_fwf(tabela_memoria, dtype=str)
