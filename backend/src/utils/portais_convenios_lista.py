@@ -149,9 +149,7 @@ def portal_escolhido(nome_convenio: str) -> list:
         "TO_IGEPREV": ["GOV. TOCANTINS e IGEPREV"],
         
         "SIGRH": ["GOV. SANTA CATARINA"],
-        
-        "CONSIGI_KONEXIA": ["PREF. CONTAGEM", "PREF. PLANALTINA"],
-        
+                
         "CIP": ["PREF. SÃO PAULO", "GOV. SÃO PAULO"],
         
         "NEOCONSIG": ["GOV. GOIÁS", "PREF. SÃO GONÇALO", "PREF. SÃO LUÍS", "PREF. SOROCABA"],

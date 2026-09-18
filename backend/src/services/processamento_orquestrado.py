@@ -43,6 +43,9 @@ def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, t
 
         # 1. Leitura e Limpeza (A mágica acontece lá nos seus módulos base_portal e Consigfacil_portal)
         df = ler_arquivo_seguro(conteudo_bytes=conteudo, nome_arquivo=nome_arquivo, convenio=convenio)
+
+        if df is None:
+            raise ValueError(f"Falha na extração: A função de leitura retornou vazio para o arquivo '{nome_arquivo}'. Verifique a regra do layout do portal.")
     
     # 2. Injeção das dimensões da interface
     df['codigo_convenio'] = convenio
