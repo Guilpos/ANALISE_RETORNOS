@@ -208,9 +208,7 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
                 
                 # 3. Converte o Valor Lançado para decimal puro
                 df['Valor Lançado'] = df['Valor Lançado'].astype(float)
-                
-                print(f'Como está a coluna Valor Lançado?\n{df['Valor Lançado'].head(15)}')
-            
+                            
                 # --- TRATAMENTO DA CRÍTICA ---
                 # 4. Cria a máscara para focar apenas nas linhas que foram rejeitadas
                 mask_rejeitado = df['Crítica'].str.contains('REJEITADO', case=False, na=False)
