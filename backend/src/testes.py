@@ -14,11 +14,15 @@ def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:
     # 2. O read_html captura a tabela HTML disfarçada de .xls
     # Ele retorna uma lista de tabelas, então pegamos a primeira ([0])
     # Os parâmetros decimal e thousands garantem a conversão segura se o arquivo mudar para padrão BR
-    tabelas = pd.read_html(tabela_memoria, header=0, decimal=',', thousands='.')
-    df = tabelas[0]
+    tabelas = pd.read_excel(tabela_memoria, header=None)
+    df = tabelas
+    print(f'O que está em df\n{df}\n')
+    df.columns = df.iloc[0].astype(str).str.strip()
+
+    df = df.iloc[1:].reset_index(drop=True)
     
 
-    df = df.rename(columns={'Valor_Parcela': 'Valor Lançado', "Motivo_Rejeicao": "Crítica"})
+    df = df.rename(columns={'Valor': 'Valor Lançado', "Motivo do Erro": "Crítica"})
      
     def limpar_moeda_universal(valor):
         valor_str = str(valor).strip()
@@ -45,12 +49,14 @@ def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:
     # Aplicação limpa e direta no DataFrame:
     df['Valor_lancado'] = df['Valor Lançado'].apply(limpar_moeda_universal)
 
-    df['Valor_lancado'] = df['Valor_lancado'] / 100
+    df['Valor_lancado'] = df['Valor_lancado']
 
     # 4. Atribuição direta dos valores já numéricos (Sobrescreve o que foi limpo acima)
     if "Valor Acatado" in df.columns:
         df["Valor Acatado"] = ''
-    df.loc[df['Crítica'] == 'SUCESSO', 'Valor Acatado'] = df['Valor_lancado']
+
+    df['Crítica'] = df['Crítica'].fillna("")
+    df.loc[df['Crítica'] == '', 'Valor Acatado'] = df['Valor_lancado']
 
 
     df['Valor_descontado'] = df['Valor Acatado'].apply(limpar_moeda_universal)
@@ -59,7 +65,7 @@ def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:
     return df
 
 # Coloque o caminho exato onde você salvou o arquivo de teste
-caminho_do_arquivo = r"C:\RETORNOS\RETORNO GOV SC\RETORNO CAPITAL COMPRA GOV SC 06.2026.xls"
+caminho_do_arquivo = r"C:\RETORNOS\RETORNO CARTAO PREF VARZEA GRANDE 09.2026.xls"
 # Chama a função que criamos passando os bytes simulados
 
 # 2. Leia o arquivo em bytes

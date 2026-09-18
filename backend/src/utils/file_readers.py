@@ -444,4 +444,12 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
     if modelo == "SIGRH":
         df = df.rename(columns={'Valor_Parcela': 'Valor Lançado', "Motivo_Rejeicao": "Crítica"})
 
+    if modelo == 'ASBAN':
+        df.columns = df.iloc[0].astype(str).str.strip()
+        
+        df = df.iloc[1:].reset_index(drop=True)
+        
+    
+        df = df.rename(columns={'Valor': 'Valor Lançado', "Motivo do Erro": "Crítica"})
+
     return df

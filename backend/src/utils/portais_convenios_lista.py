@@ -83,7 +83,8 @@ def convenio_escolher():
     "81": "GOV. RIO GRANDE DO NORTE",
     "82": "PREF. NATAL",
     "83": "PREF. SERRA",
-    "84": "PREF. CAUCAIA"
+    "84": "PREF. CAUCAIA",
+    "85": "PREF. VÁRZEA GRANDE"
 }
 
     return mapa_convenios
@@ -114,6 +115,10 @@ def portal_escolhido(nome_convenio: str) -> list:
 
         "CODATA": [
             "GOV. PARAÍBA"
+        ],
+
+        "ASBAN": [
+            "PREF. VÁRZEA GRANDE"
         ],
 
         "ECONSIG_1": ["PREF. BELO HORIZONTE",  
