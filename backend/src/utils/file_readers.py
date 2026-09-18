@@ -452,4 +452,28 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
     
         df = df.rename(columns={'Valor': 'Valor Lançado', "Motivo do Erro": "Crítica"})
 
+    if modelo == 'CODIUB':
+        df.columns = df.iloc[0].astype(str).str.strip()
+        
+        df = df.iloc[1:].reset_index(drop=True)
+    
+        df_mensagem = df['Mensagem']
+    
+        # 1. Divide a coluna 'Obs' em 3 novas colunas usando o '|' como separador
+        # O expand=True força o resultado a virar colunas no DataFrame
+        df[['Matrícula_Sujo', 'CPF_Sujo', 'Valor_Sujo']] = df['Obs'].str.split('|', expand=True)
+        
+        # 2. Limpa a coluna Matrícula (Remove o texto "Matrícula:" e espaços)
+        df['Matrícula'] = df['Matrícula_Sujo'].str.replace('Matrícula:', '', case=False).str.strip()
+        
+        # 3. Limpa a coluna CPF (Remove o texto "CPF:" e espaços)
+        df['CPF'] = df['CPF_Sujo'].str.replace('CPF:', '', case=False).str.strip()
+    
+        df['Valor Lançado'] = df['Valor_Sujo']
+            
+        # 5. Descarta as colunas temporárias e a original (opcional)
+        df = df.drop(columns=['Obs', 'Matrícula_Sujo', 'CPF_Sujo', 'Valor_Sujo'])
+    
+        df = df.rename(columns={"Mensagem": "Crítica"})
+
     return df

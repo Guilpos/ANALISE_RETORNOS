@@ -50,6 +50,9 @@ def decidir_layout_portal(portal: str, convenio: str, arquivo: pd.DataFrame) -> 
         "ASBAN": {
             "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica"],
         },
+        "CODIUB": {
+            "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica"],
+        },
         "ECONSIG_1": {
             "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica"]
         },

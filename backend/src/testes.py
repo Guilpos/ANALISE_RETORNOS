@@ -14,15 +14,33 @@ def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:
     # 2. O read_html captura a tabela HTML disfarçada de .xls
     # Ele retorna uma lista de tabelas, então pegamos a primeira ([0])
     # Os parâmetros decimal e thousands garantem a conversão segura se o arquivo mudar para padrão BR
-    tabelas = pd.read_excel(tabela_memoria, header=None)
+    tabelas = pd.read_csv(tabela_memoria, header=None, sep=";", encoding='latin-1')
     df = tabelas
-    print(f'O que está em df\n{df}\n')
+    # print(f'O que está em df\n{df}\n')
     df.columns = df.iloc[0].astype(str).str.strip()
 
     df = df.iloc[1:].reset_index(drop=True)
-    
 
-    df = df.rename(columns={'Valor': 'Valor Lançado', "Motivo do Erro": "Crítica"})
+    df_mensagem = df['Mensagem']
+
+    # 1. Divide a coluna 'Obs' em 3 novas colunas usando o '|' como separador
+    # O expand=True força o resultado a virar colunas no DataFrame
+    df[['Matrícula_Sujo', 'CPF_Sujo', 'Valor_Sujo']] = df['Obs'].str.split('|', expand=True)
+    
+    # 2. Limpa a coluna Matrícula (Remove o texto "Matrícula:" e espaços)
+    df['Matrícula'] = df['Matrícula_Sujo'].str.replace('Matrícula:', '', case=False).str.strip()
+    
+    # 3. Limpa a coluna CPF (Remove o texto "CPF:" e espaços)
+    df['CPF'] = df['CPF_Sujo'].str.replace('CPF:', '', case=False).str.strip()
+
+    df['Valor Lançado'] = df['Valor_Sujo']
+        
+    # 5. Descarta as colunas temporárias e a original (opcional)
+    df = df.drop(columns=['Obs', 'Matrícula_Sujo', 'CPF_Sujo', 'Valor_Sujo'])
+
+    df = df.rename(columns={"Mensagem": "Crítica"})
+
+    print(f'O que está em df depois de tratar\n{df}\n')
      
     def limpar_moeda_universal(valor):
         valor_str = str(valor).strip()
@@ -56,7 +74,7 @@ def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:
         df["Valor Acatado"] = ''
 
     df['Crítica'] = df['Crítica'].fillna("")
-    df.loc[df['Crítica'] == '', 'Valor Acatado'] = df['Valor_lancado']
+    df.loc[df['Crítica'] == 'Desconto implantado com sucesso', 'Valor Acatado'] = df['Valor_lancado']
 
 
     df['Valor_descontado'] = df['Valor Acatado'].apply(limpar_moeda_universal)
@@ -65,7 +83,7 @@ def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:
     return df
 
 # Coloque o caminho exato onde você salvou o arquivo de teste
-caminho_do_arquivo = r"C:\RETORNOS\RETORNO CARTAO PREF VARZEA GRANDE 09.2026.xls"
+caminho_do_arquivo = r"C:\RETORNOS\RETORNO UBERABA 09-2026.csv"
 # Chama a função que criamos passando os bytes simulados
 
 # 2. Leia o arquivo em bytes

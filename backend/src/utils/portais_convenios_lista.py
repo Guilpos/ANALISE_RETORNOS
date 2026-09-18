@@ -84,7 +84,8 @@ def convenio_escolher():
     "82": "PREF. NATAL",
     "83": "PREF. SERRA",
     "84": "PREF. CAUCAIA",
-    "85": "PREF. VÁRZEA GRANDE"
+    "85": "PREF. VÁRZEA GRANDE",
+    "86": "PREF. UBERABA"
 }
 
     return mapa_convenios
@@ -119,6 +120,10 @@ def portal_escolhido(nome_convenio: str) -> list:
 
         "ASBAN": [
             "PREF. VÁRZEA GRANDE"
+        ],
+
+        "CODIUB":[
+            "PREF. UBERABA"
         ],
 
         "ECONSIG_1": ["PREF. BELO HORIZONTE",  
