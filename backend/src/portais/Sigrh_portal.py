@@ -5,7 +5,6 @@ import openpyxl
 import pandas as pd
 import xlrd
 import io
-import lxml
 
 def processar_portal_sigrh(df_bruto: pd.DataFrame, convenio: str, portal: str) -> pd.DataFrame:
     df = df_bruto

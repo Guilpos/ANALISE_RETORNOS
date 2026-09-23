@@ -4,26 +4,25 @@ import openpyxl
 import pandas as pd
 import xlrd
 import io
-import lxml
 
 def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:    
-    df = pd.read_excel(
+    df = pd.read_csv(
         io.BytesIO(conteudo_bytes), 
-        header=None
+        header=None,
+        encoding='latin-1',
+        sep=';'
     )
 
-    df.columns = df.iloc[4].astype(str).str.strip()
+    df.columns = df.iloc[0].astype(str).str.strip()
 
-    df = df.iloc[5:].reset_index(drop=True)
+    df = df.iloc[1:].reset_index(drop=True)
 
 
-    df.rename(columns={'Valor': 'Valor Lançado', 'Situação': 'Crítica'}, inplace=True)
+    df.rename(columns={'matricula': 'Matrícula', 'cpf': 'CPF', 'valor_reserva': 'Valor Lançado', 'motivo_rejeicao': 'Crítica'}, inplace=True)
 
-    df.loc[df['Crítica'] != 'SEM CRÍTICA', 'Crítica'] = df['Descrição da crítica']
+    df.insert(11, 'Valor Acatado', pd.NA)
 
-    df.insert(8, 'Valor Acatado', 0)
-
-    df.loc[df['Crítica'] == 'SEM CRÍTICA', 'Valor Acatado'] = df['Valor Lançado']
+    df.loc[df['Crítica'] == 'DESCONTO DUPLICADO', 'Valor Acatado'] = df['Valor Lançado']
 
     df['Valor Acatado'] = df['Valor Acatado']
 
@@ -56,12 +55,12 @@ def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:
 
 
     df['Valor_descontado'] = df['Valor Acatado'].apply(limpar_moeda_universal)
-    df['Valor_descontado'] = df['Valor Acatado'].fillna(0)
+    df['Valor_descontado'] = df['Valor_descontado'].fillna(0)
 
     return df
 
 # Coloque o caminho exato onde você salvou o arquivo de teste
-caminho_do_arquivo = r"C:\RETORNOS\Pref. Rio de Janeiro Crítica_Cartão_Cred_04_08_2026.xls"
+caminho_do_arquivo = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\08 - Agosto\GOV RN\LANÇAMENTOS E RETORNOS\RETORNO CARTÃO CLICK GOV RN 08.2026.csv"
 # Chama a função que criamos passando os bytes simulados
 
 # 2. Leia o arquivo em bytes
@@ -71,6 +70,6 @@ with open(caminho_do_arquivo, "rb") as f:
 df_teste = processar_portal_exemplo(conteudo_bytes=conteudo_bytes)
 
 # Exibe o resultado no terminal para você conferir as colunas
-print(df_teste[['Crítica', 'Valor Lançado', 'Valor Acatado', 'Valor_lancado', 'Valor_descontado']].head(15))
+print(df_teste[['Crítica', 'Valor Lançado', 'Valor Acatado', 'Valor_lancado', 'Valor_descontado']].tail(30))
 print("\nTipos de dados gerados:")
 print(df_teste.dtypes)

@@ -129,6 +129,10 @@ def portal_escolhido(nome_convenio: str) -> list:
 
         "VIABILIZE": [
             "GOV. TOCANTINS"
+        ],
+
+        "RNCONSIG": [
+            "GOV. RIO GRANDE DO NORTE"
         ],        
 
         "ECONSIG_1": ["PREF. BELO HORIZONTE",  

@@ -5,7 +5,6 @@ from portais import base_portal
 import csv
 import xlrd
 import io
-import lxml
 
 def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) -> pd.DataFrame:
     """
@@ -521,5 +520,13 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
     
     
         df.rename(columns={'Valor': 'Valor Lançado', 'Situação': 'Crítica'}, inplace=True)
+
+    if modelo == 'RNCONSIG':
+        df.columns = df.iloc[0].astype(str).str.strip()
+        
+        df = df.iloc[1:].reset_index(drop=True)
+    
+    
+        df.rename(columns={'matricula': 'Matrícula', 'cpf': 'CPF', 'valor_reserva': 'Valor Lançado', 'motivo_rejeicao': 'Crítica'}, inplace=True)
 
     return df
