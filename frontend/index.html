@@ -798,40 +798,35 @@
         // 3. FAZER A BUSCA NA NUVEM
         const resposta = await fetch(urlFinal);
 
+        // Se o backend gritar que deu erro (400, 404, 500), a gente captura e exibe na tela
         if (!resposta.ok) {
-          throw new Error('Erro ao carregar dados do dashboard.');
-        }
+          // Tenta ler a mensagem de erro que o FastAPI enviou (ex: "Selecione um convênio")
+          let mensagemErro =
+            'Não existem dados para esta combinação de filtros ou ocorreu um erro na busca.';
+          try {
+            const erroJson = await resposta.json();
+            if (erroJson.detail) mensagemErro = erroJson.detail;
+          } catch (e) {
+            // Se não vier JSON, ignora e usa a mensagem padrão
+          }
 
-        const dados = await resposta.json();
-
-        // 4. DESENHAR OS GRÁFICOS
-        const areaCards = document.getElementById('area-cards');
-        areaCards.innerHTML = '';
-
-        // ==========================================
-        // NOVO: TRATAMENTO DE FILTRO VAZIO
-        // ==========================================
-        // Verifica se a lista veio vazia (adapte caso sua API retorne 'dados.cards_arquivos')
-        const listaDeCards = Array.isArray(dados)
-          ? dados
-          : dados.cards_arquivos || [];
-
-        if (listaDeCards.length === 0) {
-          // Desenha um aviso elegante na tela em vez dos gráficos
+          const areaCards = document.getElementById('area-cards');
           areaCards.innerHTML = `
                 <div style="width: 100%; text-align: center; padding: 50px; color: #7f8c8d;">
-                    <h4 style="color: #34495e;">Nenhum dado encontrado</h4>
-                    <p>Não existem inconsistências ou arquivos processados para esta combinação de filtros.</p>
+                    <h4 style="color: #e74c3c;">Aviso</h4>
+                    <p>${mensagemErro}</p>
                 </div>
             `;
 
-          // Restaura o botão imediatamente e aborta o resto da função
+          // Restaura o botão e aborta a função
           if (btnFiltrar) {
             btnFiltrar.innerHTML = textoOriginal;
             btnFiltrar.disabled = false;
           }
-          return; // A função para aqui e não tenta desenhar gráficos vazios
+          return;
         }
+
+        const dados = await resposta.json();
 
         // ... (O seu laço de repetição forEach que desenha os gráficos continua AQUI para baixo) ...
 
