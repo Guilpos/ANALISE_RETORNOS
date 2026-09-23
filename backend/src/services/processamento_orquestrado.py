@@ -86,7 +86,8 @@ def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, t
     
 
     # Imprime no terminal a lista exata de colunas que o Pandas encontrou
-    print("COLUNAS ENCONTRADAS NO ARQUIVO:", df.columns.tolist())
+    print("COLUNAS ENCONTRADAS NO ARQUIVO:", df.columns.tolist(), '\n')
+    print(df.dtypes, '\n')
     
     # Como as colunas já estão com os nomes corretos e em float, 
     # apenas rodamos o classificador de status

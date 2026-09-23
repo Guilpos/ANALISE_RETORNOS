@@ -10,8 +10,6 @@ def processar_portal_consigcarioca(df_bruto: pd.DataFrame, convenio: str, portal
 
     df.loc[df['Crítica'] == 'SEM CRÍTICA', 'Valor Acatado'] = df['Valor Lançado']
 
-    df['Valor Acatado'] = df['Valor Acatado']
-
     df['Matricula_formatada'] = alinhar_tipagem_chaves(df, 'Matrícula')
     df['cpf_formatado'] = limpar_cpf(df['CPF'])
     
@@ -21,7 +19,6 @@ def processar_portal_consigcarioca(df_bruto: pd.DataFrame, convenio: str, portal
 
 
     df['Valor_descontado'] = df['Valor Acatado'].apply(limpar_moeda_universal)
-    df['Valor_descontado'] = df['Valor Acatado'].fillna(0)
 
     return df
     
