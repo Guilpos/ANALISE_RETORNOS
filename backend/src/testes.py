@@ -6,50 +6,28 @@ import xlrd
 import io
 import lxml
 
-def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:
-    # 1. Lê o arquivo separando pelos pontos e vírgulas (;)
-    # Definimos 4 colunas, já que o Valor e a Crítica virão grudados na última
-    nomes_colunas = ['Competência', 'Matrícula', 'Rúbrica', 'Valor_Misto']
-    
-    df = pd.read_csv(
+def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:    
+    df = pd.read_excel(
         io.BytesIO(conteudo_bytes), 
-        sep=';', 
-        names=nomes_colunas, 
-        dtype=str
+        header=None
     )
-    
-    # 2. Divide a coluna 'Valor_Misto' no PRIMEIRO espaço (n=1)
-    # Isso separa o "67.59" do "ACEITO: Parcela criada." e cria duas colunas novas
-    df[['Valor Lançado', 'Crítica']] = df['Valor_Misto'].str.split(' ', n=1, expand=True)
 
-    
-    # 3. Converte o Valor Lançado para decimal puro
-    df['Valor Lançado'] = df['Valor Lançado'].astype(float)
-    
-    print(f'Como está a coluna Valor Lançado?\n{df['Valor Lançado'].head(15)}')
+    df.columns = df.iloc[4].astype(str).str.strip()
 
-    # --- TRATAMENTO DA CRÍTICA ---
-    # 4. Cria a máscara para focar apenas nas linhas que foram rejeitadas
-    mask_rejeitado = df['Crítica'].str.contains('REJEITADO', case=False, na=False)
-    
-    # 5. Extrai a palavra que vem depois de 'Motivo:'
-    motivos_extraidos = (
-        df.loc[mask_rejeitado, 'Crítica']
-        .str.split('Motivo:')
-        .str[-1]          # Pega a última parte da string (o motivo em si)
-        .str.strip()      # Remove espaços em branco antes ou depois
-        .str.rstrip('.')  # Remove o ponto final (.)
-    )
-    
-    # 6. Sobrescreve a coluna Crítica com o formato exigido apenas para os rejeitados
-    df.loc[mask_rejeitado, 'Crítica'] = 'REJEITADO: ' + motivos_extraidos
-    
-    # Opcional: descarta a coluna mista original, que não é mais necessária
-    df = df.drop(columns=['Valor_Misto'])
+    df = df.iloc[5:].reset_index(drop=True)
 
-    df.insert(2, "CPF", "")
 
-    df["CPF"] = df["Matrícula"].astype(str).str.zfill(11)
+    df.rename(columns={'Valor': 'Valor Lançado', 'Situação': 'Crítica'}, inplace=True)
+
+    df.loc[df['Crítica'] != 'SEM CRÍTICA', 'Crítica'] = df['Descrição da crítica']
+
+    df.insert(8, 'Valor Acatado', 0)
+
+    df.loc[df['Crítica'] == 'SEM CRÍTICA', 'Valor Acatado'] = df['Valor Lançado']
+
+    df['Valor Acatado'] = df['Valor Acatado']
+
+    print(f'Amostra de dados:\n{df[['Crítica', 'Valor Lançado', 'Valor Acatado']].tail(15)}')
      
     def limpar_moeda_universal(valor):
         valor_str = str(valor).strip()
@@ -76,18 +54,6 @@ def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:
     # Aplicação limpa e direta no DataFrame:
     df['Valor_lancado'] = df['Valor Lançado'].apply(limpar_moeda_universal)
 
-    df['Valor_lancado'] = df['Valor_lancado']
-
-    # 4. Atribuição direta dos valores já numéricos (Sobrescreve o que foi limpo acima)
-    if "Valor Acatado" in df.columns:
-        df["Valor Acatado"] = ''
-
-    df.loc[df["Crítica"].str.contains("ACEITO"), "Valor Acatado"] = df["Valor_lancado"]
-    df["Valor Acatado"] = df["Valor Acatado"].fillna(0)
-
-    df['Crítica'] = df['Crítica'].fillna("")
-    df.loc[df['Crítica'] == 'Desconto implantado com sucesso', 'Valor Acatado'] = df['Valor_lancado']
-
 
     df['Valor_descontado'] = df['Valor Acatado'].apply(limpar_moeda_universal)
     df['Valor_descontado'] = df['Valor Acatado'].fillna(0)
@@ -95,7 +61,7 @@ def processar_portal_exemplo(conteudo_bytes: bytes) -> pd.DataFrame:
     return df
 
 # Coloque o caminho exato onde você salvou o arquivo de teste
-caminho_do_arquivo = r"C:\RETORNOS\RETORNO GOV TO\Output_LANCAMENTO CARTAO GOV TO CAPITAL CCI 08-2026.txt"
+caminho_do_arquivo = r"C:\RETORNOS\Pref. Rio de Janeiro Crítica_Cartão_Cred_04_08_2026.xls"
 # Chama a função que criamos passando os bytes simulados
 
 # 2. Leia o arquivo em bytes
@@ -105,6 +71,6 @@ with open(caminho_do_arquivo, "rb") as f:
 df_teste = processar_portal_exemplo(conteudo_bytes=conteudo_bytes)
 
 # Exibe o resultado no terminal para você conferir as colunas
-print(df_teste.head(15))
+print(df_teste[['Crítica', 'Valor Lançado', 'Valor Acatado', 'Valor_lancado', 'Valor_descontado']].head(15))
 print("\nTipos de dados gerados:")
 print(df_teste.dtypes)

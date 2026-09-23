@@ -514,4 +514,12 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
     
         df = df.rename(columns={"Mensagem": "Crítica"})
 
+    if modelo == 'CONSIGCARIOCA':
+        df.columns = df.iloc[4].astype(str).str.strip()
+        
+        df = df.iloc[5:].reset_index(drop=True)
+    
+    
+        df.rename(columns={'Valor': 'Valor Lançado', 'Situação': 'Crítica'}, inplace=True)
+
     return df

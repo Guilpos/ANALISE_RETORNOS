@@ -164,12 +164,14 @@ def portal_escolhido(nome_convenio: str) -> list:
         
         "QUANTUM": [
             "PREF. SÃO JOSÉ DO RIO PRETO", "PREVIDÊNCIA SÃO JOSÉ DO RIO PRETO", 
-            "CÂMARA MUNICIPAL DE TERESÓPOLIS", "PREF. JUÍZ DE FORA", "PREF. RIO DE JANEIRO"
+            "CÂMARA MUNICIPAL DE TERESÓPOLIS", "PREF. JUÍZ DE FORA"
         ],
         
         "LINECONSIG": ["PREF. PICOS", "PREV. PICOS"],
         
         "SAFECONSIG": ["PREF. TAUBATÉ", "PREF. SANTOS", "GOV. CEARÁ", "GOV. ALAGOAS", "PREF. CAUCAIA"],
+
+        "CONSIGCARIOCA": ["PREF. RIO DE JANEIRO"],
         
         "CONSIGFACIL_1": ["GOV. MATO GROSSO",
                           "PREF. TUTÓIA",
