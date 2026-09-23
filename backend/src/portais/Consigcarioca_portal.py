@@ -22,4 +22,6 @@ def processar_portal_consigcarioca(df_bruto: pd.DataFrame, convenio: str, portal
 
     df['Valor_descontado'] = df['Valor Acatado'].apply(limpar_moeda_universal)
     df['Valor_descontado'] = df['Valor Acatado'].fillna(0)
+
+    return df
     
