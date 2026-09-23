@@ -121,7 +121,7 @@ def decidir_layout_portal(portal: str, convenio: str, arquivo: pd.DataFrame) -> 
             resultado = Codiub_portal.processar_portal_codiub(arquivo, convenio=convenio, portal=portal)
         elif portal == 'VIABILIZE':
             resultado = Viabilize_portal.processar_portal_viabilize(arquivo, convenio=convenio, portal=portal)
-        elif portal == 'CARIOCACONSIG':
+        elif portal == 'CONSIGCARIOCA':
             resultado = Consigcarioca_portal.processar_portal_consigcarioca(arquivo, convenio=convenio, portal=portal)
         return resultado
     else:
