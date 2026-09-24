@@ -14,12 +14,12 @@ def ler_arquivo_inseguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str
     if caminho_lower.endswith('.xlsx') or caminho_lower.endswith('.xls'):
         try:
             tabela_memoria = io.BytesIO(conteudo_bytes)
-            df = pd.read_excel(tabela_memoria, dtype=str, header=None) # header=0 para pegar nome das colunas
+            df = pd.read_excel(tabela_memoria, dtype=str) # header=0 para pegar nome das colunas
             return df
         except Exception:
             try:
                 tabela_memoria = io.BytesIO(conteudo_bytes)
-                tabelas = pd.read_html(tabela_memoria, header=None, decimal=',', thousands='.')
+                tabelas = pd.read_html(tabela_memoria, decimal=',', thousands='.')
                 df = tabelas[0]
                 return df
             except Exception as erro_final:
