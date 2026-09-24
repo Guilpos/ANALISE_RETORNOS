@@ -5,6 +5,61 @@ from portais import base_portal
 import csv
 import xlrd
 import io
+import xml.etree.ElementTree as ET
+
+def ler_arquivo_inseguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) -> pd.DataFrame:
+    caminho_lower = nome_arquivo.lower()
+    
+    # 1. ARQUIVOS EXCEL (.xlsx, .xls) -> LANÇAMENTOS
+    if caminho_lower.endswith('.xlsx') or caminho_lower.endswith('.xls'):
+        try:
+            tabela_memoria = io.BytesIO(conteudo_bytes)
+            df = pd.read_excel(tabela_memoria, dtype=str, header=None) # header=0 para pegar nome das colunas
+            return df
+        except Exception:
+            try:
+                tabela_memoria = io.BytesIO(conteudo_bytes)
+                tabelas = pd.read_html(tabela_memoria, header=None, decimal=',', thousands='.')
+                df = tabelas[0]
+                return df
+            except Exception as erro_final:
+                raise ValueError(f"Erro ao ler arquivo Excel/HTML: {str(erro_final)}")
+
+    # 2. ARQUIVOS XML -> RETORNOS
+    if caminho_lower.endswith('.xml'):
+        try:
+            root = ET.fromstring(conteudo_bytes)
+            ns = {'cip': 'http://www.cip-bancos.org.br/ARQ/ASCC024.xsd'}
+            linhas = []
+
+            for grupo in root.findall('.//cip:Grupo_ASCC024RET_Consigrio', ns):
+                cnpj_ente = grupo.find('cip:CNPJBaseEnte', ns)
+                cnpj_ente_text = cnpj_ente.text if cnpj_ente is not None else None
+        
+                codigo_encontrado = None
+                for elemento in grupo.iter():
+                    if 'CodErro' in elemento.attrib:
+                        codigo_encontrado = elemento.attrib['CodErro']
+                        break 
+        
+                consignc = grupo.find('cip:Grupo_ASCC024RET_Consignc', ns)
+                if consignc is not None:
+                    cpf = consignc.find('cip:NumCPFServdr', ns)
+                    ade = consignc.find('cip:NUAvebcSCC', ns)
+                    contrato = consignc.find('cip:NumContrtoIF', ns)
+                    controle_cip = consignc.find('cip:NumCtrlCIP', ns)
+                    
+                    linhas.append({
+                        'CPF': cpf.text if cpf is not None else None,
+                        'Contrato': contrato.text if contrato is not None else None,
+                        'ADE_Averbacao': ade.text if ade is not None else None,
+                        'Controle_CIP': controle_cip.text if controle_cip is not None else None,
+                        'CNPJ_Ente': cnpj_ente_text,
+                        'Cod_Erro': codigo_encontrado
+                    })
+            return pd.DataFrame(linhas)
+        except Exception as erro_final:
+            raise ValueError(f"Erro ao ler arquivo XML: {str(erro_final)}")
 
 def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) -> pd.DataFrame:
     """
@@ -53,6 +108,52 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
             except Exception as erro_final:
                 # TENTATIVA 3: Se as duas falharem, encerra com o erro real
                 raise ValueError(f"Erro ao ler arquivo: Não é um Excel nem um HTML válido. Detalhe: {str(erro_final)}")
+
+    if caminho_lower.endswith('.xml'):
+        try:
+            # Faz a leitura direta da variável em bytes (ex: b'<?xml version="1.0"...')
+            root = ET.fromstring(conteudo_bytes)
+
+            # Define o mapeamento do namespace
+            ns = {'cip': 'http://www.cip-bancos.org.br/ARQ/ASCC024.xsd'}
+        
+            linhas = []
+
+            # O root já é o nó raiz da árvore, então iteramos a partir dele
+            for grupo in root.findall('.//cip:Grupo_ASCC024RET_Consigrio', ns):
+                
+                cnpj_ente = grupo.find('cip:CNPJBaseEnte', ns)
+                cnpj_ente_text = cnpj_ente.text if cnpj_ente is not None else None
+        
+                codigo_encontrado = None
+                for elemento in grupo.iter():
+                    if 'CodErro' in elemento.attrib:
+                        codigo_encontrado = elemento.attrib['CodErro']
+                        break # Interrompe a busca após achar o primeiro erro
+        
+                consignc = grupo.find('cip:Grupo_ASCC024RET_Consignc', ns)
+                
+                if consignc is not None:
+                    cpf = consignc.find('cip:NumCPFServdr', ns)
+                    ade = consignc.find('cip:NUAvebcSCC', ns)
+                    contrato = consignc.find('cip:NumContrtoIF', ns)
+                    controle_cip = consignc.find('cip:NumCtrlCIP', ns)
+                    data_proc = consignc.find('cip:DtProxProcmntArqDesctFolha', ns)
+        
+                    linhas.append({
+                        'CPF': cpf.text if cpf is not None else None,
+                        'Contrato': contrato.text if contrato is not None else None,
+                        'ADE_Averbacao': ade.text if ade is not None else None,
+                        'Controle_CIP': controle_cip.text if controle_cip is not None else None,
+                        'Data_Processamento': data_proc.text if data_proc is not None else None,
+                        'CNPJ_Ente': cnpj_ente_text,
+                        'Cod_Erro': codigo_encontrado
+                    })
+        
+            df = pd.DataFrame(linhas)
+        except Exception as erro_final:
+            # TENTATIVA 3: Se as duas falharem, encerra com o erro real
+            raise ValueError(f"Erro ao ler arquivo: Não é um XML válido. Detalhe: {str(erro_final)}")
     
     if caminho_lower.endswith('.txt'):
         try:
@@ -528,5 +629,20 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
     
     
         df.rename(columns={'matricula': 'Matrícula', 'cpf': 'CPF', 'valor_reserva': 'Valor Lançado', 'motivo_rejeicao': 'Crítica'}, inplace=True)
+
+    if modelo == 'CIP':
+        df_1 = df if 'Controle_CIP' in df.columns else None
+        if df_1 is None:
+            raise ValueError("df_1 está vázio")
+        
+        df_2 = df if 'VALOR AVERBADO' in df.columns else None
+        if df_2 is None:
+            raise ValueError("df_2 está vázio")
+
+        df_2.rename(columns={'Nº AVERBAÇÃO SCC': 'Matrícula', 'VALOR AVERBADO': 'Valor Lançado'}, inplace=True)
+
+        df_1.rename(columns={"ADE_Averbacao": "Matrícula"}, inplace=True)
+        df_1['Valor Lançado'] = df_1["Matrícula"].map(df_2.set_index('Matrícula')['Valor Lançado'])
+
 
     return df

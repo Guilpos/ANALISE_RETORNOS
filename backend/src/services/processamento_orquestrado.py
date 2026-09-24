@@ -1,9 +1,10 @@
 import pandas as pd
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-from utils.file_readers import ler_arquivo_seguro
+from utils.file_readers import ler_arquivo_seguro, ler_arquivo_inseguro
 from utils.portais_convenios_lista import convenio_escolher, portal_escolhido
 from utils.formatters import classificar_status_acatamento, gerar_hash_registro
+from portais import Cip_portal
 
 def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, tipo_produto: str, competencia: str, db: Session):
 
@@ -33,6 +34,35 @@ def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, t
             
         # Junta o arquivo de sucesso com o de críticas colocando um embaixo do outro
         df = pd.concat(lista_dfs, ignore_index=True)
+    elif portal == "CIP":
+        # Em vez de uma lista, usamos um dicionário para saber quem é quem
+        dfs_processados = {"lancamento": None, "retorno": None}
+
+        # 1. ETAPA DE LEITURA INDIVIDUAL
+        for arq in arquivos_lista:
+            conteudo = arq["conteudo"]
+            nome_arquivo = arq["nome_arquivo"]
+            
+            # Lê o arquivo e traz o DF cru
+            df_temporario = ler_arquivo_inseguro(conteudo_bytes=conteudo, nome_arquivo=nome_arquivo, convenio=convenio)
+            
+            # Classifica o DataFrame baseado na extensão do arquivo
+            if nome_arquivo.lower().endswith('.xml'):
+                dfs_processados["retorno"] = df_temporario
+            elif nome_arquivo.lower().endswith(('.xlsx', '.xls')):
+                dfs_processados["lancamento"] = df_temporario
+
+        # 2. ETAPA DE CRUZAMENTO (Se ambos os arquivos existirem)
+        if dfs_processados["lancamento"] is not None and dfs_processados["retorno"] is not None:
+            # Chama a função de cruzamento passando os dois arquivos juntos!
+            df_final = Cip_portal.processar_portal_cip(df_bruto_1=dfs_processados["lancamento"], df_bruto_2=dfs_processados["retorno"], convenio=convenio, portal=portal)
+            
+            # Aqui você pode aplicar a sua função decidir_layout_portal no df_final
+            # df_resultado = base_portal.decidir_layout_portal(portal=portal, convenio=nome_convenio, arquivo=df_final)
+            return df_final
+        else:
+            raise ValueError("Faltam arquivos! É necessário subir tanto o XLSX de lançamento quanto o XML de retorno.")
+
     elif portal not in ["CONSIGX", "VIABILIZE"] and len(arquivos_lista) > 1:
         # Se houver mais de um arquivo e o portal não for CONSIGX vamos lançar um erro
         raise ValueError("Apenas um arquivo pode ser enviado para este portal.")

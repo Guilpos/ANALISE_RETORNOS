@@ -542,11 +542,11 @@
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 
     <script>
-      document.addEventListener('DOMContentLoaded', function () {
+      document.addEventListener("DOMContentLoaded", function () {
         // Transforma o select normal em um select pesquisável
-        new TomSelect('#codigo_convenio', {
+        new TomSelect("#codigo_convenio", {
           create: false,
-          placeholder: '-- Selecione ou digite para buscar --',
+          placeholder: "-- Selecione ou digite para buscar --",
           maxOptions: null,
         });
       });
@@ -555,62 +555,62 @@
   <!-- O MOTOR: Aqui é onde o JavaScript puro faz a comunicação com o FastAPI -->
   <script>
     // 1. "Capturamos" os elementos que sobraram no novo layout
-    const btnEnviar = document.getElementById('btn-enviar');
-    const caixaAlerta = document.getElementById('mensagem-alerta');
+    const btnEnviar = document.getElementById("btn-enviar");
+    const caixaAlerta = document.getElementById("mensagem-alerta");
 
     // Função auxiliar atualizada para exibir a caixa de aviso no novo design
     function mostrarAlerta(mensagem, corFundo) {
       caixaAlerta.style.backgroundColor = corFundo;
-      caixaAlerta.style.color = 'white';
+      caixaAlerta.style.color = "white";
       caixaAlerta.textContent = mensagem;
-      caixaAlerta.style.display = 'block';
+      caixaAlerta.style.display = "block";
     }
 
     // 2. Interceptamos o clique direto no botão de Upload
-    btnEnviar.addEventListener('click', async function () {
-      const inputArquivo = document.getElementById('arquivo');
+    btnEnviar.addEventListener("click", async function () {
+      const inputArquivo = document.getElementById("arquivo");
 
       // 1. Trava de segurança: verifica a quantidade de arquivos (length)
       if (inputArquivo.files.length === 0) {
         mostrarAlerta(
-          'Por favor, anexe um arquivo antes de processar.',
-          '#e74c3c'
+          "Por favor, anexe um arquivo antes de processar.",
+          "#e74c3c",
         ); // Vermelho
         return;
       }
 
       // Altera o estado do botão para "Processando"
       const textoOriginal = btnEnviar.textContent;
-      btnEnviar.textContent = 'Processando...';
+      btnEnviar.textContent = "Processando...";
       btnEnviar.disabled = true;
-      caixaAlerta.style.display = 'none'; // Esconde mensagens anteriores
+      caixaAlerta.style.display = "none"; // Esconde mensagens anteriores
 
       // 2. Cria o pacote ÚNICO de dados
       const dadosFormulario = new FormData();
 
       // Anexa os campos de texto
       dadosFormulario.append(
-        'codigo_convenio',
-        document.getElementById('codigo_convenio').value
+        "codigo_convenio",
+        document.getElementById("codigo_convenio").value,
       );
       dadosFormulario.append(
-        'consignataria',
-        document.getElementById('consignataria').value
+        "consignataria",
+        document.getElementById("consignataria").value,
       );
       dadosFormulario.append(
-        'produto',
-        document.getElementById('produto').value
+        "produto",
+        document.getElementById("produto").value,
       );
       dadosFormulario.append(
-        'competencia',
-        document.getElementById('competencia_inicio').value
+        "competencia",
+        document.getElementById("competencia_inicio").value,
       );
 
       // 3. AQUI ESTÁ A MÁGICA: O loop substitui a antiga linha do arquivoFisico
       for (let i = 0; i < inputArquivo.files.length; i++) {
         // Atenção: Use "arquivos" (plural) ou "arquivo" (singular) dependendo
         // de como você nomeou o parâmetro lá na sua rota do FastAPI.
-        dadosFormulario.append('arquivos', inputArquivo.files[i]);
+        dadosFormulario.append("arquivos", inputArquivo.files[i]);
       }
 
       // ... A partir daqui vem o seu comando fetch(url, { body: dadosFormulario }) ...
@@ -618,22 +618,22 @@
       try {
         // 4. Mandamos os dados para a nuvem
         const resposta = await fetch(`${API_URL}/api/upload`, {
-          method: 'POST',
+          method: "POST",
           body: dadosFormulario,
         });
 
         if (resposta.ok) {
-          mostrarAlerta('Upload concluído com sucesso!', '#2ecc71'); // Verde
+          mostrarAlerta("Upload concluído com sucesso!", "#2ecc71"); // Verde
 
-          inputArquivo.value = ''; // Limpa o campo do arquivo após sucesso
+          inputArquivo.value = ""; // Limpa o campo do arquivo após sucesso
 
           carregarDashboard(); // Atualiza os gráficos sozinhos
         } else {
-          mostrarAlerta('Erro ao processar o arquivo no servidor.', '#e74c3c'); // Vermelho
+          mostrarAlerta("Erro ao processar o arquivo no servidor.", "#e74c3c"); // Vermelho
         }
       } catch (erro) {
-        console.error('Erro no upload:', erro);
-        mostrarAlerta('Erro de conexão com a API.', '#e74c3c');
+        console.error("Erro no upload:", erro);
+        mostrarAlerta("Erro de conexão com a API.", "#e74c3c");
       } finally {
         // Devolve o botão ao estado original independente do resultado
         btnEnviar.textContent = textoOriginal;
@@ -641,20 +641,20 @@
       }
     });
     // Interceptamos o clique no botão de Excluir Lote
-    const btnExcluir = document.getElementById('btn-excluir');
+    const btnExcluir = document.getElementById("btn-excluir");
 
-    btnExcluir.addEventListener('click', async function () {
+    btnExcluir.addEventListener("click", async function () {
       // 1. Capturar os valores atuais dos filtros no painel lateral
-      const convenio = document.getElementById('codigo_convenio').value;
-      const consignataria = document.getElementById('consignataria').value;
-      const produto = document.getElementById('produto').value;
-      const compInicio = document.getElementById('competencia_inicio').value;
+      const convenio = document.getElementById("codigo_convenio").value;
+      const consignataria = document.getElementById("consignataria").value;
+      const produto = document.getElementById("produto").value;
+      const compInicio = document.getElementById("competencia_inicio").value;
 
       // 2. Trava de Segurança no Frontend: Exige preenchimento total
       if (!convenio || !consignataria || !produto || !compInicio) {
         mostrarAlerta(
-          'Preencha Convênio, Consignatária, Produto e Competência Inicial para excluir.',
-          '#f39c12'
+          "Preencha Convênio, Consignatária, Produto e Competência Inicial para excluir.",
+          "#f39c12",
         ); // Laranja
         return; // Cancela a execução
       }
@@ -668,9 +668,9 @@
 
       // Altera o estado do botão visualmente
       const textoOriginal = btnExcluir.textContent;
-      btnExcluir.textContent = 'Excluindo...';
+      btnExcluir.textContent = "Excluindo...";
       btnExcluir.disabled = true;
-      caixaAlerta.style.display = 'none'; // Esconde mensagens anteriores
+      caixaAlerta.style.display = "none"; // Esconde mensagens anteriores
 
       try {
         // 4. Montar a URL com os parâmetros exatos para a API
@@ -685,29 +685,29 @@
         const resposta = await fetch(
           `${API_URL}/api/relatorios/arquivos/excluir-lote?${parametros.toString()}`,
           {
-            method: 'DELETE',
-          }
+            method: "DELETE",
+          },
         );
 
         const dados = await resposta.json();
 
         if (resposta.ok) {
-          if (dados.status === 'sucesso') {
-            mostrarAlerta(dados.mensagem, '#2ecc71'); // Verde
+          if (dados.status === "sucesso") {
+            mostrarAlerta(dados.mensagem, "#2ecc71"); // Verde
 
             // Recarrega o dashboard. Como os dados foram apagados, a tela ficará em branco e mostrará "Nenhum dado encontrado"
             carregarDashboard();
           } else {
             // Caso o backend avise que não achou nada para apagar
-            mostrarAlerta(dados.mensagem, '#f39c12'); // Laranja
+            mostrarAlerta(dados.mensagem, "#f39c12"); // Laranja
           }
         } else {
           // Caso a API devolva o erro 400 da nossa trava de segurança do Python
-          mostrarAlerta(dados.detail || 'Erro ao excluir o lote.', '#e74c3c'); // Vermelho
+          mostrarAlerta(dados.detail || "Erro ao excluir o lote.", "#e74c3c"); // Vermelho
         }
       } catch (erro) {
-        console.error('Erro na exclusão:', erro);
-        mostrarAlerta('Erro de conexão com o servidor.', '#e74c3c');
+        console.error("Erro na exclusão:", erro);
+        mostrarAlerta("Erro de conexão com o servidor.", "#e74c3c");
       } finally {
         // Devolve o botão ao estado original independente do resultado
         btnExcluir.textContent = textoOriginal;
@@ -717,19 +717,19 @@
 
     // Intercepta o clique no botão Flutuante
     document
-      .getElementById('btn-toggle-menu')
-      .addEventListener('click', function () {
-        const barraEsquerda = document.querySelector('.barra-esquerda');
-        const iconeMenu = document.getElementById('icone-menu');
+      .getElementById("btn-toggle-menu")
+      .addEventListener("click", function () {
+        const barraEsquerda = document.querySelector(".barra-esquerda");
+        const iconeMenu = document.getElementById("icone-menu");
 
         // Ativa ou desativa a classe que oculta a barra
-        barraEsquerda.classList.toggle('oculta');
+        barraEsquerda.classList.toggle("oculta");
 
         // Muda a setinha do botão para dar feedback visual de qual lado a barra vai
-        if (barraEsquerda.classList.contains('oculta')) {
-          iconeMenu.textContent = '▶'; // Mostrar
+        if (barraEsquerda.classList.contains("oculta")) {
+          iconeMenu.textContent = "▶"; // Mostrar
         } else {
-          iconeMenu.textContent = '◀'; // Esconder
+          iconeMenu.textContent = "◀"; // Esconder
         }
       });
 
@@ -737,53 +737,53 @@
     function mostrarAlerta(mensagem, tipo) {
       caixaAlerta.className = `alert mt-4 alert-${tipo}`;
       caixaAlerta.textContent = mensagem;
-      caixaAlerta.style.display = 'block';
+      caixaAlerta.style.display = "block";
     }
 
     // Endereço base da sua API no Render
-    const API_URL = 'https://api-validador-convenios.onrender.com';
+    const API_URL = "https://api-validador-convenios.onrender.com";
 
     let chartPizzaInstancia = null;
     let chartBarrasInstancia = null;
     let chartTendenciaInstancia = null;
 
     async function carregarDashboard() {
-      const btnFiltrar = document.getElementById('btn-buscar');
+      const btnFiltrar = document.getElementById("btn-buscar");
       const textoOriginal = btnFiltrar.innerHTML;
       try {
         if (btnFiltrar) {
           btnFiltrar.disabled = true;
-          btnFiltrar.innerHTML = '⏳ Carregando...';
+          btnFiltrar.innerHTML = "⏳ Carregando...";
         }
 
         // 1. CAPTURAR OS FILTROS DA BARRA LATERAL
-        const selectConvenio = document.getElementById('codigo_convenio');
+        const selectConvenio = document.getElementById("codigo_convenio");
         const convenio = selectConvenio.value;
 
         // NOVO: Captura o texto que está aparecendo na tela para o usuário
-        let nomeConvenioTexto = '';
+        let nomeConvenioTexto = "";
         if (convenio && selectConvenio.selectedIndex >= 0) {
           nomeConvenioTexto =
             selectConvenio.options[selectConvenio.selectedIndex].text;
         }
 
-        const consignataria = document.getElementById('consignataria').value;
-        const produto = document.getElementById('produto').value;
-        const compInicio = document.getElementById('competencia_inicio').value;
-        const compFim = document.getElementById('competencia_fim').value;
+        const consignataria = document.getElementById("consignataria").value;
+        const produto = document.getElementById("produto").value;
+        const compInicio = document.getElementById("competencia_inicio").value;
+        const compFim = document.getElementById("competencia_fim").value;
 
         // 2. MONTAR A URL DINÂMICA
         const parametros = new URLSearchParams();
 
-        if (convenio) parametros.append('codigo_convenio', convenio);
+        if (convenio) parametros.append("codigo_convenio", convenio);
         // NOVO: Envia o texto bonitinho para o backend usar no título
         if (nomeConvenioTexto)
-          parametros.append('nome_convenio', nomeConvenioTexto);
+          parametros.append("nome_convenio", nomeConvenioTexto);
 
-        if (consignataria) parametros.append('consignataria', consignataria);
-        if (produto) parametros.append('produto', produto);
-        if (compInicio) parametros.append('competencia_inicio', compInicio);
-        if (compFim) parametros.append('competencia_fim', compFim);
+        if (consignataria) parametros.append("consignataria", consignataria);
+        if (produto) parametros.append("produto", produto);
+        if (compInicio) parametros.append("competencia_inicio", compInicio);
+        if (compFim) parametros.append("competencia_fim", compFim);
 
         const queryString = parametros.toString();
 
@@ -791,18 +791,21 @@
         // Se tiver parâmetros, adiciona a interrogação. Se não, chama a rota pura (traz tudo).
         const endpoint = queryString
           ? `/api/relatorios/dashboard/resumo?${queryString}`
-          : '/api/relatorios/dashboard/resumo';
+          : "/api/relatorios/dashboard/resumo";
 
         const urlFinal = `${API_URL}${endpoint}`;
 
         // 3. FAZER A BUSCA NA NUVEM
         const resposta = await fetch(urlFinal);
 
+        const areaCards = document.getElementById("area-cards");
+        areaCards.innerHTML = "";
+
         // Se o backend gritar que deu erro (400, 404, 500), a gente captura e exibe na tela
         if (!resposta.ok) {
           // Tenta ler a mensagem de erro que o FastAPI enviou (ex: "Selecione um convênio")
           let mensagemErro =
-            'Não existem dados para esta combinação de filtros ou ocorreu um erro na busca.';
+            "Não existem dados para esta combinação de filtros ou ocorreu um erro na busca.";
           try {
             const erroJson = await resposta.json();
             if (erroJson.detail) mensagemErro = erroJson.detail;
@@ -810,7 +813,6 @@
             // Se não vier JSON, ignora e usa a mensagem padrão
           }
 
-          const areaCards = document.getElementById('area-cards');
           areaCards.innerHTML = `
                 <div style="width: 100%; text-align: center; padding: 50px; color: #7f8c8d;">
                     <h4 style="color: #e74c3c;">Aviso</h4>
@@ -832,45 +834,45 @@
 
         // FUNÇÃO AUXILIAR: Quebra textos longos para o Chart.js ler como múltiplas linhas
         function formatarLabelMultiplasLinhas(texto, tamanhoMaximo = 20) {
-          if (!texto) return ['Não Informado'];
+          if (!texto) return ["Não Informado"];
           if (texto.length <= tamanhoMaximo) return texto; // Se for curto, retorna normal
 
-          const palavras = texto.split(' ');
+          const palavras = texto.split(" ");
           const linhas = [];
-          let linhaAtual = '';
+          let linhaAtual = "";
 
           palavras.forEach((palavra) => {
             // Se adicionar a próxima palavra for estourar o limite, guarda a linha e começa outra
             if ((linhaAtual + palavra).length > tamanhoMaximo) {
-              if (linhaAtual.trim() !== '') linhas.push(linhaAtual.trim());
-              linhaAtual = palavra + ' ';
+              if (linhaAtual.trim() !== "") linhas.push(linhaAtual.trim());
+              linhaAtual = palavra + " ";
             } else {
-              linhaAtual += palavra + ' ';
+              linhaAtual += palavra + " ";
             }
           });
-          if (linhaAtual.trim() !== '') linhas.push(linhaAtual.trim());
+          if (linhaAtual.trim() !== "") linhas.push(linhaAtual.trim());
 
           return linhas; // Retorna a matriz que o Chart.js entende como quebra de linha
         }
 
         // FUNÇÃO AUXILIAR: Quebra textos longos para o Chart.js ler como múltiplas linhas
         function formatarLabelMultiplasLinhas(texto, tamanhoMaximo = 20) {
-          if (!texto) return ['Não Informado'];
+          if (!texto) return ["Não Informado"];
           if (texto.length <= tamanhoMaximo) return texto;
 
-          const palavras = texto.split(' ');
+          const palavras = texto.split(" ");
           const linhas = [];
-          let linhaAtual = '';
+          let linhaAtual = "";
 
           palavras.forEach((palavra) => {
             if ((linhaAtual + palavra).length > tamanhoMaximo) {
-              if (linhaAtual.trim() !== '') linhas.push(linhaAtual.trim());
-              linhaAtual = palavra + ' ';
+              if (linhaAtual.trim() !== "") linhas.push(linhaAtual.trim());
+              linhaAtual = palavra + " ";
             } else {
-              linhaAtual += palavra + ' ';
+              linhaAtual += palavra + " ";
             }
           });
-          if (linhaAtual.trim() !== '') linhas.push(linhaAtual.trim());
+          if (linhaAtual.trim() !== "") linhas.push(linhaAtual.trim());
 
           return linhas;
         }
@@ -892,7 +894,7 @@
 
           const diferenca =
             ((valorAtual - valorAnterior) / valorAnterior) * 100;
-          const formatado = Math.abs(diferenca).toFixed(2).replace('.', ',');
+          const formatado = Math.abs(diferenca).toFixed(2).replace(".", ",");
 
           if (diferenca > 0) {
             return `<span style="font-size: 11px; color: #2ecc71; margin-left: 5px;">(+${formatado}%)</span>`;
@@ -906,25 +908,25 @@
         dados.cards_arquivos.forEach((arquivo, arquivoIndex) => {
           const coresExatas = arquivo.grafico_pizza.labels.map((label) => {
             const texto = label.toUpperCase();
-            if (texto.includes('ACATADO INTEGRAL') || texto === 'ACATADO')
-              return '#2ea44f';
-            if (texto.includes('PARCIAL')) return '#f39c12';
-            if (texto.includes('ZERADO') || texto.includes('REJEITADO'))
-              return '#e74c3c';
-            return '#95a5a6';
+            if (texto.includes("ACATADO INTEGRAL") || texto === "ACATADO")
+              return "#2ea44f";
+            if (texto.includes("PARCIAL")) return "#f39c12";
+            if (texto.includes("ZERADO") || texto.includes("REJEITADO"))
+              return "#e74c3c";
+            return "#95a5a6";
           });
 
           // 2. CONSTRUÇÃO DO RESUMO FINANCEIRO
           const totalFinanceiro =
             arquivo.grafico_pizza.valores_financeiros.reduce(
               (a, b) => a + b,
-              0
+              0,
             );
 
           // NOVO: SOMA DOS CASOS (Quantidades brutas)
           const totalCasosBrutos = arquivo.grafico_pizza.quantidades.reduce(
             (a, b) => a + b,
-            0
+            0,
           );
 
           let htmlValores = `<div style="margin-top: 20px; background: #f4f6f9; border-radius: 8px; padding: 15px; width: 100%;">`;
@@ -941,14 +943,14 @@
               totalFinanceiro > 0
                 ? ((valorAtual / totalFinanceiro) * 100).toFixed(1)
                 : 0;
-            const valorBRL = valorAtual.toLocaleString('pt-BR', {
-              style: 'currency',
-              currency: 'BRL',
+            const valorBRL = valorAtual.toLocaleString("pt-BR", {
+              style: "currency",
+              currency: "BRL",
             });
             const cor = coresExatas[labelIndex];
 
             // Calcula a variação desta fatia específica
-            let tagVariacaoFatia = '';
+            let tagVariacaoFatia = "";
             if (!arquivoAnterior) {
               tagVariacaoFatia = `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(--)</span>`;
             } else {
@@ -957,7 +959,7 @@
                 0;
               tagVariacaoFatia = calcularVariacaoHTML(
                 valorAtual,
-                valorAnteriorFatia
+                valorAnteriorFatia,
               );
             }
 
@@ -973,24 +975,24 @@
                 `;
           });
 
-          const totalBRL = totalFinanceiro.toLocaleString('pt-BR', {
-            style: 'currency',
-            currency: 'BRL',
+          const totalBRL = totalFinanceiro.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
           });
 
           // Calcula a variação do TOTAL GERAL
-          let tagVariacaoTotal = '';
+          let tagVariacaoTotal = "";
           if (!arquivoAnterior) {
             tagVariacaoTotal = `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(--)</span>`;
           } else {
             const totalFinanceiroAnterior =
               arquivoAnterior.grafico_pizza.valores_financeiros.reduce(
                 (a, b) => a + b,
-                0
+                0,
               );
             tagVariacaoTotal = calcularVariacaoHTML(
               totalFinanceiro,
-              totalFinanceiroAnterior
+              totalFinanceiroAnterior,
             );
           }
 
@@ -1014,7 +1016,7 @@
                                 <div style="text-align: center; margin-top: 0px; margin-bottom: 20px;">
                                     <span style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px;">Casos Processados</span>
                                     <br>
-                                    <strong style="font-size: 28px; color: #2c3e50;">${totalCasosBrutos.toLocaleString('pt-BR')}</strong>
+                                    <strong style="font-size: 28px; color: #2c3e50;">${totalCasosBrutos.toLocaleString("pt-BR")}</strong>
                                 </div>
                             </div>
                             ${htmlValores}
@@ -1028,15 +1030,15 @@
                 </div>
             `;
 
-          areaCards.insertAdjacentHTML('beforeend', cardHTML);
+          areaCards.insertAdjacentHTML("beforeend", cardHTML);
 
           // Desenhando a Pizza
           new Chart(
             document
               .getElementById(`pizza-${arquivo.id_arquivo}`)
-              .getContext('2d'),
+              .getContext("2d"),
             {
-              type: 'doughnut',
+              type: "doughnut",
               data: {
                 labels: arquivo.grafico_pizza.labels,
                 datasets: [
@@ -1053,11 +1055,11 @@
                   tooltip: {
                     callbacks: {
                       label: function (context) {
-                        let rotulo = '';
+                        let rotulo = "";
                         const valor = context.raw;
                         const total = context.dataset.data.reduce(
                           (acumulador, atual) => acumulador + atual,
-                          0
+                          0,
                         );
                         const percentual =
                           total > 0 ? ((valor / total) * 100).toFixed(1) : 0;
@@ -1068,27 +1070,27 @@
                   },
                 },
               },
-            }
+            },
           );
 
           const labelsBarrasFormatadas = arquivo.grafico_barras.labels.map(
-            (label) => formatarLabelMultiplasLinhas(label, 25)
+            (label) => formatarLabelMultiplasLinhas(label, 25),
           );
 
           // Desenhando o Gráfico de Barras
           new Chart(
             document
               .getElementById(`barras-${arquivo.id_arquivo}`)
-              .getContext('2d'),
+              .getContext("2d"),
             {
-              type: 'bar',
+              type: "bar",
               data: {
                 labels: labelsBarrasFormatadas,
                 datasets: [
                   {
-                    label: 'Quantidade',
+                    label: "Quantidade",
                     data: arquivo.grafico_barras.quantidades,
-                    backgroundColor: '#3498db',
+                    backgroundColor: "#3498db",
                   },
                 ],
               },
@@ -1099,11 +1101,11 @@
                   tooltip: {
                     callbacks: {
                       label: function (context) {
-                        let rotulo = '';
+                        let rotulo = "";
                         const valor = context.raw;
                         const total = context.dataset.data.reduce(
                           (acumulador, atual) => acumulador + atual,
-                          0
+                          0,
                         );
                         const percentual =
                           total > 0 ? ((valor / total) * 100).toFixed(1) : 0;
@@ -1115,43 +1117,43 @@
                 },
                 scales: { y: { beginAtZero: true } },
               },
-            }
+            },
           );
         });
 
         // Desenha a Barra Direita (Gráfico de Tendência Fixo)
         if (!dados.grafico_tendencia) return;
         const ctxTendencia = document
-          .getElementById('chartTendencia')
-          .getContext('2d');
+          .getElementById("chartTendencia")
+          .getContext("2d");
         if (chartTendenciaInstancia) chartTendenciaInstancia.destroy();
 
         chartTendenciaInstancia = new Chart(ctxTendencia, {
-          type: 'line',
+          type: "line",
           data: {
             labels: dados.grafico_tendencia.labels,
             datasets: [
               {
-                label: 'Acatado',
+                label: "Acatado",
                 data: dados.grafico_tendencia.aceitos,
-                borderColor: '#2ea44f',
-                backgroundColor: 'rgba(46, 164, 79, 0.1)',
+                borderColor: "#2ea44f",
+                backgroundColor: "rgba(46, 164, 79, 0.1)",
                 fill: true,
                 tension: 0.3,
               },
               {
-                label: 'Rejeitado',
+                label: "Rejeitado",
                 data: dados.grafico_tendencia.rejeitados,
-                borderColor: '#d73a49',
-                backgroundColor: 'rgba(215, 58, 73, 0.1)',
+                borderColor: "#d73a49",
+                backgroundColor: "rgba(215, 58, 73, 0.1)",
                 fill: true,
                 tension: 0.3,
               },
               {
-                label: 'Parcial',
+                label: "Parcial",
                 data: dados.grafico_tendencia.parciais,
-                borderColor: '#f39c12',
-                backgroundColor: 'rgba(215, 58, 73, 0.1)',
+                borderColor: "#f39c12",
+                backgroundColor: "rgba(215, 58, 73, 0.1)",
                 fill: true,
                 tension: 0.3,
               },
@@ -1160,40 +1162,40 @@
           options: {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: { legend: { position: 'top' } },
+            plugins: { legend: { position: "top" } },
           },
         });
         // 3. O PONTO DE IGNIÇÃO DA IA (COM TRAVA DE SEGURANÇA)
-        const botaoIA = document.getElementById('toggle-ia');
+        const botaoIA = document.getElementById("toggle-ia");
 
         // Só dispara a IA se o botão estiver marcado (checked)
         if (botaoIA && botaoIA.checked) {
           gerarResumoIA(dados);
         } else {
           // Se estiver desligado, limpa a caixa e avisa que está em modo de teste
-          document.getElementById('caixa-ia').innerHTML =
+          document.getElementById("caixa-ia").innerHTML =
             '<p style="color: #aaa; text-align: center; font-size: 13px; margin-top: 50px;">⏸️ Modo de teste visual ativo.<br>Geração de insight desativada.</p>';
         }
         if (btnFiltrar) {
-          btnFiltrar.classList.remove('btn-primary'); // Troque 'btn-primary' pela classe de cor original do seu botão, se for diferente
-          btnFiltrar.classList.add('btn-success');
-          btnFiltrar.innerHTML = '✅ Concluído!';
+          btnFiltrar.classList.remove("btn-primary"); // Troque 'btn-primary' pela classe de cor original do seu botão, se for diferente
+          btnFiltrar.classList.add("btn-success");
+          btnFiltrar.innerHTML = "✅ Concluído!";
 
           // Restaura o botão após 2 segundos
           setTimeout(() => {
-            btnFiltrar.classList.remove('btn-success');
-            btnFiltrar.classList.add('btn-primary');
+            btnFiltrar.classList.remove("btn-success");
+            btnFiltrar.classList.add("btn-primary");
             btnFiltrar.innerHTML = textoOriginal;
             btnFiltrar.disabled = false;
           }, 2000);
         }
       } catch (erro) {
-        console.error('Erro ao desenhar gráficos:', erro);
+        console.error("Erro ao desenhar gráficos:", erro);
       }
     }
 
     async function gerarResumoIA(dadosDashboard) {
-      const caixaIA = document.getElementById('caixa-ia');
+      const caixaIA = document.getElementById("caixa-ia");
 
       // Mostra um indicador de carregamento charmoso enquanto o Python trabalha
       caixaIA.innerHTML =
@@ -1203,13 +1205,13 @@
         const resposta = await fetch(
           `${API_URL}/api/relatorios/dashboard/gerar-insight`,
           {
-            method: 'POST',
+            method: "POST",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
             },
             // Empacotamos todos os dados matemáticos do painel e mandamos pro backend
             body: JSON.stringify({ resumo_dados: dadosDashboard }),
-          }
+          },
         );
 
         const dadosIA = await resposta.json();
@@ -1217,12 +1219,12 @@
         if (resposta.ok) {
           // Limpamos possíveis formatações markdown (**) que a IA possa devolver e injetamos o texto
           const textoLimpo = dadosIA.insight
-            .replace(/\*\*/g, '')
-            .replace(/\*/g, '');
+            .replace(/\*\*/g, "")
+            .replace(/\*/g, "");
 
           // Um pequeno selo indicando se a resposta veio do Cache (⚡) ou se foi gerada na hora (🤖)
           const iconeOrigem =
-            dadosIA.status === 'cache' ? '⚡ (Cache)' : '🤖 (Gerado)';
+            dadosIA.status === "cache" ? "⚡ (Cache)" : "🤖 (Gerado)";
 
           caixaIA.innerHTML = `
                 <p style="color: #333; font-size: 13px; line-height: 1.6; text-align: justify; margin: 0;">
@@ -1236,14 +1238,14 @@
           caixaIA.innerHTML = `<p style="color: #e74c3c; font-size: 13px; text-align: center;">Erro da API ao gerar insight.</p>`;
         }
       } catch (erro) {
-        console.error('Erro na comunicação com a IA:', erro);
+        console.error("Erro na comunicação com a IA:", erro);
         caixaIA.innerHTML = `<p style="color: #e74c3c; font-size: 13px; text-align: center;">Sem conexão com o serviço de Inteligência Artificial.</p>`;
       }
     }
 
-    document.addEventListener('DOMContentLoaded', function () {
-      const resizer = document.getElementById('redimensionador');
-      const barraDireita = document.getElementById('barra-direita');
+    document.addEventListener("DOMContentLoaded", function () {
+      const resizer = document.getElementById("redimensionador");
+      const barraDireita = document.getElementById("barra-direita");
 
       let x_inicial = 0;
       let largura_inicial = 0;
@@ -1255,14 +1257,14 @@
         largura_inicial = barraDireita.getBoundingClientRect().width;
 
         // Adiciona a classe visual para manter a cor do puxador acesa
-        resizer.classList.add('resizing');
+        resizer.classList.add("resizing");
 
         // Escuta os movimentos do mouse na tela inteira para o drag ser fluido
-        document.addEventListener('mousemove', mouseMovendo);
-        document.addEventListener('mouseup', mouseSolto);
+        document.addEventListener("mousemove", mouseMovendo);
+        document.addEventListener("mouseup", mouseSolto);
 
         // Impede que o texto da tela seja selecionado sem querer enquanto arrasta
-        document.body.style.userSelect = 'none';
+        document.body.style.userSelect = "none";
       };
 
       // Quando o usuário ARRASTA o mouse
@@ -1277,22 +1279,22 @@
 
       // Quando o usuário SOLTA o clique
       const mouseSolto = function () {
-        resizer.classList.remove('resizing');
-        document.removeEventListener('mousemove', mouseMovendo);
-        document.removeEventListener('mouseup', mouseSolto);
-        document.body.style.userSelect = '';
+        resizer.classList.remove("resizing");
+        document.removeEventListener("mousemove", mouseMovendo);
+        document.removeEventListener("mouseup", mouseSolto);
+        document.body.style.userSelect = "";
       };
 
       // Ativa o evento no puxador
       if (resizer) {
-        resizer.addEventListener('mousedown', mousePressionado);
+        resizer.addEventListener("mousedown", mousePressionado);
       }
     });
 
     // Executa a função assim que a página é carregada
     // Atrela a função de carregar o dashboard ao clique do botão de filtro
     document
-      .getElementById('btn-buscar')
-      .addEventListener('click', carregarDashboard);
+      .getElementById("btn-buscar")
+      .addEventListener("click", carregarDashboard);
   </script>
 </html>

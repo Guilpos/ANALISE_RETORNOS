@@ -62,6 +62,9 @@ def decidir_layout_portal(portal: str, convenio: str, arquivo: pd.DataFrame) -> 
         'RNCONSIG': {
             "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica"]
         },
+        'CIP': {
+            "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica"]
+        },
         "ECONSIG_1": {
             "colunas_obrigatorias": ["CPF", "Valor Lançado", "Crítica"]
         },
@@ -128,6 +131,8 @@ def decidir_layout_portal(portal: str, convenio: str, arquivo: pd.DataFrame) -> 
             resultado = Consigcarioca_portal.processar_portal_consigcarioca(arquivo, convenio=convenio, portal=portal)
         elif portal == 'RNCONSIG':
             resultado = Rnconsig_portal.processar_portal_rnconsig(arquivo, convenio=convenio, portal=portal)
+        elif portal == 'CIP':
+            resultado = arquivo
         return resultado
     else:
         raise ValueError(f"Layout não definido para o portal '{portal}' e convênio '{convenio}'.")
