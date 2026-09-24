@@ -55,11 +55,8 @@ def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, t
         # 2. ETAPA DE CRUZAMENTO (Se ambos os arquivos existirem)
         if dfs_processados["lancamento"] is not None and dfs_processados["retorno"] is not None:
             # Chama a função de cruzamento passando os dois arquivos juntos!
-            df_final = Cip_portal.processar_portal_cip(df_bruto_1=dfs_processados["lancamento"], df_bruto_2=dfs_processados["retorno"], convenio=convenio, portal=portal)
+            df = Cip_portal.processar_portal_cip(df_bruto_1=dfs_processados["lancamento"], df_bruto_2=dfs_processados["retorno"], convenio=convenio, portal=portal)
             
-            # Aqui você pode aplicar a sua função decidir_layout_portal no df_final
-            # df_resultado = base_portal.decidir_layout_portal(portal=portal, convenio=nome_convenio, arquivo=df_final)
-            return df_final
         else:
             raise ValueError("Faltam arquivos! É necessário subir tanto o XLSX de lançamento quanto o XML de retorno.")
 
