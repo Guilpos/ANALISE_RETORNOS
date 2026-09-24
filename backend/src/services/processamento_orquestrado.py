@@ -63,7 +63,7 @@ def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, t
         else:
             raise ValueError("Faltam arquivos! É necessário subir tanto o XLSX de lançamento quanto o XML de retorno.")
 
-    elif portal not in ["CONSIGX", "VIABILIZE"] and len(arquivos_lista) > 1:
+    elif portal not in ["CONSIGX", "VIABILIZE", "CIP"] and len(arquivos_lista) > 1:
         # Se houver mais de um arquivo e o portal não for CONSIGX vamos lançar um erro
         raise ValueError("Apenas um arquivo pode ser enviado para este portal.")
     else:
