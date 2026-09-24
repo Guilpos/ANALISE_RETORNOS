@@ -9,6 +9,7 @@ from sqlalchemy import text
 from core.database import get_db
 from pydantic import BaseModel
 import google.generativeai as genai
+import copy
 
 router = APIRouter()
 # ... (resto do seu código continua igualzinho)
@@ -28,9 +29,19 @@ def gerar_insight_ia(dados: DadosInsight, db: Session = Depends(get_db)):
     # 1. CRIPTOGRAFIA: CRIANDO A IMPRESSÃO DIGITAL
     # ==========================================
     # Transforma o dicionário em texto puro (sort_keys garante que a ordem não mude o hash)
-    string_dados = json.dumps(dados.resumo_dados, sort_keys=True)
+    dados_para_hash = copy.deepcopy(dados.resumo_dados)
     
-    # Gera o hash SHA-256 (a impressão digital de 64 caracteres)
+    # Se houver algum campo dinâmico que o frontend envia, exclua-o aqui. 
+    # Exemplo: dados_para_hash.pop("timestamp", None)
+
+    # Converte forçando a eliminação total de espaços e travando a codificação de acentos
+    string_dados = json.dumps(
+        dados_para_hash, 
+        sort_keys=True, 
+        separators=(',', ':'), # Remove espaços em branco ao redor de vírgulas e dois pontos
+        ensure_ascii=False     # Garante que acentos (ç, ã) não virem códigos dinâmicos (\u00e7)
+    )
+    
     hash_digital = hashlib.sha256(string_dados.encode('utf-8')).hexdigest()
 
     # ==========================================
