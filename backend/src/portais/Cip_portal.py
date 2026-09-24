@@ -7,8 +7,8 @@ def processar_portal_cip(df_bruto_1: pd.DataFrame, df_bruto_2: pd.DataFrame, con
     Recebe os dois DataFrames gerados, mapeia os valores do Excel para o XML
     e cria as colunas de Crítica e Valor Lançado.
     """
-    df_retorno = df_bruto_1
-    df_lancamento = df_bruto_2
+    df_lancamento = df_bruto_1
+    df_retorno = df_bruto_2
     
     # 1. Padroniza as colunas chaves
     df_retorno.rename(columns={"ADE_Averbacao": "Matrícula"}, inplace=True)
@@ -28,7 +28,7 @@ def processar_portal_cip(df_bruto_1: pd.DataFrame, df_bruto_2: pd.DataFrame, con
     
     # 4. (Opcional) Adiciona aquela lógica do dicionário de críticas
     tabela_erros = tabela_erros_completa
-    
+
     df_retorno['Crítica'] = df_retorno['Cod_Erro'].map(tabela_erros).fillna('Erro não catalogado')
     df_retorno.loc[df_retorno['Cod_Erro'].isnull(), 'Crítica'] = 'Sucesso'
 
