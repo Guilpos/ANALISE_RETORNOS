@@ -162,10 +162,10 @@ def obter_tendencias_convenio(
 
 @router.delete("/arquivos/excluir-lote", summary="Exclui dados exatos de um mês")
 def excluir_lote_arquivos(
-    codigo_convenio: str,
-    consignataria: str,
-    produto: str,
-    competencia_inicio: str, # Usamos o mesmo nome do frontend
+    codigo_convenio: Optional[List[str]] = Query(None),
+    consignataria: Optional[str] = None,
+    produto: Optional[str] = None,
+    competencia_inicio: Optional[str] = None, # <- Tem que ser competencia_inicio
     db: Session = Depends(get_db)
 ):
     # =================================================================
