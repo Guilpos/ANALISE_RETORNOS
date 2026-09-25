@@ -240,7 +240,7 @@ def obter_resumo_dashboard(
     parametros = {}
 
     if codigo_convenio:
-        filtros_sql.append("f.codigo_convenio IN :convenios")
+        filtros_sql.append("f.codigo_convenio IN :convenio")
         parametros["convenio"] = codigo_convenio
         
     if consignataria:
