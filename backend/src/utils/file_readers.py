@@ -427,18 +427,20 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         df = df.iloc[1:].reset_index(drop=True)
 
         print(f'Como está df antes de filtrar?\n{df.head(10)}\n\n')
-
-        if "Valor Acatado" not in df.columns:
+        
+        if "Valor Acatado" not in df.columns and "VALOR_ACATADO" not in df.columns:
             df.insert(5, "Valor Acatado", 0)
-
-        if "Critica" not in df.columns:
+    
+        if "Critica" not in df.columns and "OBSERVACAO" not in df.columns:
             df.insert(9, "Critica", "SUCESSO")
-
+    
         # NOME/CPF/MATRICULA/cod_orgao/VALOR/Valor Acatado/Folha Inclusao/CODIGO DA VERBA/ADE/Observações/Margem
         # NOME/CPF/MATRICULA/cod_orgao/VALOR/CODIGO DA VERBA/ADE/Critica/Valor/Margem
-        df.rename(columns={"MATRICULA": "Matrícula", "Critica": "Crítica", "VALOR": "Valor Lançado", "VALOR_IMPORTADO": "Valor Lançado"}, inplace=True, errors='ignore')
-
-        df = df[["Matrícula", "CPF", "Valor Lançado", "Crítica", "Valor Acatado"]].copy()
+        df.rename(columns={"MATRICULA": "Matrícula", "Critica": "Crítica", "OBSERVACAO": "Crítica", "VALOR": "Valor Lançado", "VALOR_IMPORTADO": "Valor Lançado", "VALOR_ACATADO": "Valor Acatado"}, inplace=True, errors='ignore')
+    
+        df['Crítica'] = df['Crítica'].fillna("SUCESSO")
+    
+        df = df[["Matrícula", "CPF", "Valor Lançado", "Crítica", "Valor Acatado", "ADE"]].copy()
 
     if modelo == 'QUANTUM':
         df.columns = df.iloc[4]
