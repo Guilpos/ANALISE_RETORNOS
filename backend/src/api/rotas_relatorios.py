@@ -94,7 +94,7 @@ def gerar_insight_ia(dados: DadosInsight, db: Session = Depends(get_db)):
             "insight": "O resumo inteligente não está disponível no momento devido a uma falha de conexão com a IA."
         }
 
-@router.get("/tendencias/{codigo_convenio}")
+@router.get("/tendencias")
 def obter_tendencias_convenio(
     codigo_convenio: Optional[List[str]] = Query(None), 
     consignataria: Optional[str] = None, # Parâmetro opcional na URL
