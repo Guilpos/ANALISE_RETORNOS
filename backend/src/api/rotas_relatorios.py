@@ -317,7 +317,7 @@ def obter_resumo_dashboard(
         FROM fato_retornos f
         WHERE 1=1 {clausula_where} 
         GROUP BY {coluna_agrupador}, f.status_acatamento
-    """).bindparams(bindparam('convenio', expanding=True))
+    """).bindparams(bindparam('conv', expanding=True))
     resultado_pizza = db.execute(query_pizza, parametros).fetchall()
 
     query_barras = text(f"""
