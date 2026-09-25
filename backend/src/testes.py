@@ -81,12 +81,12 @@ def processar_portal_exemplo(conteudo_bytes: bytes):
     df['Matricula_formatada'] = alinhar_tipagem_chaves(df, 'Matrícula')
     '''df['cpf_contratos'] = alinhar_tipagem_chaves(df, 'cpf_contratos')'''
 
-    df = df.drop_duplicates(subset="ADE", keep='first')
+    df = df.drop_duplicates(subset=["ADE"], keep='first')
 
     return df
 
 # Coloque o caminho exato onde você salvou o arquivo de teste
-caminho_do_arquivo = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\09 - Setembro\PREF GOIANIA\LANCAMENTOS E RETORNOS\Critica_LANCAMENTO CARTÃO PREF GOIANIA 09-2026.xlsx"
+caminho_do_arquivo = r"C:\Users\guilherme.campos.AKRKOPERACIONAL\Downloads\LANCAMENTO e CRITICA CARTÃO PREF GOIANIA 09-2026.xlsx"
 # Chama a função que criamos passando os bytes simulados
 
 # 2. Leia o arquivo em bytes

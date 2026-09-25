@@ -34,6 +34,7 @@ def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, t
             
         # Junta o arquivo de sucesso com o de críticas colocando um embaixo do outro
         df = pd.concat(lista_dfs, ignore_index=True)
+        df = df.drop_duplicates(subset=["ADE"], keep='first')
     elif portal == "CIP":
         # Em vez de uma lista, usamos um dicionário para saber quem é quem
         dfs_processados = {"lancamento": None, "retorno": None}

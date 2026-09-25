@@ -32,7 +32,7 @@ def processar_portal_consigx(df_bruto: pd.DataFrame, convenio: str, portal: str)
     df['Matricula_formatada'] = alinhar_tipagem_chaves(df, 'Matrícula')
     '''df['cpf_contratos'] = alinhar_tipagem_chaves(df, 'cpf_contratos')'''
 
-    df = df.drop_duplicates(subset="ADE", keep='first')
+    df = df.drop_duplicates(subset=["ADE"], keep='first')
 
     print(df.head())
 
