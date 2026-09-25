@@ -43,6 +43,8 @@ def convenio_escolher():
     "41": "PREF. PLANALTINA DE GOIÁS",
     "42": "PREF. SÃO PAULO",
     "43": "GOV. SÃO PAULO",
+    "43.1": "GOV. SÃO PAULO - PMESP",
+    "43.2": "GOV. SÃO PAULO - SPPREV",
     "44": "GOV. GOIÁS",
     "45": "PREF. SÃO GONÇALO",
     "46": "PREF. SÃO LUÍS",
@@ -162,7 +164,7 @@ def portal_escolhido(nome_convenio: str) -> list:
                 
         "SIGRH": ["GOV. SANTA CATARINA"],
                 
-        "CIP": ["PREF. SÃO PAULO", "GOV. SÃO PAULO"],
+        "CIP": ["PREF. SÃO PAULO", "GOV. SÃO PAULO", "GOV. SÃO PAULO - PMESP", "GOV. SÃO PAULO - SPPREV"],
         
         "NEOCONSIG": ["GOV. GOIÁS", "PREF. SÃO GONÇALO", "PREF. SÃO LUÍS", "PREF. SOROCABA"],
         

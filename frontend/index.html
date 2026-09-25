@@ -258,7 +258,7 @@
           <!-- PARÂMETROS GERAIS (Usados para Buscar, Upload e Excluir) -->
           <div class="grupo-form">
             <label>Código do Convênio</label>
-            <select id="codigo_convenio" class="form-select">
+            <select id="codigo_convenio" class="form-select" multiple>
               <option value="">-- Selecione --</option>
               <option value="1">1 - INSS</option>
               <option value="2">2 - GOV. PARAÍBA</option>
@@ -302,6 +302,8 @@
               <option value="41">41 - PREF. PLANALTINA DE GOIÁS</option>
               <option value="42">42 - PREF. SÃO PAULO</option>
               <option value="43">43 - GOV. SÃO PAULO</option>
+              <option value="43.1">43.1 - GOV. SÃO PAULO - PMESP</option>
+              <option value="43.2">43.2 - GOV. SÃO PAULO - SPPREV</option>
               <option value="44">44 - GOV. GOIÁS</option>
               <option value="45">45 - PREF. SÃO GONÇALO</option>
               <option value="46">46 - PREF. SÃO LUÍS</option>
@@ -673,13 +675,20 @@
       caixaAlerta.style.display = "none"; // Esconde mensagens anteriores
 
       try {
-        // 4. Montar a URL com os parâmetros exatos para a API
-        const parametros = new URLSearchParams({
-          codigo_convenio: convenio,
-          consignataria: consignataria,
-          produto: produto,
-          competencia_inicio: compInicio,
-        });
+        // 4. Montar a URL com os parâmetros exatos para a API (com suporte a listas)
+        const parametros = new URLSearchParams();
+
+        // Se 'convenio' for um array (múltiplos selecionados), fazemos um loop para adicionar cada um
+        if (Array.isArray(convenio)) {
+          convenio.forEach((cod) => parametros.append("codigo_convenio", cod));
+        } else if (convenio) {
+          // Fallback caso venha como texto único
+          parametros.append("codigo_convenio", convenio);
+        }
+
+        if (consignataria) parametros.append("consignataria", consignataria);
+        if (produto) parametros.append("produto", produto);
+        if (compInicio) parametros.append("competencia_inicio", compInicio);
 
         // 5. Disparar a requisição usando o método DELETE
         const resposta = await fetch(
@@ -758,7 +767,9 @@
 
         // 1. CAPTURAR OS FILTROS DA BARRA LATERAL
         const selectConvenio = document.getElementById("codigo_convenio");
-        const convenio = selectConvenio.value;
+        const convenio = Array.from(selectConvenio.selectedOptions).map(
+          (opt) => opt.value,
+        );
 
         // NOVO: Captura o texto que está aparecendo na tela para o usuário
         let nomeConvenioTexto = "";

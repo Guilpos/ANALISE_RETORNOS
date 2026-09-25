@@ -5,11 +5,13 @@ import os
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional 
-from sqlalchemy import text
+from sqlalchemy import text, bindparam
 from core.database import get_db
 from pydantic import BaseModel
 import google.generativeai as genai
 import copy
+from typing import List
+from fastapi import Query
 
 router = APIRouter()
 # ... (resto do seu código continua igualzinho)
@@ -94,7 +96,7 @@ def gerar_insight_ia(dados: DadosInsight, db: Session = Depends(get_db)):
 
 @router.get("/tendencias/{codigo_convenio}")
 def obter_tendencias_convenio(
-    codigo_convenio: str, 
+    codigo_convenio: Optional[List[str]] = Query(None), 
     consignataria: Optional[str] = None, # Parâmetro opcional na URL
     produto: Optional[str] = None,       # Parâmetro opcional na URL
     db: Session = Depends(get_db)
@@ -104,15 +106,15 @@ def obter_tendencias_convenio(
     na URL, aplica os filtros no banco de dados. Caso contrário, traz o total geral.
     """
     
-    # 1. Montamos a base da query e o dicionário inicial de parâmetros
-    query_base = """
+    # 1. Montamos a base da query para leitura
+    query_base = text("""
         SELECT 
             DATE_FORMAT(competencia, '%Y-%m') AS mes_ano,
             SUM(valor_lancado) AS total_lancado,
             SUM(valor_acatado) AS total_acatado
         FROM fato_retornos
-        WHERE codigo_convenio = :convenio
-    """
+        WHERE codigo_convenio IN :convenio
+    """).bindparams(bindparam('convenio', expanding=True))
     
     parametros = {"convenio": codigo_convenio}
     
@@ -184,11 +186,11 @@ def excluir_lote_arquivos(
         # =================================================================
         query_delete = text("""
             DELETE FROM fato_retornos 
-            WHERE codigo_convenio = :conv 
-              AND consignataria = :banco 
-              AND produto = :prod 
-              AND competencia = :comp
-        """)
+            WHERE codigo_convenio IN :conv 
+            AND consignataria = :banco 
+            AND produto = :prod 
+            AND competencia = :comp
+        """).bindparams(bindparam('conv', expanding=True))
         
         resultado = db.execute(query_delete, {
             "conv": codigo_convenio, 
@@ -217,7 +219,7 @@ def excluir_lote_arquivos(
 
 @router.get("/dashboard/resumo", summary="Dados mastigados e filtrados dinamicamente")
 def obter_resumo_dashboard(
-    codigo_convenio: Optional[str] = None,
+    codigo_convenio: Optional[List[str]] = Query(None),
     nome_convenio: Optional[str] = None, # <-- NOVO PARÂMETRO AQUI
     consignataria: Optional[str] = None,
     produto: Optional[str] = None,
@@ -238,7 +240,7 @@ def obter_resumo_dashboard(
     parametros = {}
 
     if codigo_convenio:
-        filtros_sql.append("f.codigo_convenio = :convenio")
+        filtros_sql.append("f.codigo_convenio IN :convenios")
         parametros["convenio"] = codigo_convenio
         
     if consignataria:
@@ -274,7 +276,8 @@ def obter_resumo_dashboard(
     if nome_convenio:
         partes_titulo.append(nome_convenio)
     elif codigo_convenio:
-        partes_titulo.append(codigo_convenio)
+        # Pega a lista ['4301', '4302'] e transforma em "4301, 4302"
+        partes_titulo.append(", ".join(codigo_convenio))
         
     if consignataria:
         partes_titulo.append(consignataria)
@@ -314,7 +317,7 @@ def obter_resumo_dashboard(
         FROM fato_retornos f
         WHERE 1=1 {clausula_where} 
         GROUP BY {coluna_agrupador}, f.status_acatamento
-    """)
+    """).bindparams(bindparam('convenio', expanding=True))
     resultado_pizza = db.execute(query_pizza, parametros).fetchall()
 
     query_barras = text(f"""
@@ -328,7 +331,7 @@ def obter_resumo_dashboard(
           AND TRIM(f.texto_critica_original) != ''
           {clausula_where}
         GROUP BY {coluna_agrupador}, f.texto_critica_original
-    """)
+    """).bindparams(bindparam('convenio', expanding=True))
     resultado_barras = db.execute(query_barras, parametros).fetchall()
 
     # ==========================================
@@ -427,7 +430,7 @@ def obter_resumo_dashboard(
         WHERE f.status_acatamento IS NOT NULL {clausula_where}
         GROUP BY mes_ano, f.status_acatamento
         ORDER BY MIN(f.competencia) ASC
-    """)
+    """).bindparams(bindparam('convenio', expanding=True))
     resultado_tendencia = db.execute(query_tendencia, parametros).fetchall()
 
     meses_unicos = []
