@@ -436,7 +436,7 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
 
         # NOME/CPF/MATRICULA/cod_orgao/VALOR/Valor Acatado/Folha Inclusao/CODIGO DA VERBA/ADE/Observações/Margem
         # NOME/CPF/MATRICULA/cod_orgao/VALOR/CODIGO DA VERBA/ADE/Critica/Valor/Margem
-        df.rename(columns={"MATRICULA": "Matrícula", "Critica": "Crítica", "VALOR": "Valor Lançado"}, inplace=True)
+        df.rename(columns={"MATRICULA": "Matrícula", "Critica": "Crítica", "VALOR": "Valor Lançado", "VALOR_IMPORTADO": "Valor Lançado"}, inplace=True, errors='ignore')
 
         df = df[["Matrícula", "CPF", "Valor Lançado", "Crítica", "Valor Acatado"]].copy()
 
