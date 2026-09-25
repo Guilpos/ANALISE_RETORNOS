@@ -178,7 +178,6 @@
         flex: 1; /* Ocupa todo o espaço que sobrar */
         background-color: #f4f6f9;
         padding: 20px;
-        display: flex;
         gap: 20px;
         overflow-x: auto; /* Cria a barra de rolagem horizontal */
         align-items: flex-start;
@@ -816,6 +815,7 @@
 
         // 3. FAZER A BUSCA NA NUVEM
         const resposta = await fetch(urlFinal);
+        const dados = await resposta.json();
 
         const areaCards = document.getElementById("area-cards");
         areaCards.innerHTML = "";
@@ -845,9 +845,36 @@
             btnFiltrar.disabled = false;
           }
           return;
-        }
+        } // <-- Fim do seu if (!resposta.ok)
 
-        const dados = await resposta.json();
+        // Agora verificamos exatamente a chave 'cards_arquivos' que o seu Python devolve
+        if (
+          !dados ||
+          !dados.cards_arquivos ||
+          dados.cards_arquivos.length === 0
+        ) {
+          areaCards.innerHTML = `
+                <div style="width: 100%; text-align: center; padding: 50px; color: #7f8c8d;">
+                    <h4 style="color: #f39c12;">Nenhum dado encontrado</h4>
+                    <p>Não existem registros para esta combinação de convênio, banco ou período.</p>
+                </div>
+            `;
+
+          // Restaura o botão
+          if (btnFiltrar) {
+            btnFiltrar.innerHTML = textoOriginal;
+            btnFiltrar.disabled = false;
+          }
+
+          // Dispara o alerta laranja no topo da tela
+          mostrarAlerta(
+            "Nenhum dado encontrado com esses parâmetros.",
+            "#f39c12",
+          );
+
+          // O return impede que o JavaScript continue rodando e exiba "Concluído"
+          return;
+        }
 
         // ... (O seu laço de repetição forEach que desenha os gráficos continua AQUI para baixo) ...
 

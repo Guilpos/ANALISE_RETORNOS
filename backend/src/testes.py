@@ -86,7 +86,7 @@ def processar_portal_exemplo(conteudo_bytes: bytes):
     return df
 
 # Coloque o caminho exato onde você salvou o arquivo de teste
-caminho_do_arquivo = r"C:\Users\guilherme.campos.AKRKOPERACIONAL\Downloads\LANCAMENTO e CRITICA CARTÃO PREF GOIANIA 09-2026.xlsx"
+caminho_do_arquivo = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\08 - Agosto\PREF GOIANIA\LANCAMENTOS E RETORNOS\Critica_LANCAMENTO CARTÃO PREF GOIANIA 08-2026.xlsx"
 # Chama a função que criamos passando os bytes simulados
 
 # 2. Leia o arquivo em bytes
