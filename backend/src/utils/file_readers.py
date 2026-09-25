@@ -630,19 +630,4 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
     
         df.rename(columns={'matricula': 'Matrícula', 'cpf': 'CPF', 'valor_reserva': 'Valor Lançado', 'motivo_rejeicao': 'Crítica'}, inplace=True)
 
-    if modelo == 'CIP':
-        df_1 = df if 'Controle_CIP' in df.columns else None
-        if df_1 is None:
-            raise ValueError("df_1 está vázio")
-        
-        df_2 = df if 'VALOR AVERBADO' in df.columns else None
-        if df_2 is None:
-            raise ValueError("df_2 está vázio")
-
-        df_2.rename(columns={'Nº AVERBAÇÃO SCC': 'Matrícula', 'VALOR AVERBADO': 'Valor Lançado'}, inplace=True)
-
-        df_1.rename(columns={"ADE_Averbacao": "Matrícula"}, inplace=True)
-        df_1['Valor Lançado'] = df_1["Matrícula"].map(df_2.set_index('Matrícula')['Valor Lançado'])
-
-
     return df
