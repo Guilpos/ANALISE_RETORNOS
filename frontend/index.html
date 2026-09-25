@@ -775,34 +775,34 @@
 
         // 1. CAPTURAR OS FILTROS DA BARRA LATERAL
         const selectConvenio = document.getElementById("codigo_convenio");
-        const convenio = Array.from(selectConvenio.selectedOptions).map(
-          (opt) => opt.value,
-        );
+        const opcoesSelecionadas = Array.from(selectConvenio.selectedOptions);
 
-        // NOVO: Captura o texto que está aparecendo na tela para o usuário
-        let nomeConvenioTexto = "";
-        if (convenio && selectConvenio.selectedIndex >= 0) {
-          nomeConvenioTexto =
-            selectConvenio.options[selectConvenio.selectedIndex].text;
-        }
+        const convenio = opcoesSelecionadas.map((opt) => opt.value);
+
+        // NOVO E CORRIGIDO: Se houver vários selecionados, junta os nomes com " + " para o título ficar bonito
+        const nomeConvenioTexto = opcoesSelecionadas
+          .map((opt) => opt.text)
+          .join(" + ");
 
         const consignataria = document.getElementById("consignataria").value;
         const produto = document.getElementById("produto").value;
         const compInicio = document.getElementById("competencia_inicio").value;
-        const compFim = document.getElementById("competencia_fim").value;
+        const compFim = document.getElementById("competencia_fim").value; // Feature preservada!
 
         // 2. MONTAR A URL DINÂMICA
         const parametros = new URLSearchParams();
 
-        if (convenio) parametros.append("codigo_convenio", convenio);
-        // NOVO: Envia o texto bonitinho para o backend usar no título
+        // NOVO E CORRIGIDO: Loop obrigatório para o FastAPI entender a lista
+        if (convenio.length > 0) {
+          convenio.forEach((cod) => parametros.append("codigo_convenio", cod));
+        }
+
         if (nomeConvenioTexto)
           parametros.append("nome_convenio", nomeConvenioTexto);
-
         if (consignataria) parametros.append("consignataria", consignataria);
         if (produto) parametros.append("produto", produto);
         if (compInicio) parametros.append("competencia_inicio", compInicio);
-        if (compFim) parametros.append("competencia_fim", compFim);
+        if (compFim) parametros.append("competencia_fim", compFim); // Feature preservada!
 
         const queryString = parametros.toString();
 
