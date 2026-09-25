@@ -317,7 +317,12 @@ def obter_resumo_dashboard(
         FROM fato_retornos f
         WHERE 1=1 {clausula_where} 
         GROUP BY {coluna_agrupador}, f.status_acatamento
-    """).bindparams(bindparam('conv', expanding=True))
+    """)
+    
+    # NOVO: Só aplica a regra de lista (expanding=True) se existir convênio no filtro
+    if codigo_convenio:
+        query_pizza = query_pizza.bindparams(bindparam('convenio', expanding=True))
+
     resultado_pizza = db.execute(query_pizza, parametros).fetchall()
 
     query_barras = text(f"""
@@ -331,7 +336,12 @@ def obter_resumo_dashboard(
           AND TRIM(f.texto_critica_original) != ''
           {clausula_where}
         GROUP BY {coluna_agrupador}, f.texto_critica_original
-    """).bindparams(bindparam('convenio', expanding=True))
+    """)
+
+    # NOVO: Só aplica a regra de lista (expanding=True) se existir convênio no filtro
+    if codigo_convenio:
+        query_barras = query_barras.bindparams(bindparam('convenio', expanding=True))
+
     resultado_barras = db.execute(query_barras, parametros).fetchall()
 
     # ==========================================
@@ -430,7 +440,12 @@ def obter_resumo_dashboard(
         WHERE f.status_acatamento IS NOT NULL {clausula_where}
         GROUP BY mes_ano, f.status_acatamento
         ORDER BY MIN(f.competencia) ASC
-    """).bindparams(bindparam('convenio', expanding=True))
+    """)
+
+    # NOVO: Só aplica a regra de lista (expanding=True) se existir convênio no filtro
+    if codigo_convenio:
+        query_tendencia = query_tendencia.bindparams(bindparam('convenio', expanding=True))
+
     resultado_tendencia = db.execute(query_tendencia, parametros).fetchall()
 
     meses_unicos = []
