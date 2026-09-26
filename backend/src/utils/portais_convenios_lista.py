@@ -129,6 +129,10 @@ def portal_escolhido(nome_convenio: str) -> list:
             "PREF. VÁRZEA GRANDE"
         ],
 
+        "COTAR": [
+            "PREF. DUQUE DE CAXIAS - COTAR"
+        ],
+
         "CODIUB":[
             "PREF. UBERABA"
         ],

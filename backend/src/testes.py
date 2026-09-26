@@ -19,22 +19,9 @@ def processar_portal_exemplo(conteudo_bytes: bytes):
 
     print(f'Como está df antes de filtrar?\n{df.head(10)}\n\n')
 
-    if "Valor Acatado" not in df.columns and "VALOR_ACATADO" not in df.columns:
-        df.insert(5, "Valor Acatado", 0)
+    df = df.rename(columns={'Matricula': 'Matrícula', 'Valor a Faturar': 'Valor Lançado', 'Valor a Descontar': 'Valor Acatado', "Mensagem Retorno": "Crítica"})
 
-    if "Critica" not in df.columns and "OBSERVACAO" not in df.columns:
-        df.insert(9, "Critica", "SUCESSO")
-
-    # NOME/CPF/MATRICULA/cod_orgao/VALOR/Valor Acatado/Folha Inclusao/CODIGO DA VERBA/ADE/Observações/Margem
-    # NOME/CPF/MATRICULA/cod_orgao/VALOR/CODIGO DA VERBA/ADE/Critica/Valor/Margem
-    df.rename(columns={"MATRICULA": "Matrícula", "Critica": "Crítica", "OBSERVACAO": "Crítica", "VALOR": "Valor Lançado", "VALOR_IMPORTADO": "Valor Lançado", "VALOR_ACATADO": "Valor Acatado"}, inplace=True, errors='ignore')
-
-    df['Crítica'] = df['Crítica'].fillna("SUCESSO")
-
-    df = df[["Matrícula", "CPF", "Valor Lançado", "Crítica", "Valor Acatado", "ADE"]].copy()
-
-
-    print(f'Amostra de df:\n{df.head(15)}')
+    df['Valor Acatado'] = df['Valor Acatado'].fillna(0)
 
 
     def limpar_moeda_universal(valor):
@@ -55,38 +42,21 @@ def processar_portal_exemplo(conteudo_bytes: bytes):
         except ValueError:
             return 0.00
 
-    # Se a crítica for SUCESSO e Valor Acatado estiver vazio, preenche com o Valor Lançado
-    df.loc[(df['Crítica'] == 'SUCESSO') & (df['Valor Acatado'].isnull() | (df['Valor Acatado'] == '')), 'Valor Acatado'] = df['Valor Lançado']
-    
-    # 2. Higienização das colunas padrão
+        
+    df['Matricula_formatada'] = alinhar_tipagem_chaves(df, 'Matrícula')
     df['cpf_formatado'] = limpar_cpf(df['CPF'])
-    # 1. Limpeza do Valor Lançado (Garantindo leitura segura contra nulos)
+    
+    # --- LÓGICA DE ACATAMENTO ---
     # Aplicação limpa e direta no DataFrame:
     df['Valor_lancado'] = df['Valor Lançado'].apply(limpar_moeda_universal)
 
-    # 2. Extração de texto da 'Crítica' (Sem limpar a moeda ainda!)
-    mask_margem = df['Crítica'].fillna('').str.contains('valor acatado')
-    
-    if mask_margem.any():
-        print('Encontradas críticas de margem insuficiente. Extraindo valores...')
-        df['Valor Acatado'] = df.apply(
-            lambda row: row['Crítica'].split('valor acatado: ')[1].split(' ')[0].rstrip('.') if 'valor acatado' in str(row['Crítica']) else row['Valor Acatado'],
-            axis=1
-        )
+
     df['Valor_descontado'] = df['Valor Acatado'].apply(limpar_moeda_universal)
-    # df['Data_formatada'] = limpar_data(df['Data'])
-
-    # 3. Alinhamento Estrito de Tipos para Cruzamento
-    # Garante que as chaves de relacionamento estejam exatamente no mesmo tipo (string)
-    df['Matricula_formatada'] = alinhar_tipagem_chaves(df, 'Matrícula')
-    '''df['cpf_contratos'] = alinhar_tipagem_chaves(df, 'cpf_contratos')'''
-
-    df = df.drop_duplicates(subset=["ADE"], keep='first')
 
     return df
 
 # Coloque o caminho exato onde você salvou o arquivo de teste
-caminho_do_arquivo = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\08 - Agosto\PREF GOIANIA\LANCAMENTOS E RETORNOS\Critica_LANCAMENTO CARTÃO PREF GOIANIA 08-2026.xlsx"
+caminho_do_arquivo = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\09 - Setembro\PREF DUQUE DE CAXIAS + COTAR\COTAR\RETORNO - DUQUE DE CAXIAS - COTAR - CIASPREV - 09.2026.xlsx"
 # Chama a função que criamos passando os bytes simulados
 
 # 2. Leia o arquivo em bytes
