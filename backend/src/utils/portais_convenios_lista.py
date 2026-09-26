@@ -37,7 +37,7 @@ def convenio_escolher():
     "35": "PREF. FLORIANÓPOLIS",
     "36": "SEMAE - SERVIÇO MUNICIPAL DE ÁGUA E ESGOTO DE PIRACICABA",
     "37": "PREV. PIRACICABA IPASP",
-    "38": "IGEPREV",
+    "38": "IGEPREV - ADIANTAMENTO",
     "39": "GOV. SANTA CATARINA",
     "40": "PREF. CONTAGEM",
     "41": "PREF. PLANALTINA DE GOIÁS",
@@ -161,7 +161,7 @@ def portal_escolhido(nome_convenio: str) -> list:
 
         "ECONSIG_7": ["PREVIPALMAS",],
 
-        "ECONSIG_8": ["IGEPREV", ],
+        "ECONSIG_8": ["IGEPREV", "IGEPREV - ADIANTAMENTO"],
 
         "RF1": ["PREF. ANANINDEUA"],
         
