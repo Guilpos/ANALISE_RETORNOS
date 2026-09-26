@@ -112,7 +112,7 @@ def portal_escolhido(nome_convenio: str) -> list:
         
         "CONSIGX": [
             "GOV. BAHIA", "PREF. ARAGUAÍNA", "PREF. DUQUE DE CAXIAS", 
-            "PREF. DUQUE DE CAXIAS - COTAR", "PREF. DUQUE DE CAXIAS - IMPDC", 
+            "PREF. DUQUE DE CAXIAS - IMPDC", 
             "PREF. GOIÂNIA", "PREVIDÊNCIA SÃO GONÇALO", "PREF. RIBEIRÃO PRETO", 
             "PREF. TABOÃO DA SERRA", "PREVIDÊNCIA SANTOS - IPREV"
         ],
