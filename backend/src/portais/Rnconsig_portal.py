@@ -6,7 +6,7 @@ def processar_portal_rnconsig(df_bruto: pd.DataFrame, convenio: str, portal: str
     df = df_bruto
     df.insert(11, 'Valor Acatado', pd.NA)
     
-    df.loc[df['Crítica'] == 'DESCONTO DUPLICADO', 'Valor Acatado'] = df['Valor Lançado']
+    df.loc[df['Crítica'].str.contains('DESCONTO DUPLICADO|DESCONTADO PARCIALMENTE', case=False, na=False), 'Valor Acatado'] = df['Valor Lançado']
 
     df['Valor Acatado'] = df['Valor Acatado']
 
