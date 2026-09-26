@@ -598,7 +598,7 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         df = df.iloc[1:].reset_index(drop=True)
         
     
-        df = df.rename(columns={'Matricula': 'Matrícula', 'Valor a Faturar': 'Valor Lançado', 'Valor a Descontar': 'Valor Acatado', "Motivo do Erro": "Crítica"})
+        df = df.rename(columns={'Matricula': 'Matrícula', 'Valor a Faturar': 'Valor Lançado', 'Valor a Descontar': 'Valor Acatado', "Mensagem Retorno": "Crítica"})
 
     if modelo == 'CODIUB':
         df.columns = df.iloc[0].astype(str).str.strip()
