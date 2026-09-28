@@ -254,8 +254,10 @@ def ler_arquivo_seguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str) 
                     
                     # 3. Filtra: Ignora cabeçalhos e rodapés, focando apenas nos dados reais
                     if linha.startswith('linha('):
-                        # O arquivo é separado por tabulações (\t)
-                        partes = linha.split('\t')
+                        # Força a existência de um identificador separador (tab) antes do cpf
+                        # Caso já exista um tab, isso pode gerar dois tabs seguidos, então limpamos em seguida
+                        linha_corrigida = linha.replace('cpf:', '\tcpf:').replace('\t\t', '\t')
+                        partes = linha_corrigida.split('\t')
                         
                         # Estrutura esperada:
                         # partes[0] = "linha(1)"
