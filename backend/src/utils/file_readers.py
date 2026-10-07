@@ -657,6 +657,8 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         # a validação de 13 colunas ocorra de qualquer forma.
         if len(df.columns) == len(colunas_esperadas):
             df.columns = colunas_esperadas
+
+        print(f'Amostra de df:\n{df.head(15)}\n')
                 
         # 3. Agora o intersection vai funcionar, porque ou o cabeçalho já estava correto
         # na leitura, ou nós o forçamos a ser "colunas_esperadas".
