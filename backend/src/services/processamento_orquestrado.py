@@ -36,8 +36,9 @@ def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, t
         lista_dfs.sort(key=len)
             
         # Junta os arquivos colocando o menor em cima e o maior embaixo
-        df = pd.concat(lista_dfs, ignore_index=True)
-        df = df.drop_duplicates(subset=["ADE"], keep='first')
+        if portal == "CONSIGX":
+            df = pd.concat(lista_dfs, ignore_index=True)
+            df = df.drop_duplicates(subset=["ADE"], keep='first')
         
     elif portal == "CIP":
         # Em vez de uma lista, usamos um dicionário para saber quem é quem
