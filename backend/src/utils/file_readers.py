@@ -661,10 +661,10 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         # Filtra apenas as colunas que importam para o concat final
         # O uso do errors='ignore' protege o script caso a coluna não seja encontrada
         df =  df[df.columns.intersection(colunas_finais)].copy()
-    
-
         
         # Renomeia para o padrão final
         df.rename(columns={'Matricula': 'Matrícula', 'Valor': 'Valor Lançado', 'Erro': 'Crítica'}, inplace=True)
+
+        print(f'\nComo as colunas de df estão sendo repassadas: {df.columns}\n')
 
     return df
