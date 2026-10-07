@@ -92,7 +92,8 @@ def convenio_escolher():
     "84": "PREF. CAUCAIA",
     "85": "PREF. VÁRZEA GRANDE",
     "86": "PREF. UBERABA",
-    "87": "GOV. TOCANTINS"
+    "87": "GOV. TOCANTINS",
+    "88": "PREF. BAURU"
 }
 
     return mapa_convenios
