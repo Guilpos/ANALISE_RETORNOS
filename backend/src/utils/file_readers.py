@@ -647,6 +647,7 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         colunas_finais = ['Matricula', 'CPF', 'Valor', 'Erro']
 
         df.columns = df.iloc[0]
+        print(f'Amostra de df:\n{df.head(15)}\n')
         # df = df.iloc[1:].reset_index(drop=True)
         
         # Verifica se o arquivo tem um "cabeçalho fantasma" na linha 0 (ex: 'x' ou 'X' no nome da coluna)
