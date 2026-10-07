@@ -646,6 +646,8 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         colunas_esperadas = ['Matricula', 'Convênio', 'Nome', 'CPF', 'N/S 1', 'N/S 2', 'N/S 3', 'Valor', 'N/S 4', 'Produto', 'Erro', 'Código', 'Data']
         colunas_finais = ['Matricula', 'CPF', 'Valor', 'Erro']
 
+        df.columns = df.iloc[0]
+
         # 1. Verifica se o cabeçalho original é inválido ('x', 'X' ou se o Pandas leu como números)
         if "CNPJ" not in df.columns and "Matricula" not in df.columns:
             if 'x' in df.columns or 'X' in df.columns or type(df.columns[0]) == int:
