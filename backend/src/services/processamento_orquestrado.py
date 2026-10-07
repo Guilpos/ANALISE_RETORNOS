@@ -20,7 +20,7 @@ def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, t
     portal = portal_escolhido(nome_convenio)
 
     # Consigx será o único portal que vai receber múltiplos arquivos, então vamos tratar ele de forma especial
-    if portal in ["CONSIGX", "VIABILIZE"]:
+    if portal in ["CONSIGX", "VIABILIZE", "CONSIGORAPIDO"]:
         lista_dfs = []
     
         # Processa cada arquivo que chegou na lista
