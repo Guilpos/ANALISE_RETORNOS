@@ -32,13 +32,15 @@ def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, t
             df_temporario = ler_arquivo_seguro(conteudo_bytes=conteudo, nome_arquivo=nome_arquivo, convenio=convenio)
             lista_dfs.append(df_temporario)
             
-        # Ordena a lista de DataFrames do menor para o maior (em quantidade de linhas)
-        lista_dfs.sort(key=len)
-            
         # Junta os arquivos colocando o menor em cima e o maior embaixo
         if portal == "CONSIGX":
+            # Ordena a lista de DataFrames do menor para o maior (em quantidade de linhas)
+            lista_dfs.sort(key=len)
             df = pd.concat(lista_dfs, ignore_index=True)
             df = df.drop_duplicates(subset=["ADE"], keep='first')
+        else:
+            df = pd.concat(lista_dfs, ignore_index=True)
+
         
     elif portal == "CIP":
         # Em vez de uma lista, usamos um dicionário para saber quem é quem
