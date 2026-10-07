@@ -642,4 +642,26 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
     
         df.rename(columns={'matricula': 'Matrícula', 'cpf': 'CPF', 'valor_reserva': 'Valor Lançado', 'motivo_rejeicao': 'Crítica'}, inplace=True)
 
+    if modelo == 'CONSIGORAPIDO':
+        colunas_esperadas = ['Matricula', 'Convênio', 'Nome', 'CPF', 'N/S 1', 'N/S 2', 'N/S 3', 'Valor', 'N/S 4', 'Produto', 'Erro', 'Código', 'Data']
+        colunas_finais = ['Matricula', 'CPF', 'Valor', 'Erro']
+
+        df.columns = df.iloc[0]
+        df = df.iloc[1:].reset_index(drop=True)
+        
+        # Verifica se o arquivo tem um "cabeçalho fantasma" na linha 0 (ex: 'x' ou 'X' no nome da coluna)
+        if "CNPJ" not in df.columns:                
+            # Só força os nomes das colunas SE a quantidade de colunas bater, para evitar o ValueError
+            if len(df.columns) == len(colunas_esperadas):
+                df.columns = colunas_esperadas
+                
+        # Filtra apenas as colunas que importam para o concat final
+        # O uso do errors='ignore' protege o script caso a coluna não seja encontrada
+        df =  df[df.columns.intersection(colunas_finais)].copy()
+    
+
+        
+        # Renomeia para o padrão final
+        df.rename(columns={'Matricula': 'Matrícula', 'Valor': 'Valor Lançado', 'Erro': 'Crítica'}, inplace=True)
+
     return df

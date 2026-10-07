@@ -1,0 +1,35 @@
+from utils.formatters import limpar_cpf, limpar_data, limpar_moeda_universal, alinhar_tipagem_chaves
+from utils.validators import validar_matematica_descontos
+from utils.analisador import analisar_dados
+import pandas as pd
+
+def processar_portal_consigorapido(df_bruto: pd.DataFrame, convenio: str, portal: str) -> pd.DataFrame:
+    df = df_bruto.copy()
+    # OPCIONAL: Se quiser adicionar o Valor Acatado seguindo o padrão que fizemos antes
+    if not df.empty:
+        df['Valor Acatado'] = '0'
+        
+        # Criação das máscaras
+        sucesso_mask = df['Crítica'].str.contains('Em aberto', case=False, na=False)
+        
+        # 1. Aloca o valor lançado para os sucessos
+        df.loc[sucesso_mask, 'Valor Acatado'] = df.loc[sucesso_mask, 'Valor Lançado']
+            
+        
+    # 2. Higienização das colunas padrão
+    df['cpf_formatado'] = limpar_cpf(df['CPF'])
+    
+    # df['Data_formatada'] = limpar_data(df['Data'])
+
+    # 3. Alinhamento Estrito de Tipos para Cruzamento
+    # Garante que as chaves de relacionamento estejam exatamente no mesmo tipo (string)
+    df['Matricula_formatada'] = alinhar_tipagem_chaves(df, 'Matrícula')
+    
+    # Aplicação limpa e direta no DataFrame:
+    df['Valor_lancado'] = df['Valor Lançado'].apply(limpar_moeda_universal)
+    df['Valor_lancado'] = df['Valor_lancado']
+
+
+    df['Valor_descontado'] = df['Valor Acatado'].apply(limpar_moeda_universal)
+
+    return df

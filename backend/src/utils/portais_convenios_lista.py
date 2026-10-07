@@ -143,6 +143,9 @@ def portal_escolhido(nome_convenio: str) -> list:
 
         "RNCONSIG": [
             "GOV. RIO GRANDE DO NORTE"
+        ],
+        "CONSIGORAPIDO": [
+            "PREF. BAURU"
         ],        
 
         "ECONSIG_1": ["PREF. BELO HORIZONTE",  
