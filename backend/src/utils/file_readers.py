@@ -647,10 +647,13 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         colunas_finais = ['Matricula', 'CPF', 'Valor', 'Erro']
 
         df.columns = df.iloc[0]
-        df = df.iloc[1:].reset_index(drop=True)
+        # df = df.iloc[1:].reset_index(drop=True)
         
         # Verifica se o arquivo tem um "cabeçalho fantasma" na linha 0 (ex: 'x' ou 'X' no nome da coluna)
-        if "CNPJ" not in df.columns:                
+        if "CNPJ" not in df.columns:
+            if 'x' in df.columns or 'X' in df.columns:
+                df.columns = df.iloc[0]
+                df = df.iloc[1:].reset_index(drop=True)
             # Só força os nomes das colunas SE a quantidade de colunas bater, para evitar o ValueError
             if len(df.columns) == len(colunas_esperadas):
                 df.columns = colunas_esperadas

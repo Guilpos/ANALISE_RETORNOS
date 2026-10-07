@@ -16,10 +16,14 @@ def processar_portal_exemplo(conteudo_bytes_1: bytes, conteudo_bytes_2: bytes) -
         # header=0 já pega a primeira linha como nome da coluna e resolve o problema dos índices
         df = pd.read_csv(io.BytesIO(conteudo_bytes), encoding='utf-8', sep=';', header=None)
         df.columns = df.iloc[0]
-        df = df.iloc[1:].reset_index(drop=True)
+        # df = df.iloc[1:].reset_index(drop=True)
         
         # Verifica se o arquivo tem um "cabeçalho fantasma" na linha 0 (ex: 'x' ou 'X' no nome da coluna)
         if "CNPJ" not in df.columns:
+            if 'x' in df.columns or 'X' in df.columns:
+                df.columns = df.iloc[0]
+                df = df.iloc[1:].reset_index(drop=True)
+            
             # Só força os nomes das colunas SE a quantidade de colunas bater, para evitar o ValueError
             if len(df.columns) == len(colunas_esperadas):
                 df.columns = colunas_esperadas
