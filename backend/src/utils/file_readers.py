@@ -646,24 +646,23 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         colunas_esperadas = ['Matricula', 'Convênio', 'Nome', 'CPF', 'N/S 1', 'N/S 2', 'N/S 3', 'Valor', 'N/S 4', 'Produto', 'Erro', 'Código', 'Data']
         colunas_finais = ['Matricula', 'CPF', 'Valor', 'Erro']
 
-        df.columns = df.iloc[0]
-        print(f'Amostra de df:\n{df.head(15)}\n')
-        # df = df.iloc[1:].reset_index(drop=True)
-        
-        # Verifica se o arquivo tem um "cabeçalho fantasma" na linha 0 (ex: 'x' ou 'X' no nome da coluna)
-        if "CNPJ" not in df.columns:
-            if 'x' in df.columns or 'X' in df.columns:
-                df.columns = df.iloc[0]
-                df = df.iloc[1:].reset_index(drop=True)
-            # Só força os nomes das colunas SE a quantidade de colunas bater, para evitar o ValueError
-            if len(df.columns) == len(colunas_esperadas):
-                df.columns = colunas_esperadas
+        # 1. Verifica se o cabeçalho original é inválido ('x', 'X' ou se o Pandas leu como números)
+        if "CNPJ" not in df.columns and "Matricula" not in df.columns:
+            if 'x' in df.columns or 'X' in df.columns or type(df.columns[0]) == int:
+                df.columns = df.iloc[0] # Agora sim, promovemos a linha 0
+                df = df.iloc[1:].reset_index(drop=True) # E a apagamos dos dados
+
+        # 2. SE a quantidade de colunas for exatamente 13, forçamos os nomes corretos.
+        # Observe que essa linha deve ficar FORA do IF anterior, para garantir que 
+        # a validação de 13 colunas ocorra de qualquer forma.
+        if len(df.columns) == len(colunas_esperadas):
+            df.columns = colunas_esperadas
                 
-        # Filtra apenas as colunas que importam para o concat final
-        # O uso do errors='ignore' protege o script caso a coluna não seja encontrada
-        df =  df[df.columns.intersection(colunas_finais)].copy()
+        # 3. Agora o intersection vai funcionar, porque ou o cabeçalho já estava correto
+        # na leitura, ou nós o forçamos a ser "colunas_esperadas".
+        df = df[df.columns.intersection(colunas_finais)].copy()
         
-        # Renomeia para o padrão final
+        # 4. Renomeia para o padrão final
         df.rename(columns={'Matricula': 'Matrícula', 'Valor': 'Valor Lançado', 'Erro': 'Crítica'}, inplace=True)
 
         print(f'\nComo as colunas de df estão sendo repassadas: {df.columns}\n')

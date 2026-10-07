@@ -37,7 +37,9 @@ def processar_portal_exemplo(conteudo_bytes_1: bytes, conteudo_bytes_2: bytes) -
 
     # Aplica a mesma regra de limpeza padronizada para os dois arquivos
     df_1 = preparar_dataframe(conteudo_bytes_1)
+    print(f'df_1 Amostra {df_1.head(15)}')
     df_2 = preparar_dataframe(conteudo_bytes_2)
+    print(f'df_2 Amostra {df_2.head(15)}')
 
     # Junta os dois DataFrames em um só
     df = pd.concat([df_1, df_2], ignore_index=True)
@@ -95,8 +97,8 @@ def processar_portal_exemplo(conteudo_bytes_1: bytes, conteudo_bytes_2: bytes) -
     return df
 
 # Coloque o caminho exato onde você salvou o arquivo de teste
-caminho_do_arquivo_1 = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\10 - Outubro\PREF BAURU\RELATÓRIO\ACATADO - PREF BAURU - 10.2026.csv"
-caminho_do_arquivo_2 = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\10 - Outubro\PREF BAURU\RELATÓRIO\CRÍTICA_IMPORT - PREF BAURU - 10.2026.csv"
+caminho_do_arquivo_1 = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\09 - Setembro\PREF BAURU\RELATÓRIO\RETORNO - GERAL - BAURU - 09.2026.csv"
+caminho_do_arquivo_2 = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\09 - Setembro\PREF BAURU\RELATÓRIO\RETORNO - ERRO - BAURU - 09.2026.csv"
 # Chama a função que criamos passando os bytes simulados
 
 # 2. Leia o arquivo em bytes
@@ -109,8 +111,10 @@ with open(caminho_do_arquivo_2, "rb") as f:
 df_teste = processar_portal_exemplo(conteudo_bytes_1=conteudo_bytes_1, conteudo_bytes_2=conteudo_bytes_2)
 
 # Exibe o resultado no terminal para você conferir as colunas
-'''print(df_teste.tail(30))
-print(df_teste.head(30),'\n')
+# print(df_teste.head(30),'\n')
+'''
+print(df_teste.tail(30))
+
 print('O que está na linha 142:\n', df_teste.iloc[142],'\n')'''
 
 print("\nTipos de dados gerados:")
