@@ -650,9 +650,8 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         colunas_esperadas = ['Matricula', 'Convênio', 'Nome', 'CPF', 'N/S 1', 'N/S 2', 'N/S 3', 'Valor', 'N/S 4', 'Produto', 'Erro', 'Código', 'Data']
         colunas_finais = ['Matricula', 'CPF', 'Valor', 'Erro']
 
-        def preparar_dataframe(conteudo_bytes: bytes) -> pd.DataFrame:
-            # header=0 já pega a primeira linha como nome da coluna e resolve o problema dos índices
-            df = pd.read_csv(io.BytesIO(conteudo_bytes), encoding='utf-8', sep=';', header=None)
+        def preparar_dataframe(df_bruto) -> pd.DataFrame:
+            df = df_bruto
             df.columns = df.iloc[0]
             # df = df.iloc[1:].reset_index(drop=True)
             
