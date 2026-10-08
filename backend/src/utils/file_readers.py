@@ -653,11 +653,14 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
             if 'x' in df.columns or 'X' in df.columns or type(df.columns[0]) == int:
                 df.columns = df.iloc[0] # Agora sim, promovemos a linha 0
                 df = df.iloc[1:].reset_index(drop=True) # E a apagamos dos dados
+        else:
+            df = df.iloc[1:].reset_index(drop=True) # E a apagamos dos dados
 
         # 2. SE a quantidade de colunas for exatamente 13, forçamos os nomes corretos.
         # Observe que essa linha deve ficar FORA do IF anterior, para garantir que 
         # a validação de 13 colunas ocorra de qualquer forma.
         if len(df.columns) == len(colunas_esperadas):
+            print(f'O número de colunas em df é igual ao número de cabeçalhos em colunas_esperadas? {len(df.columns) == len(colunas_esperadas)}')
             df.columns = colunas_esperadas
 
         print(f'Amostra de df:\n{df.head(15)}\n')
