@@ -411,6 +411,8 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         # 5. Remove a primeira linha (índice 0) que foi usada como molde e reseta o índice
         df = df.iloc[1:].reset_index(drop=True)
 
+        print(f'Colunas de CONSIGFACIL_1: {df.columns}')
+
         # df['VALOR'] = df['VALOR'].str.replace(',', '.', regex=False).astype(float)
     
         # ['Matrícula', 'CPF', 'Valor Lançado', 'Crítica', 'Valor Acatado']
