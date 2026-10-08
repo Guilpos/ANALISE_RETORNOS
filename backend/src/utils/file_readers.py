@@ -660,6 +660,9 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
                 if 'x' in df.columns or 'X' in df.columns:
                     df.columns = df.iloc[0]
                     df = df.iloc[1:].reset_index(drop=True)
+                else:
+                    # df.columns = df.iloc[0]
+                    df = df.iloc[1:].reset_index(drop=True)
                 
                 # Só força os nomes das colunas SE a quantidade de colunas bater, para evitar o ValueError
                 if len(df.columns) == len(colunas_esperadas):
@@ -674,7 +677,7 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
     
         # Aplica a mesma regra de limpeza padronizada para os dois arquivos
         df = preparar_dataframe(df)
-        print(f'df_2 Amostra {df.head(15)}')
+        print(f'df Amostra\n{df.head(15)}')
     
         # Renomeia para o padrão final
         df.rename(columns={'Matricula': 'Matrícula', 'Valor': 'Valor Lançado', 'Erro': 'Crítica'}, inplace=True)
