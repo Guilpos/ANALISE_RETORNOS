@@ -661,7 +661,7 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
                     df.columns = df.iloc[0]
                     df = df.iloc[1:].reset_index(drop=True)
                 else:
-                    # df.columns = df.iloc[0]
+                    df.columns = df.iloc[0]
                     df = df.iloc[1:].reset_index(drop=True)
                 
                 # Só força os nomes das colunas SE a quantidade de colunas bater, para evitar o ValueError
