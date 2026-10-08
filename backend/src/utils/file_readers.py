@@ -650,33 +650,34 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         colunas_esperadas = ['Matricula', 'Convênio', 'Nome', 'CPF', 'N/S 1', 'N/S 2', 'N/S 3', 'Valor', 'N/S 4', 'Produto', 'Erro', 'Código', 'Data']
         colunas_finais = ['Matricula', 'CPF', 'Valor', 'Erro']
 
-        df.columns = df.iloc[0]
-
-        # 1. Verifica se o cabeçalho original é inválido ('x', 'X' ou se o Pandas leu como números)
-        if "CNPJ" not in df.columns and "Matricula" not in df.columns:
-            if 'x' in df.columns or 'X' in df.columns or type(df.columns[0]) == int:
-                df.columns = df.iloc[0] # Agora sim, promovemos a linha 0
-                df = df.iloc[1:].reset_index(drop=True) # E a apagamos dos dados
-        else:
-            df = df.iloc[1:].reset_index(drop=True) # E a apagamos dos dados
-
-        # 2. SE a quantidade de colunas for exatamente 13, forçamos os nomes corretos.
-        # Observe que essa linha deve ficar FORA do IF anterior, para garantir que 
-        # a validação de 13 colunas ocorra de qualquer forma.
-        print(f'O número de colunas em df é igual ao número de cabeçalhos em colunas_esperadas? {len(df.columns) == len(colunas_esperadas)}')
-        print(len(df.columns), "\n", len(colunas_esperadas))
-        print("\ncolunas de df.columns", df.columns)
-        if len(df.columns) == len(colunas_esperadas):
+        def preparar_dataframe(conteudo_bytes: bytes) -> pd.DataFrame:
+            # header=0 já pega a primeira linha como nome da coluna e resolve o problema dos índices
+            df = pd.read_csv(io.BytesIO(conteudo_bytes), encoding='utf-8', sep=';', header=None)
+            df.columns = df.iloc[0]
+            # df = df.iloc[1:].reset_index(drop=True)
             
-            df.columns = colunas_esperadas
-
-        print(f'Amostra de df:\n{df.head(15)}\n')
+            # Verifica se o arquivo tem um "cabeçalho fantasma" na linha 0 (ex: 'x' ou 'X' no nome da coluna)
+            if "CNPJ" not in df.columns:
+                if 'x' in df.columns or 'X' in df.columns:
+                    df.columns = df.iloc[0]
+                    df = df.iloc[1:].reset_index(drop=True)
                 
-        # 3. Agora o intersection vai funcionar, porque ou o cabeçalho já estava correto
-        # na leitura, ou nós o forçamos a ser "colunas_esperadas".
-        df = df[df.columns.intersection(colunas_finais)].copy()
-        
-        # 4. Renomeia para o padrão final
+                # Só força os nomes das colunas SE a quantidade de colunas bater, para evitar o ValueError
+                if len(df.columns) == len(colunas_esperadas):
+                    df.columns = colunas_esperadas
+                    
+            # Filtra apenas as colunas que importam para o concat final
+            # O uso do errors='ignore' protege o script caso a coluna não seja encontrada
+            print("Colunas antes do filtro:", df.columns.tolist(), "\n")
+            print(f"Comprimento das planilhas: {len(df)}")
+    
+            return df[df.columns.intersection(colunas_finais)].copy()
+    
+        # Aplica a mesma regra de limpeza padronizada para os dois arquivos
+        df = preparar_dataframe(df)
+        print(f'df_2 Amostra {df.head(15)}')
+    
+        # Renomeia para o padrão final
         df.rename(columns={'Matricula': 'Matrícula', 'Valor': 'Valor Lançado', 'Erro': 'Crítica'}, inplace=True)
 
         print(f'\nComo as colunas de df estão sendo repassadas: {df.columns}\n')
