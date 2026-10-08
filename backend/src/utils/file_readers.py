@@ -661,6 +661,7 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         # a validação de 13 colunas ocorra de qualquer forma.
         print(f'O número de colunas em df é igual ao número de cabeçalhos em colunas_esperadas? {len(df.columns) == len(colunas_esperadas)}')
         print(len(df.columns), "\n", len(colunas_esperadas))
+        print("\ncolunas de df.columns", df.columns)
         if len(df.columns) == len(colunas_esperadas):
             
             df.columns = colunas_esperadas
