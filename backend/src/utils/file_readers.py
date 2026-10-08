@@ -407,6 +407,8 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         # 4. Junta as duas partes separadas em um único DataFrame
         # Se quiser manter a coluna 'Linha' original, basta adicionar df[['Linha']] dentro do colchete abaixo
         df = pd.concat([df_conteudo, df_retorno], axis=1)
+
+        print(f'Colunas de CONSIGFACIL_1 antes de resetar o índice: {df.columns}')
         
         # 5. Remove a primeira linha (índice 0) que foi usada como molde e reseta o índice
         df = df.iloc[1:].reset_index(drop=True)
