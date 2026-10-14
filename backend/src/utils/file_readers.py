@@ -653,24 +653,21 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         def preparar_dataframe(df_bruto) -> pd.DataFrame:
             df = df_bruto.copy()
             
-            # --- ADAPTAÇÃO PARA CORRIGIR O SNIFFER FALHO NO CONSIGORAPIDO ---
-            # Se o DataFrame chegou com menos colunas que o esperado (ex: 2 em vez de 13),
-            # significa que o Sniffer errou o delimitador lá atrás. Vamos forçar o split por ';'
-            if len(df.columns) < len(colunas_esperadas) and len(df.columns) <= 5:
-                # O df falho costuma ter tudo aglutinado na coluna 0. 
-                # Vamos explodir a coluna 0 em várias colunas com separador ';'
-                df_corrigido = df[0].str.split(';', expand=True)
+            # --- CORREÇÃO DO SNIFFER (VÍRGULA DECIMAL) ---
+            if len(df.columns) < len(colunas_esperadas):
+                # O Sniffer confundiu a vírgula dos centavos (R$ 134,06) com o delimitador CSV e partiu a tabela.
+                # Aqui nós costuramos as colunas de volta usando a vírgula para reconstruir a linha original.
+                serie_unida = df.fillna('').astype(str).agg(','.join, axis=1)
                 
-                # Se após dividir por ';' nós conseguirmos o número exato de colunas esperadas (ou mais),
-                # substituímos o df quebrado pelo corrigido
+                # Agora fazemos a divisão correta pelo ponto e vírgula
+                df_corrigido = serie_unida.str.split(';', expand=True)
+                
+                # Se a divisão resultou nas 13 colunas esperadas, assumimos o dataframe corrigido
                 if len(df_corrigido.columns) >= len(colunas_esperadas):
-                    # Só pegamos o número exato de colunas esperadas para não sobrar lixo
                     df = df_corrigido.iloc[:, :len(colunas_esperadas)]
-            # -----------------------------------------------------------------
+            # ---------------------------------------------
 
             df.columns = df.iloc[0]
-            
-            # Removemos a linha zero do corpo dos dados que já virou título (resolve o problema da duplicação/sujeira)
             df = df.iloc[1:].reset_index(drop=True)
             
             # Verifica se o arquivo tem um "cabeçalho fantasma" na linha 0 (ex: 'x' ou 'X' no nome da coluna)
@@ -679,26 +676,17 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
                     df.columns = df.iloc[0]
                     df = df.iloc[1:].reset_index(drop=True)
                 
-                # Só força os nomes das colunas SE a quantidade de colunas bater, para evitar o ValueError
-                print(f'df Amostra antes de adicionar cabeçalho\n{df.head(15)}\n')
+                # Força os nomes das colunas SE a quantidade bater
                 if len(df.columns) == len(colunas_esperadas):
                     df.columns = colunas_esperadas
-                print(f'df Amostra depois de adicionar cabeçalho\n{df.head(15)}\n')
             
-            # Filtra apenas as colunas que importam para o concat final
-            print("Colunas antes do filtro:", df.columns.tolist(), "\n")
-            print("Comprimento das colunas antes do filtro:", len(df.columns), "\n")
-            print(f"Comprimento das planilhas: {len(df)}")
-    
+            # Retorna apenas as colunas de interesse
             return df[df.columns.intersection(colunas_finais)].copy()
     
-        # Aplica a mesma regra de limpeza padronizada para os dois arquivos
+        # Roda a extração
         df = preparar_dataframe(df)
-        print(f'df Amostra\n{df.head(15)}')
-    
-        # Renomeia para o padrão final
+        
+        # Renomeia para o padrão final do seu sistema
         df.rename(columns={'Matricula': 'Matrícula', 'Valor': 'Valor Lançado', 'Erro': 'Crítica'}, inplace=True)
-
-        print(f'\nComo as colunas de df estão sendo repassadas: {df.columns}\n')
 
     return df
