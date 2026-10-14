@@ -3,6 +3,7 @@ from utils.formatters import limpar_cpf, limpar_data, limpar_moeda_delimitador_p
 import openpyxl
 import pandas as pd
 import xlrd
+import csv
 import io
 import xml.etree.ElementTree as ET
 
@@ -14,17 +15,42 @@ def processar_portal_exemplo(conteudo_bytes_1: bytes, conteudo_bytes_2: bytes) -
 
     def preparar_dataframe(conteudo_bytes: bytes) -> pd.DataFrame:
         # header=0 já pega a primeira linha como nome da coluna e resolve o problema dos índices
-        df = pd.read_csv(io.BytesIO(conteudo_bytes), encoding='utf-8', sep=';', header=None)
-        df.columns = df.iloc[0]
-        # df = df.iloc[1:].reset_index(drop=True)
+        # Decodificamos os bytes em texto antes de tentar descobrir o separador
+        texto = conteudo_bytes.decode('utf-8')
         
-        # Verifica se o arquivo tem um "cabeçalho fantasma" na linha 0 (ex: 'x' ou 'X' no nome da coluna)
+        # Pegamos uma amostra dos primeiros 4KB para o Sniffer
+        amostra = texto[:4096]
+        
+        try:
+            separador = csv.Sniffer().sniff(amostra).delimiter
+        except csv.Error:
+            separador = ';'
+        
+        # Criamos o arquivo em memória para o CSV
+        arquivo_memoria = io.StringIO(texto)
+        df = pd.read_csv(arquivo_memoria, sep=separador, dtype=str, engine='python', header=None)
+        
+        # O Sniffer às vezes falha com caracteres especiais ou padrões confusos no início
+        # Se ele leu menos colunas do que deveria (ex: 2 em vez de 13), force o separador ';'
+        if len(df.columns) < 5:
+            # Reseta o buffer e tenta de novo forçando ponto e vírgula
+            arquivo_memoria.seek(0)
+            df = pd.read_csv(arquivo_memoria, sep=';', dtype=str, engine='python', header=None)
+            
+        # Pega a linha 0 e define como cabeçalho
+        df.columns = df.iloc[0]
+        
+        # Sempre exclui a linha 0 original do corpo dos dados para evitar duplicação ou sujeira
+        df = df.iloc[1:].reset_index(drop=True)
+        
+        # Agora aplicamos as regras de negócio
         if "CNPJ" not in df.columns:
             if 'x' in df.columns or 'X' in df.columns:
+                # Se o cabeçalho era a linha do 'x', joga fora e pega a linha de baixo
                 df.columns = df.iloc[0]
                 df = df.iloc[1:].reset_index(drop=True)
             
-            # Só força os nomes das colunas SE a quantidade de colunas bater, para evitar o ValueError
+            # Se a quantidade de colunas bater, renomeia à força para as esperadas
             if len(df.columns) == len(colunas_esperadas):
                 df.columns = colunas_esperadas
         else:
@@ -32,7 +58,8 @@ def processar_portal_exemplo(conteudo_bytes_1: bytes, conteudo_bytes_2: bytes) -
                 
         # Filtra apenas as colunas que importam para o concat final
         # O uso do errors='ignore' protege o script caso a coluna não seja encontrada
-        print("Colunas antes do filtro:", df.columns.tolist(), "\n")
+        print("Colunas antes do filtro formato lista:", df.columns.tolist(), "\n")
+        print("\nColunas antes do filtro sem formato lista:", df.columns, "\n")
         print(f"Comprimento das planilhas: {len(df)}")
 
         return df[df.columns.intersection(colunas_finais)].copy()

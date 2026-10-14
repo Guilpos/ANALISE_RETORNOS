@@ -651,9 +651,27 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         colunas_finais = ['Matricula', 'CPF', 'Valor', 'Erro']
 
         def preparar_dataframe(df_bruto) -> pd.DataFrame:
-            df = df_bruto
+            df = df_bruto.copy()
+            
+            # --- ADAPTAÇÃO PARA CORRIGIR O SNIFFER FALHO NO CONSIGORAPIDO ---
+            # Se o DataFrame chegou com menos colunas que o esperado (ex: 2 em vez de 13),
+            # significa que o Sniffer errou o delimitador lá atrás. Vamos forçar o split por ';'
+            if len(df.columns) < len(colunas_esperadas) and len(df.columns) <= 5:
+                # O df falho costuma ter tudo aglutinado na coluna 0. 
+                # Vamos explodir a coluna 0 em várias colunas com separador ';'
+                df_corrigido = df[0].str.split(';', expand=True)
+                
+                # Se após dividir por ';' nós conseguirmos o número exato de colunas esperadas (ou mais),
+                # substituímos o df quebrado pelo corrigido
+                if len(df_corrigido.columns) >= len(colunas_esperadas):
+                    # Só pegamos o número exato de colunas esperadas para não sobrar lixo
+                    df = df_corrigido.iloc[:, :len(colunas_esperadas)]
+            # -----------------------------------------------------------------
+
             df.columns = df.iloc[0]
-            # df = df.iloc[1:].reset_index(drop=True)
+            
+            # Removemos a linha zero do corpo dos dados que já virou título (resolve o problema da duplicação/sujeira)
+            df = df.iloc[1:].reset_index(drop=True)
             
             # Verifica se o arquivo tem um "cabeçalho fantasma" na linha 0 (ex: 'x' ou 'X' no nome da coluna)
             if "CNPJ" not in df.columns:
@@ -666,11 +684,8 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
                 if len(df.columns) == len(colunas_esperadas):
                     df.columns = colunas_esperadas
                 print(f'df Amostra depois de adicionar cabeçalho\n{df.head(15)}\n')
-            else:
-                df = df.iloc[1:].reset_index(drop=True)
-                    
+            
             # Filtra apenas as colunas que importam para o concat final
-            # O uso do errors='ignore' protege o script caso a coluna não seja encontrada
             print("Colunas antes do filtro:", df.columns.tolist(), "\n")
             print("Comprimento das colunas antes do filtro:", len(df.columns), "\n")
             print(f"Comprimento das planilhas: {len(df)}")
