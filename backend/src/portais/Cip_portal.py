@@ -35,7 +35,8 @@ def processar_portal_cip(df_bruto_1: pd.DataFrame, df_bruto_2: pd.DataFrame, con
     # 2. Higienização das colunas padrão
     df_retorno['cpf_formatado'] = limpar_cpf(df_retorno['CPF'])
 
-    df_retorno.loc[df_retorno['Crítica'] == 'Sucesso', 'Valor Acatado'] = df_lancamento['Valor Lançado']
+    df_retorno['Valor Acatado'] = df_retorno['Matrícula'].map(df_lancamento.set_index('Matrícula')['Valor Lançado'])
+    df_retorno.loc[df_retorno['Crítica'] != 'Sucesso', 'Valor Acatado'] = '0'
     
     # df['Data_formatada'] = limpar_data(df['Data'])
 

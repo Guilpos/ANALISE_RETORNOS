@@ -110,7 +110,8 @@ def processar_portal_exemplo(conteudo_bytes_1: bytes, conteudo_bytes_2: bytes) -
     df_retorno.loc[df_retorno['Cod_Erro'].isnull(), 'Crítica'] = 'Sucesso'
 
     # 2. Higienização das colunas padrão
-    df_retorno.loc[df_retorno['Crítica'] == 'Sucesso', 'Valor Acatado'] = df_lancamento['Valor Lançado']
+    df_retorno['Valor Acatado'] = df_retorno['Matrícula'].map(df_lancamento.set_index('Matrícula')['Valor Lançado'])
+    df_retorno.loc[df_retorno['Crítica'] != 'Sucesso', 'Valor Acatado'] = '0'
 
     print('Amostra de df_retorno\n', df_retorno.head(15))
 
