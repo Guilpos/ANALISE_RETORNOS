@@ -662,14 +662,17 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
                     df = df.iloc[1:].reset_index(drop=True)
                 
                 # Só força os nomes das colunas SE a quantidade de colunas bater, para evitar o ValueError
+                print(f'df Amostra antes de adicionar cabeçalho\n{df.head(15)}\n')
                 if len(df.columns) == len(colunas_esperadas):
                     df.columns = colunas_esperadas
+                print(f'df Amostra depois de adicionar cabeçalho\n{df.head(15)}\n')
             else:
                 df = df.iloc[1:].reset_index(drop=True)
                     
             # Filtra apenas as colunas que importam para o concat final
             # O uso do errors='ignore' protege o script caso a coluna não seja encontrada
             print("Colunas antes do filtro:", df.columns.tolist(), "\n")
+            print("Comprimento das colunas antes do filtro:", len(df.columns), "\n")
             print(f"Comprimento das planilhas: {len(df)}")
     
             return df[df.columns.intersection(colunas_finais)].copy()
