@@ -32,23 +32,41 @@ def ler_arquivo_inseguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str
             ns = {'cip': 'http://www.cip-bancos.org.br/ARQ/ASCC024.xsd'}
             linhas = []
 
-            for grupo in root.findall('.//cip:Grupo_ASCC024RET_Consigrio', ns):
-                cnpj_ente = grupo.find('cip:CNPJBaseEnte', ns)
+            # 1. Pega os Grupos Pais: tanto os que deram CERTO quanto os que deram ERRADO
+            grupos = root.findall('.//cip:Grupo_ASCC024RET_Consigrio', ns) + \
+                    root.findall('.//cip:Grupo_ASCC024_Consigrio', ns)
+                    
+            for grupo in grupos:
+                cnpj_ente = grupo.find('.//cip:CNPJBaseEnte', ns)
                 cnpj_ente_text = cnpj_ente.text if cnpj_ente is not None else None
-        
-                codigo_encontrado = None
-                for elemento in grupo.iter():
-                    if 'CodErro' in elemento.attrib:
-                        codigo_encontrado = elemento.attrib['CodErro']
-                        break 
-        
-                consignc = grupo.find('cip:Grupo_ASCC024RET_Consignc', ns)
-                if consignc is not None:
+                
+                # 2. Pega as Consignações (os contratos em si), também somando os de sucesso e os rejeitados
+                consignacoes = grupo.findall('.//cip:Grupo_ASCC024RET_Consignc', ns) + \
+                            grupo.findall('.//cip:Grupo_ASCC024_Consignc', ns)
+                            
+                for consignc in consignacoes:
                     cpf = consignc.find('cip:NumCPFServdr', ns)
                     ade = consignc.find('cip:NUAvebcSCC', ns)
-                    contrato = consignc.find('cip:NumContrtoIF', ns)
-                    controle_cip = consignc.find('cip:NumCtrlCIP', ns)
                     
+                    # 3. O contrato muda de nome dependendo do resultado. Tenta o de sucesso, se não achar tenta o de erro
+                    contrato = consignc.find('cip:NumContrtoIF', ns)
+                    if contrato is None:
+                        contrato = consignc.find('cip:NumContrto', ns)
+                        
+                    controle_cip = consignc.find('cip:NumCtrlCIP', ns)
+
+                    # 4. Procura o CodErro (se for sucesso, isso vai passar reto e gravar None)
+                    codigo_encontrado = None
+                    if ade is not None and 'CodErro' in ade.attrib:
+                        codigo_encontrado = ade.attrib['CodErro']
+                    elif contrato is not None and 'CodErro' in contrato.attrib:
+                        codigo_encontrado = contrato.attrib['CodErro']
+                    else:
+                        for elemento in consignc.iter():
+                            if 'CodErro' in elemento.attrib:
+                                codigo_encontrado = elemento.attrib['CodErro']
+                                break
+
                     linhas.append({
                         'CPF': cpf.text if cpf is not None else None,
                         'Contrato': contrato.text if contrato is not None else None,
@@ -57,6 +75,7 @@ def ler_arquivo_inseguro(conteudo_bytes: bytes, nome_arquivo: str, convenio: str
                         'CNPJ_Ente': cnpj_ente_text,
                         'Cod_Erro': codigo_encontrado
                     })
+                    
             return pd.DataFrame(linhas)
         except Exception as erro_final:
             raise ValueError(f"Erro ao ler arquivo XML: {str(erro_final)}")

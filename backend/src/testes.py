@@ -1,5 +1,6 @@
 from utils.file_readers import ler_arquivo_seguro
 from utils.formatters import limpar_cpf, limpar_data, limpar_moeda_delimitador_ponto, alinhar_tipagem_chaves
+from utils.tabelas_cip import tabela_erros_completa
 import openpyxl
 import pandas as pd
 import xlrd
@@ -10,71 +11,110 @@ import xml.etree.ElementTree as ET
 
 def processar_portal_exemplo(conteudo_bytes_1: bytes, conteudo_bytes_2: bytes) -> pd.DataFrame:    
 
-    colunas_esperadas = ['Matricula', 'Convênio', 'Nome', 'CPF', 'N/S 1', 'N/S 2', 'N/S 3', 'Valor', 'N/S 4', 'Produto', 'Erro', 'Código', 'Data']
-    colunas_finais = ['Matricula', 'CPF', 'Valor', 'Erro']
-
-    def preparar_dataframe(conteudo_bytes: bytes) -> pd.DataFrame:
-        # header=0 já pega a primeira linha como nome da coluna e resolve o problema dos índices
-        # Decodificamos os bytes em texto antes de tentar descobrir o separador
-        texto = conteudo_bytes.decode('utf-8')
-        
-        # Pegamos uma amostra dos primeiros 4KB para o Sniffer
-        amostra = texto[:4096]
-        
+    # 2. ARQUIVOS XML -> RETORNOS
+    def trata_xml(arquivo_xml):
         try:
-            separador = csv.Sniffer().sniff(amostra).delimiter
-        except csv.Error:
-            separador = ';'
-        
-        # Criamos o arquivo em memória para o CSV
-        arquivo_memoria = io.StringIO(texto)
-        df = pd.read_csv(arquivo_memoria, sep=separador, dtype=str, engine='python', header=None)
-        
-        # O Sniffer às vezes falha com caracteres especiais ou padrões confusos no início
-        # Se ele leu menos colunas do que deveria (ex: 2 em vez de 13), force o separador ';'
-        if len(df.columns) < 5:
-            # Reseta o buffer e tenta de novo forçando ponto e vírgula
-            arquivo_memoria.seek(0)
-            df = pd.read_csv(arquivo_memoria, sep=';', dtype=str, engine='python', header=None)
-            
-        # Pega a linha 0 e define como cabeçalho
-        df.columns = df.iloc[0]
-        
-        # Sempre exclui a linha 0 original do corpo dos dados para evitar duplicação ou sujeira
-        df = df.iloc[1:].reset_index(drop=True)
-        
-        # Agora aplicamos as regras de negócio
-        if "CNPJ" not in df.columns:
-            if 'x' in df.columns or 'X' in df.columns:
-                # Se o cabeçalho era a linha do 'x', joga fora e pega a linha de baixo
-                df.columns = df.iloc[0]
-                df = df.iloc[1:].reset_index(drop=True)
-            
-            # Se a quantidade de colunas bater, renomeia à força para as esperadas
-            if len(df.columns) == len(colunas_esperadas):
-                df.columns = colunas_esperadas
-        else:
-            df = df.iloc[1:].reset_index(drop=True)
+            root = ET.fromstring(arquivo_xml)
+            ns = {'cip': 'http://www.cip-bancos.org.br/ARQ/ASCC024.xsd'}
+            linhas = []
+
+            # 1. Pega os Grupos Pais: tanto os que deram CERTO quanto os que deram ERRADO
+            grupos = root.findall('.//cip:Grupo_ASCC024RET_Consigrio', ns) + \
+                    root.findall('.//cip:Grupo_ASCC024_Consigrio', ns)
+                    
+            for grupo in grupos:
+                cnpj_ente = grupo.find('.//cip:CNPJBaseEnte', ns)
+                cnpj_ente_text = cnpj_ente.text if cnpj_ente is not None else None
                 
-        # Filtra apenas as colunas que importam para o concat final
-        # O uso do errors='ignore' protege o script caso a coluna não seja encontrada
-        print("Colunas antes do filtro formato lista:", df.columns.tolist(), "\n")
-        print("\nColunas antes do filtro sem formato lista:", df.columns, "\n")
-        print(f"Comprimento das planilhas: {len(df)}")
+                # 2. Pega as Consignações (os contratos em si), também somando os de sucesso e os rejeitados
+                consignacoes = grupo.findall('.//cip:Grupo_ASCC024RET_Consignc', ns) + \
+                            grupo.findall('.//cip:Grupo_ASCC024_Consignc', ns)
+                            
+                for consignc in consignacoes:
+                    cpf = consignc.find('cip:NumCPFServdr', ns)
+                    ade = consignc.find('cip:NUAvebcSCC', ns)
+                    
+                    # 3. O contrato muda de nome dependendo do resultado. Tenta o de sucesso, se não achar tenta o de erro
+                    contrato = consignc.find('cip:NumContrtoIF', ns)
+                    if contrato is None:
+                        contrato = consignc.find('cip:NumContrto', ns)
+                        
+                    controle_cip = consignc.find('cip:NumCtrlCIP', ns)
 
-        return df[df.columns.intersection(colunas_finais)].copy()
+                    # 4. Procura o CodErro (se for sucesso, isso vai passar reto e gravar None)
+                    codigo_encontrado = None
+                    if ade is not None and 'CodErro' in ade.attrib:
+                        codigo_encontrado = ade.attrib['CodErro']
+                    elif contrato is not None and 'CodErro' in contrato.attrib:
+                        codigo_encontrado = contrato.attrib['CodErro']
+                    else:
+                        for elemento in consignc.iter():
+                            if 'CodErro' in elemento.attrib:
+                                codigo_encontrado = elemento.attrib['CodErro']
+                                break
 
-    # Aplica a mesma regra de limpeza padronizada para os dois arquivos
-    df_1 = preparar_dataframe(conteudo_bytes_1)
-    print(f'df_1 Amostra\n{df_1.head(15)}')
-    df_2 = preparar_dataframe(conteudo_bytes_2)
-    print(f'df_2 Amostra\n{df_2.head(15)}')
+                    linhas.append({
+                        'CPF': cpf.text if cpf is not None else None,
+                        'Contrato': contrato.text if contrato is not None else None,
+                        'ADE_Averbacao': ade.text if ade is not None else None,
+                        'Controle_CIP': controle_cip.text if controle_cip is not None else None,
+                        'CNPJ_Ente': cnpj_ente_text,
+                        'Cod_Erro': codigo_encontrado
+                    })
+                    
+            return pd.DataFrame(linhas)
+        except Exception as erro_final:
+            raise ValueError(f"Erro ao ler arquivo XML: {str(erro_final)}")
 
-    # Junta os dois DataFrames em um só
-    df = pd.concat([df_1, df_2], ignore_index=True)
+    xml_tratado = trata_xml(conteudo_bytes_1)
+    print('Tamanho da planilha xml_tratado: ', len(xml_tratado))
+    df_retorno = xml_tratado
 
-    # Renomeia para o padrão final
-    df.rename(columns={'Matricula': 'Matrícula', 'Valor': 'Valor Lançado', 'Erro': 'Crítica'}, inplace=True)
+    # 1. ARQUIVOS EXCEL (.xlsx, .xls) -> LANÇAMENTOS
+    def trata_xlsx(arquivo_xlsx):
+        try:
+            tabela_memoria = io.BytesIO(arquivo_xlsx)
+            df = pd.read_excel(tabela_memoria, dtype=str) # header=0 para pegar nome das colunas
+            return df
+        except Exception:
+            try:
+                tabela_memoria = io.BytesIO(arquivo_xlsx)
+                tabelas = pd.read_html(tabela_memoria, decimal=',', thousands='.')
+                df = tabelas[0]
+                return df
+            except Exception as erro_final:
+                raise ValueError(f"Erro ao ler arquivo Excel/HTML: {str(erro_final)}")
+            
+    df_lancamento = trata_xlsx(conteudo_bytes_2)
+    
+    # 1. Padroniza as colunas chaves
+    df_retorno.rename(columns={"ADE_Averbacao": "Matrícula"}, inplace=True)
+    
+    if 'Nº AVERBAÇÃO SCC' in df_lancamento.columns:
+        df_lancamento.rename(columns={'Nº AVERBAÇÃO SCC': 'Matrícula', 'VALOR AVERBADO': 'Valor Lançado'}, inplace=True)
+    
+    # 2. Cria o dicionário para mapeamento usando o Pandas (Excel -> Dicionário)
+    # Garante que as chaves sejam strings padronizadas para não dar erro no cruzamento
+    df_lancamento['Matrícula'] = df_lancamento['Matrícula'].astype(str).str.strip()
+    df_retorno['Matrícula'] = df_retorno['Matrícula'].astype(str).str.strip()
+    
+    mapa_valores = df_lancamento.set_index('Matrícula')['Valor Lançado'].to_dict()
+    
+    # 3. Executa o cruzamento (Traz os valores do Excel para a linha correta do XML)
+    df_retorno['Valor Lançado'] = df_retorno['Matrícula'].map(mapa_valores)
+    
+    # 4. (Opcional) Adiciona aquela lógica do dicionário de críticas
+    tabela_erros = tabela_erros_completa
+
+    df_retorno['Crítica'] = df_retorno['Cod_Erro'].map(tabela_erros).fillna('Erro não catalogado')
+    df_retorno.loc[df_retorno['Cod_Erro'].isnull(), 'Crítica'] = 'Sucesso'
+
+    # 2. Higienização das colunas padrão
+    df_retorno.loc[df_retorno['Crítica'] == 'Sucesso', 'Valor Acatado'] = df_lancamento['Valor Lançado']
+
+    print('Amostra de df_retorno\n', df_retorno.head(15))
+
+    df = df_retorno
         
 
     def limpar_moeda_universal(valor):
@@ -96,7 +136,7 @@ def processar_portal_exemplo(conteudo_bytes_1: bytes, conteudo_bytes_2: bytes) -
             return 0.00
 
         
-    # OPCIONAL: Se quiser adicionar o Valor Acatado seguindo o padrão que fizemos antes
+    '''# OPCIONAL: Se quiser adicionar o Valor Acatado seguindo o padrão que fizemos antes
     if not df.empty:
         df['Valor Acatado'] = '0'
         
@@ -104,7 +144,7 @@ def processar_portal_exemplo(conteudo_bytes_1: bytes, conteudo_bytes_2: bytes) -
         sucesso_mask = df['Crítica'].str.contains('Em aberto', case=False, na=False)
         
         # 1. Aloca o valor lançado para os sucessos
-        df.loc[sucesso_mask, 'Valor Acatado'] = df.loc[sucesso_mask, 'Valor Lançado']
+        df.loc[sucesso_mask, 'Valor Acatado'] = df.loc[sucesso_mask, 'Valor Lançado']'''
             
         
     # 2. Higienização das colunas padrão
@@ -123,11 +163,13 @@ def processar_portal_exemplo(conteudo_bytes_1: bytes, conteudo_bytes_2: bytes) -
 
     df['Valor_descontado'] = df['Valor Acatado'].apply(limpar_moeda_universal)
 
+    df.to_excel(f'C:\PESSOAL\TESTE PROJETO DE ANALISE DE RETORNOS\GOV SAO PAULO RETORNO TRATADO PELA ANALISE DE RETORNO TESTE.xlsx', index=False)
+
     return df
 
 # Coloque o caminho exato onde você salvou o arquivo de teste
-caminho_do_arquivo_1 = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\09 - Setembro\PREF BAURU\RELATÓRIO\RETORNO - GERAL - BAURU - 09.2026.csv"
-caminho_do_arquivo_2 = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\09 - Setembro\PREF BAURU\RELATÓRIO\RETORNO - ERRO - BAURU - 09.2026.csv"
+caminho_do_arquivo_1 = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\10 - Outubro\GOV SP\PMESP+SPPREV\LANÇAMENTOS E RETORNOS\RETORNO GOV SP PMESP+SPPREV 10.2026.xml"
+caminho_do_arquivo_2 = r"Z:\Dados\NOVA ESTRUTURA\LANÇAMENTO CARTÕES\TRABALHANDO\2026\10 - Outubro\GOV SP\PMESP+SPPREV\LANÇAMENTOS E RETORNOS\LANÇAMENTO GOV SP PMESP+SPPREV 10.2026.xlsx"
 # Chama a função que criamos passando os bytes simulados
 
 # 2. Leia o arquivo em bytes
