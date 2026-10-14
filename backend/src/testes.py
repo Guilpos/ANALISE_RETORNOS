@@ -27,6 +27,8 @@ def processar_portal_exemplo(conteudo_bytes_1: bytes, conteudo_bytes_2: bytes) -
             # Só força os nomes das colunas SE a quantidade de colunas bater, para evitar o ValueError
             if len(df.columns) == len(colunas_esperadas):
                 df.columns = colunas_esperadas
+        else:
+            df = df.iloc[1:].reset_index(drop=True)
                 
         # Filtra apenas as colunas que importam para o concat final
         # O uso do errors='ignore' protege o script caso a coluna não seja encontrada
@@ -37,9 +39,9 @@ def processar_portal_exemplo(conteudo_bytes_1: bytes, conteudo_bytes_2: bytes) -
 
     # Aplica a mesma regra de limpeza padronizada para os dois arquivos
     df_1 = preparar_dataframe(conteudo_bytes_1)
-    print(f'df_1 Amostra {df_1.head(15)}')
+    print(f'df_1 Amostra\n{df_1.head(15)}')
     df_2 = preparar_dataframe(conteudo_bytes_2)
-    print(f'df_2 Amostra {df_2.head(15)}')
+    print(f'df_2 Amostra\n{df_2.head(15)}')
 
     # Junta os dois DataFrames em um só
     df = pd.concat([df_1, df_2], ignore_index=True)
