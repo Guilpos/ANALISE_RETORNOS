@@ -405,6 +405,9 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
     
         # 1. Verificamos se a linha 0 da coluna 'Conteudo' já é um dado (ex: contém números ou não possui 'MATRICULA')
         # Se o conteúdo da linha 0 NÃO possui a palavra 'MATRICULA', significa que o convênio suprimiu a linha de cabeçalho.
+        df.columns = df.iloc[0]
+        df = df[1:].reset_index(drop=True)
+        print(f'Como está df antes de filtrar?\n{df.head(10)}\n\n')
         primeiro_conteudo = str(df.loc[0, 'Conteudo']).upper()
         
         if "MATRICULA" not in primeiro_conteudo:
@@ -424,10 +427,6 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
 
         # A partir daqui, o seu fluxo original continua perfeitamente seguro, 
         # pois a linha 0 garantidamente contém o molde correto das colunas.
-        
-        df.columns = df.iloc[0]
-        df = df[1:].reset_index(drop=True)
-        print(f'Como está df antes de filtrar?\n{df.head(10)}\n\n')
 
         nomes_colunas_conteudo = df.loc[0, 'Conteudo'].split(';')
         
