@@ -412,7 +412,7 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         
         if "MATRICULA" not in primeiro_conteudo:
             # String padrão de cabeçalho que falta no relatório
-            cabecalho_faltante = "MATRICULA;CPF;FOLHA;SERVICO;PRAZO TOTAL;VALOR;CONSIGNAR POSSIVEL - SIM/NAO (OPCIONAL); FORCAR - SIM/NAO(OPCIONAL);GENERICO;CONTRATO"
+            cabecalho_faltante = "TIPO DE OPERACAO;MATRICULA;CPF;FOLHA;SERVICO;PRAZO TOTAL;VALOR;CONSIGNAR O POSS?VEL - SIM/NAO (OPCIONAL);FORCAR - SIM/NAO (OPCIONAL);SEI LÁ; CONTRATO"
             
             # Criamos um DataFrame temporário com a linha de cabeçalho injetada
             df_cabecalho_injetado = pd.DataFrame([{
