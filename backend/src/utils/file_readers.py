@@ -402,43 +402,55 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         df = df_filtrado.copy()
         
     if modelo == "CONSIGFACIL_1":
-        # 1. Extrai os nomes das colunas reais que estão escondidos na primeira linha (índice 0)
-        # Atribui os valores da primeira linha (índice 0) aos cabeçalhos
-        df.columns = df.iloc[0]
     
-        # 2. Remove a primeira linha dos dados e reseta o índice
+        # 1. Verificamos se a linha 0 da coluna 'Conteudo' já é um dado (ex: contém números ou não possui 'MATRICULA')
+        # Se o conteúdo da linha 0 NÃO possui a palavra 'MATRICULA', significa que o convênio suprimiu a linha de cabeçalho.
+        primeiro_conteudo = str(df.loc[0, 'Conteudo']).upper()
+        
+        if "MATRICULA" not in primeiro_conteudo:
+            # String padrão de cabeçalho que falta no relatório
+            cabecalho_faltante = "MATRICULA;CPF;FOLHA;SERVICO;PRAZO TOTAL;VALOR;CONSIGNAR POSSIVEL - SIM/NAO (OPCIONAL); FORCAR - SIM/NAO(OPCIONAL);GENERICO;CONTRATO"
+            
+            # Criamos um DataFrame temporário com a linha de cabeçalho injetada
+            df_cabecalho_injetado = pd.DataFrame([{
+                'Linha': '00', # Ou o identificador padrão que preferir
+                'Conteudo': cabecalho_faltante,
+                'Retorno': 'STATUS;CODIGO;DESCRICAO' # Ajuste conforme o padrão de colunas de retorno do seu layout
+            }])
+            
+            # Enxertamos a linha no topo do DataFrame e resetamos o índice
+            df = pd.concat([df_cabecalho_injetado, df], ignore_index=True)
+            print("Aviso: Cabeçalho ausente detectado para CONSIGFACIL_1. Cabeçalho injetado com sucesso.")
+
+        # A partir daqui, o seu fluxo original continua perfeitamente seguro, 
+        # pois a linha 0 garantidamente contém o molde correto das colunas.
+        
+        df.columns = df.iloc[0]
         df = df[1:].reset_index(drop=True)
         print(f'Como está df antes de filtrar?\n{df.head(10)}\n\n')
 
         nomes_colunas_conteudo = df.loc[0, 'Conteudo'].split(';')
         
-        # 2. Divide a coluna 'Conteudo' usando o ';' e renomeia com os cabeçalhos extraídos
         df_conteudo = df['Conteudo'].str.split(';', expand=True)
         df_conteudo.columns = nomes_colunas_conteudo
         
-        # 3. Divide a coluna 'Retorno'
-        # O expand=True cria colunas preenchendo com NaN onde não houver ponto e vírgula
         df_retorno = df['Retorno'].str.split(';', expand=True)
-        
-        # Renomeia as colunas de retorno dinamicamente (ex: Retorno_1, Retorno_2, Retorno_3)
         df_retorno.columns = [f"Retorno_{i+1}" for i in range(df_retorno.shape[1])]
         
-        # 4. Junta as duas partes separadas em um único DataFrame
-        # Se quiser manter a coluna 'Linha' original, basta adicionar df[['Linha']] dentro do colchete abaixo
         df = pd.concat([df_conteudo, df_retorno], axis=1)
 
         print(f'Colunas de CONSIGFACIL_1 antes de resetar o índice: {df.columns}')
         
-        # 5. Remove a primeira linha (índice 0) que foi usada como molde e reseta o índice
         df = df.iloc[1:].reset_index(drop=True)
 
         print(f'Colunas de CONSIGFACIL_1: {df.columns}')
 
-        # df['VALOR'] = df['VALOR'].str.replace(',', '.', regex=False).astype(float)
-    
-        # ['Matrícula', 'CPF', 'Valor Lançado', 'Crítica', 'Valor Acatado']
-    
-        df.rename(columns={"MATRICULA": "Matrícula", "VALOR": "Valor Lançado", "Retorno_1": "Crítica", "Retorno_3": "Valor Acatado"}, inplace=True)
+        df.rename(columns={
+            "MATRICULA": "Matrícula", 
+            "VALOR": "Valor Lançado", 
+            "Retorno_1": "Crítica", 
+            "Retorno_3": "Valor Acatado"
+        }, inplace=True)
 
     if modelo in ["NEOCONSIG", "ECONSIG_1", "ECONSIG_2", "ECONSIG_3", "ECONSIG_4", "ECONSIG_5", "ECONSIG_6", "ECONSIG_7", "ECONSIG_8"]:
         pass
