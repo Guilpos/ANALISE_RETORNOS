@@ -38,10 +38,7 @@ def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, t
             lista_dfs.sort(key=len)
             df = pd.concat(lista_dfs, ignore_index=True)
             df = df.drop_duplicates(subset=["ADE"], keep='first')
-        else:
-            df = pd.concat(lista_dfs, ignore_index=True)
-
-        if portal == "VIABILIZE":
+        elif portal == "VIABILIZE":
             # Ordena a lista de DataFrames do menor para o maior (em quantidade de linhas)
             lista_dfs.sort(key=len)
             df = pd.concat(lista_dfs, ignore_index=True)
