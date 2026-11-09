@@ -16,6 +16,229 @@
     />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <script>
+      /* Aplica o tema salvo (ou o do sistema) ANTES de pintar a tela, evitando "flash" branco */
+      (function () {
+        var salvo = null;
+        try {
+          salvo = localStorage.getItem("tema-dashboard");
+        } catch (e) {}
+        var tema =
+          salvo ||
+          (window.matchMedia &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light");
+        document.documentElement.setAttribute("data-theme", tema);
+      })();
+    </script>
+    <style>
+      /* =====================================================
+         PALETAS DE TEMA (única fonte de verdade das cores)
+         Tema claro = valores originais do seu sistema
+         ===================================================== */
+      :root {
+        --bg-area: #f4f6f9;
+        --bg-lateral: #9b59b6;
+        --bg-direita: #d2c9eb;
+        --card-lateral: #ffffff;
+        --card-grafico: #ffffff; /* cards que contêm os gráficos */
+        --card-resumo: #f4f6f9; /* caixa interna com os valores R$ */
+        --borda-card: transparent;
+        --sombra-card: 0 4px 6px rgba(0, 0, 0, 0.1);
+        --texto-1: #2c3e50;
+        --texto-2: #555555;
+        --texto-3: #888888;
+        --texto-4: #7f8c8d;
+        --linha: #cccccc;
+        --accent: #00aced;
+        --input-bg: #ffffff;
+        --input-borda: #00aced;
+        --input-arquivo-bg: #ecf0f1;
+        --input-arquivo-borda: #7f8c8d;
+        --resizer: #e0e0e0;
+        --grade-grafico: rgba(0, 0, 0, 0.1);
+        --texto-grafico: #666666;
+
+        /* Status (pizza, legenda, tendência) */
+        --cor-integral: #2ea44f;
+        --cor-parcial: #f39c12;
+        --cor-rejeitado: #e74c3c;
+        --cor-outros: #95a5a6;
+        --cor-tendencia-rej: #d73a49;
+        --cor-barras: #3498db;
+        --cor-positivo: #2ecc71;
+        --cor-negativo: #e74c3c;
+        --btn-buscar: #3498db;
+        --btn-buscar-h: #2980b9;
+        --btn-upload: #2ecc71;
+        --btn-upload-h: #27ae60;
+        --btn-excluir: #e74c3c;
+        --btn-excluir-h: #c0392b;
+      }
+
+      [data-theme="dark"] {
+        color-scheme: dark; /* scrollbars, calendário do input month e ícones nativos escuros */
+        --bg-area: #0f172a;
+        --bg-lateral: linear-gradient(180deg, #0b1020 0%, #1e1b4b 100%);
+        --bg-direita: #0b1220;
+        --card-lateral: #1e293b;
+        --card-grafico: #1e293b; /* cor própria para os cards dos gráficos */
+        --card-resumo: #162033;
+        --borda-card: #2d3b55;
+        --sombra-card: 0 6px 18px rgba(0, 0, 0, 0.45);
+        --texto-1: #e2e8f0;
+        --texto-2: #cbd5e1;
+        --texto-3: #94a3b8;
+        --texto-4: #94a3b8;
+        --linha: #334155;
+        --accent: #818cf8;
+        --input-bg: #0f172a;
+        --input-borda: #475569;
+        --input-arquivo-bg: #0f172a;
+        --input-arquivo-borda: #475569;
+        --resizer: #1e293b;
+        --grade-grafico: rgba(148, 163, 184, 0.14);
+        --texto-grafico: #94a3b8;
+
+        --cor-integral: #34d399; /* esmeralda */
+        --cor-parcial: #fbbf24; /* âmbar */
+        --cor-rejeitado: #fb7185; /* coral/rosé */
+        --cor-outros: #64748b;
+        --cor-tendencia-rej: #fb7185;
+        --cor-barras: #818cf8; /* índigo claro */
+        --cor-positivo: #34d399;
+        --cor-negativo: #fb7185;
+        --btn-buscar: #4f46e5;
+        --btn-buscar-h: #6366f1;
+        --btn-upload: #059669;
+        --btn-upload-h: #10b981;
+        --btn-excluir: #be123c;
+        --btn-excluir-h: #e11d48;
+      }
+
+      body,
+      html {
+        transition:
+          background-color 0.3s ease,
+          color 0.3s ease;
+      }
+      body {
+        background: var(--bg-area);
+        color: var(--texto-1);
+      }
+
+      /* Botão alternador de tema */
+      #btn-tema {
+        position: fixed;
+        top: 14px;
+        right: 16px;
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--borda-card, #ccc);
+        background: var(--card-grafico);
+        color: var(--texto-1);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: var(--sombra-card);
+        transition: all 0.3s ease;
+      }
+      #btn-tema:hover {
+        transform: translateY(-1px);
+      }
+      #btn-tema .trilho {
+        position: relative;
+        width: 36px;
+        height: 20px;
+        border-radius: 999px;
+        background: #cbd5e1;
+        transition: background 0.3s ease;
+      }
+      #btn-tema .bolinha {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #fff;
+        transition: transform 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+      }
+      [data-theme="dark"] #btn-tema .trilho {
+        background: #6366f1;
+      }
+      [data-theme="dark"] #btn-tema .bolinha {
+        transform: translateX(16px);
+      }
+
+      /* Sobras de componentes de terceiros (Tom Select / Bootstrap) no tema escuro */
+      [data-theme="dark"] .ts-wrapper .ts-control,
+      [data-theme="dark"] .ts-wrapper.single .ts-control,
+      [data-theme="dark"] .ts-wrapper.multi .ts-control {
+        background: var(--input-bg) !important;
+        border-color: var(--input-borda) !important;
+        color: var(--texto-1) !important;
+        box-shadow: none !important;
+      }
+      [data-theme="dark"] .ts-control input,
+      [data-theme="dark"] .ts-wrapper .ts-control > .item {
+        color: var(--texto-1) !important;
+      }
+      [data-theme="dark"] .ts-wrapper.multi .ts-control > div {
+        background: #312e81 !important;
+        color: #e0e7ff !important;
+        border: 0 !important;
+      }
+      [data-theme="dark"] .ts-dropdown,
+      [data-theme="dark"] .ts-dropdown.form-control {
+        background: #1e293b !important;
+        color: var(--texto-1) !important;
+        border: 1px solid var(--input-borda) !important;
+      }
+      [data-theme="dark"] .ts-dropdown .option {
+        color: var(--texto-2) !important;
+      }
+      [data-theme="dark"] .ts-dropdown .active,
+      [data-theme="dark"] .ts-dropdown .option:hover {
+        background: #312e81 !important;
+        color: #fff !important;
+      }
+      [data-theme="dark"] .form-check-input {
+        background-color: #334155;
+        border-color: #475569;
+      }
+      [data-theme="dark"] .form-check-input:checked {
+        background-color: #6366f1;
+        border-color: #6366f1;
+      }
+      [data-theme="dark"] .grupo-form input::placeholder {
+        color: var(--texto-3);
+      }
+      [data-theme="dark"] #btn-toggle-menu {
+        background: #4f46e5 !important;
+        border-color: #4f46e5 !important;
+      }
+      [data-theme="dark"] ::-webkit-scrollbar {
+        height: 10px;
+        width: 10px;
+      }
+      [data-theme="dark"] ::-webkit-scrollbar-track {
+        background: #0f172a;
+      }
+      [data-theme="dark"] ::-webkit-scrollbar-thumb {
+        background: #334155;
+        border-radius: 8px;
+      }
+    </style>
     <style>
       /* 1. Preparamos a barra original para aceitar animações */
       .barra-esquerda {
@@ -36,17 +259,18 @@
       }
       /* ESTILOS DA BARRA LATERAL (PAINEL DE CONTROLE) */
       .card-lateral {
-        background-color: white;
+        background-color: var(--card-lateral);
+        border: 1px solid var(--borda-card);
         border-radius: 20px;
         padding: 25px 20px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        box-shadow: var(--sombra-card);
         display: flex;
         flex-direction: column;
         gap: 12px;
       }
 
       .titulo-lateral {
-        color: #00aced; /* Azul claro do seu desenho */
+        color: var(--accent);
         text-align: center;
         font-size: 16px;
         margin: 0 0 15px 0;
@@ -55,7 +279,7 @@
       .grupo-form label {
         display: block;
         font-size: 12px;
-        color: #333;
+        color: var(--texto-2);
         margin-bottom: 4px;
         font-weight: bold;
         text-align: center;
@@ -65,11 +289,12 @@
       .grupo-form select {
         width: 100%;
         padding: 8px;
-        border: 1px solid #00aced;
+        border: 1px solid var(--input-borda);
         border-radius: 4px;
         box-sizing: border-box;
         text-align: center;
-        background-color: white;
+        color: var(--texto-1);
+        background-color: var(--input-bg);
         cursor: pointer;
       }
 
@@ -117,30 +342,30 @@
       }
 
       .btn-buscar {
-        background-color: #3498db;
+        background-color: var(--btn-buscar);
       }
       .btn-buscar:hover {
-        background-color: #2980b9;
+        background-color: var(--btn-buscar-h);
       }
 
       .btn-upload {
-        background-color: #2ecc71;
+        background-color: var(--btn-upload);
       }
       .btn-upload:hover {
-        background-color: #27ae60;
+        background-color: var(--btn-upload-h);
       }
 
       .btn-excluir {
-        background-color: #e74c3c;
+        background-color: var(--btn-excluir);
         margin-top: 15px;
       }
       .btn-excluir:hover {
-        background-color: #c0392b;
+        background-color: var(--btn-excluir-h);
       }
 
       .divisor-linha {
         border: 0;
-        border-top: 1px dashed #ccc;
+        border-top: 1px dashed var(--linha);
         margin: 10px 0;
       }
       /* Zera as margens e faz a tela ocupar 100% da janela */
@@ -162,7 +387,7 @@
       /* 1. BARRA ESQUERDA (Formulário) */
       .barra-esquerda {
         width: 400px;
-        background-color: #9b59b6; /* Roxo do seu desenho */
+        background: var(--bg-lateral);
         padding: 20px;
         transition: 0.3s all ease; /* Animação para retrair */
       }
@@ -176,7 +401,8 @@
       /* 2. CENTRO (Scroll Horizontal com os Cards) */
       .area-central {
         flex: 1; /* Ocupa todo o espaço que sobrar */
-        background-color: #f4f6f9;
+        background-color: var(--bg-area);
+        transition: background-color 0.3s ease;
         padding: 20px;
         gap: 20px;
         overflow-x: auto; /* Cria a barra de rolagem horizontal */
@@ -186,10 +412,14 @@
       .card-arquivo {
         min-width: 890px; /* Aumentamos para caber a pizza e as barras com folga */
         flex-shrink: 0; /* A MÁGICA: Impede que o cartão seja espremido quando houver muitos na tela */
-        background: white;
+        background: var(--card-grafico);
+        border: 1px solid var(--borda-card);
         padding: 20px;
         border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--sombra-card);
+        transition:
+          background-color 0.3s ease,
+          border-color 0.3s ease;
         display: flex;
         flex-direction: column;
       }
@@ -198,8 +428,8 @@
       #barra-direita {
         width: 400px;
         min-width: 400px;
-        background-color: #d2c9eb; /* Roxo claro */
-        padding: 20px;
+        background-color: var(--bg-direita);
+        padding: 60px 20px 20px 20px; /* espaço extra no topo para o botão de tema */
         display: flex;
         flex-direction: column;
         gap: 20px;
@@ -214,7 +444,7 @@
       .sidebar {
         width: 400px; /* Tamanho inicial padrão */
         min-width: 300px; /* A TRAVA: Impede que o usuário diminua mais que o padrão */
-        background-color: #f8f9fa; /* Cor de exemplo */
+        background-color: var(--bg-direita);
         overflow-x: hidden;
       }
 
@@ -222,7 +452,9 @@
       .resizer {
         width: 6px;
         cursor: ew-resize; /* Cursor de setinha dupla para os lados */
-        background-color: #e0e0e0; /* Uma cor sutil, pode colocar transparente se preferir */
+        background-color: var(
+          --resizer
+        ); /* Uma cor sutil, pode colocar transparente se preferir */
         transition: background-color 0.2s;
       }
 
@@ -234,6 +466,21 @@
     </style>
   </head>
   <body>
+    <!-- Novo Botão Flutuante Fixo -->
+    <!-- BOTÃO DE ALTERNAR TEMA (claro/escuro) -->
+    <button
+      id="btn-tema"
+      type="button"
+      title="Alternar entre modo claro e escuro"
+      aria-label="Alternar tema"
+    >
+      <span id="tema-icone-sol">☀️</span>
+      <span class="trilho"
+        ><span class="bolinha" id="tema-bolinha"></span
+      ></span>
+      <span id="tema-icone-lua">🌙</span>
+    </button>
+
     <!-- Novo Botão Flutuante Fixo -->
     <button
       id="btn-toggle-menu"
@@ -412,7 +659,7 @@
                 display: block;
                 text-align: center;
                 font-size: 10px;
-                color: #888;
+                color: var(--texto-3);
                 margin-top: 4px;
               "
               >Deixe a data final vazia para ver apenas 1 mês</small
@@ -436,7 +683,11 @@
             type="file"
             id="arquivo"
             multiple
-            style="border: 1px solid #7f8c8d; background: #ecf0f1"
+            style="
+              border: 1px solid var(--input-arquivo-borda);
+              background: var(--input-arquivo-bg);
+              color: var(--texto-2);
+            "
           />
         </div>
         <button id="btn-enviar" class="btn-acao btn-upload">
@@ -473,18 +724,19 @@
 
       <!-- BARRA DIREITA -->
       <aside id="barra-direita">
-        <h4 style="text-align: center; color: #555; margin-bottom: 0">
+        <h4 style="text-align: center; color: var(--texto-2); margin-bottom: 0">
           Tendência (Mês a Mês)
         </h4>
 
         <!-- Esta DIV é a "jaula" que vai segurar o tamanho do gráfico -->
         <div
           style="
-            background-color: white;
+            background-color: var(--card-grafico);
+            border: 1px solid var(--borda-card);
             border-radius: 20px;
             padding: 15px;
             height: 300px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--sombra-card);
           "
         >
           <canvas id="chartTendencia"></canvas>
@@ -501,7 +753,7 @@
             margin-bottom: 5px;
           "
         >
-          <h4 style="text-align: center; color: #555; margin: 0">
+          <h4 style="text-align: center; color: var(--texto-2); margin: 0">
             Insight da IA
           </h4>
 
@@ -516,7 +768,7 @@
             <label
               class="form-check-label"
               for="toggle-ia"
-              style="font-size: 11px; color: #888; cursor: pointer"
+              style="font-size: 11px; color: var(--texto-3); cursor: pointer"
               >Ativar</label
             >
           </div>
@@ -526,17 +778,18 @@
         <div
           id="caixa-ia"
           style="
-            background-color: white;
+            background-color: var(--card-grafico);
+            border: 1px solid var(--borda-card);
             border-radius: 20px;
             padding: 20px;
             flex: 1;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--sombra-card);
             overflow-y: auto;
           "
         >
           <p
             style="
-              color: #888;
+              color: var(--texto-3);
               text-align: center;
               font-size: 14px;
               margin-top: 50px;
@@ -547,7 +800,7 @@
         </div>
         <p
           style="
-            color: #888;
+            color: var(--texto-3);
             text-align: center;
             font-size: 14px;
             margin-top: 50px;
@@ -783,11 +1036,102 @@
     // Endereço base da sua API no Render
     const API_URL = "https://api-validador-convenios.onrender.com";
 
+    // ===================== TEMA CLARO / ESCURO =====================
+    // Lê uma variável CSS do tema ativo (ex.: "--cor-integral") já resolvida como cor
+    function corTema(nomeVar) {
+      return getComputedStyle(document.documentElement)
+        .getPropertyValue(nomeVar)
+        .trim();
+    }
+
+    // Descobre a variável de cor de cada status. Usada na pizza, na legenda e na tendência
+    function chaveStatus(label) {
+      const texto = (label || "").toUpperCase();
+      if (texto.includes("ACATADO INTEGRAL") || texto === "ACATADO")
+        return "--cor-integral";
+      if (texto.includes("PARCIAL")) return "--cor-parcial";
+      if (texto.includes("ZERADO") || texto.includes("REJEITADO"))
+        return "--cor-rejeitado";
+      return "--cor-outros";
+    }
+
+    // Configura os padrões globais do Chart.js conforme o tema (texto, grades e borda da rosca)
+    function configurarPadroesChart() {
+      if (typeof Chart === "undefined") return;
+      Chart.defaults.color = corTema("--texto-grafico");
+      Chart.defaults.borderColor = corTema("--grade-grafico");
+      Chart.defaults.elements.arc.borderColor = corTema("--card-grafico");
+    }
+
+    // Repinta os gráficos JÁ desenhados, sem precisar buscar a API novamente
+    function repintarGraficos() {
+      if (typeof Chart === "undefined" || !Chart.instances) return;
+      configurarPadroesChart();
+
+      Object.values(Chart.instances).forEach((grafico) => {
+        const tipo = grafico.config.type;
+        const ds = grafico.data.datasets;
+
+        if (tipo === "doughnut" || tipo === "pie") {
+          ds[0].backgroundColor = grafico.data.labels.map((l) =>
+            corTema(chaveStatus(l)),
+          );
+        } else if (tipo === "bar") {
+          ds[0].backgroundColor = corTema("--cor-barras");
+          ds[0].borderRadius = 6;
+        } else if (tipo === "line") {
+          ds.forEach((d) => {
+            const cor =
+              d.label === "Acatado"
+                ? corTema("--cor-integral")
+                : d.label === "Parcial"
+                  ? corTema("--cor-parcial")
+                  : corTema("--cor-tendencia-rej");
+            d.borderColor = cor;
+            d.backgroundColor = cor + "22"; // transparência (hex 8 dígitos)
+            d.pointBackgroundColor = cor;
+          });
+        }
+        grafico.update();
+      });
+    }
+
+    function aplicarTema(tema) {
+      document.documentElement.setAttribute("data-theme", tema);
+      try {
+        localStorage.setItem("tema-dashboard", tema);
+      } catch (e) {}
+      const btn = document.getElementById("btn-tema");
+      if (btn) btn.setAttribute("aria-pressed", tema === "dark");
+      repintarGraficos();
+    }
+
+    document.getElementById("btn-tema").addEventListener("click", function () {
+      const atual = document.documentElement.getAttribute("data-theme");
+      aplicarTema(atual === "dark" ? "light" : "dark");
+    });
+
+    // Se o usuário NUNCA escolheu manualmente, acompanha mudanças do sistema operacional
+    if (window.matchMedia) {
+      window
+        .matchMedia("(prefers-color-scheme: dark)")
+        .addEventListener("change", (e) => {
+          let salvo = null;
+          try {
+            salvo = localStorage.getItem("tema-dashboard");
+          } catch (err) {}
+          if (!salvo) aplicarTema(e.matches ? "dark" : "light");
+        });
+    }
+    document.addEventListener("DOMContentLoaded", configurarPadroesChart);
+    // ===============================================================
+
     let chartPizzaInstancia = null;
     let chartBarrasInstancia = null;
     let chartTendenciaInstancia = null;
 
     async function carregarDashboard() {
+      configurarPadroesChart(); // garante as cores do tema atual antes de desenhar
       const btnFiltrar = document.getElementById("btn-buscar");
       const textoOriginal = btnFiltrar.innerHTML;
       try {
@@ -857,7 +1201,7 @@
           }
 
           areaCards.innerHTML = `
-                <div style="width: 100%; text-align: center; padding: 50px; color: #7f8c8d;">
+                <div style="width: 100%; text-align: center; padding: 50px; color: var(--texto-4);">
                     <h4 style="color: #e74c3c;">Aviso</h4>
                     <p>${mensagemErro}</p>
                 </div>
@@ -878,7 +1222,7 @@
           dados.cards_arquivos.length === 0
         ) {
           areaCards.innerHTML = `
-                <div style="width: 100%; text-align: center; padding: 50px; color: #7f8c8d;">
+                <div style="width: 100%; text-align: center; padding: 50px; color: var(--texto-4);">
                     <h4 style="color: #f39c12;">Nenhum dado encontrado</h4>
                     <p>Não existem registros para esta combinação de convênio, banco ou período.</p>
                 </div>
@@ -954,12 +1298,12 @@
             valorAnterior === null ||
             isNaN(valorAnterior)
           ) {
-            return `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(--)</span>`;
+            return `<span style="font-size: 11px; color: var(--texto-4); margin-left: 5px;">(--)</span>`;
           }
           if (valorAnterior === 0) {
             return valorAtual > 0
-              ? `<span style="font-size: 11px; color: #2ecc71; margin-left: 5px;">(+100,00%)</span>`
-              : `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(0,00%)</span>`;
+              ? `<span style="font-size: 11px; color: var(--cor-positivo); margin-left: 5px;">(+100,00%)</span>`
+              : `<span style="font-size: 11px; color: var(--texto-4); margin-left: 5px;">(0,00%)</span>`;
           }
 
           const diferenca =
@@ -967,24 +1311,19 @@
           const formatado = Math.abs(diferenca).toFixed(2).replace(".", ",");
 
           if (diferenca > 0) {
-            return `<span style="font-size: 11px; color: #2ecc71; margin-left: 5px;">(+${formatado}%)</span>`;
+            return `<span style="font-size: 11px; color: var(--cor-positivo); margin-left: 5px;">(+${formatado}%)</span>`;
           } else if (diferenca < 0) {
-            return `<span style="font-size: 11px; color: #e74c3c; margin-left: 5px;">(-${formatado}%)</span>`;
+            return `<span style="font-size: 11px; color: var(--cor-negativo); margin-left: 5px;">(-${formatado}%)</span>`;
           }
-          return `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(0,00%)</span>`;
+          return `<span style="font-size: 11px; color: var(--texto-4); margin-left: 5px;">(0,00%)</span>`;
         }
 
         // Varre a lista de arquivos e desenha os cards dinâmicos (renomeamos index para arquivoIndex)
         dados.cards_arquivos.forEach((arquivo, arquivoIndex) => {
-          const coresExatas = arquivo.grafico_pizza.labels.map((label) => {
-            const texto = label.toUpperCase();
-            if (texto.includes("ACATADO INTEGRAL") || texto === "ACATADO")
-              return "#2ea44f";
-            if (texto.includes("PARCIAL")) return "#f39c12";
-            if (texto.includes("ZERADO") || texto.includes("REJEITADO"))
-              return "#e74c3c";
-            return "#95a5a6";
-          });
+          // Cores resolvidas a partir do tema ativo (claro ou escuro)
+          const coresExatas = arquivo.grafico_pizza.labels.map((label) =>
+            corTema(chaveStatus(label)),
+          );
 
           // 2. CONSTRUÇÃO DO RESUMO FINANCEIRO
           const totalFinanceiro =
@@ -999,7 +1338,7 @@
             0,
           );
 
-          let htmlValores = `<div style="margin-top: 20px; background: #f4f6f9; border-radius: 8px; padding: 15px; width: 100%;">`;
+          let htmlValores = `<div style="margin-top: 20px; background: var(--card-resumo); border: 1px solid var(--borda-card); border-radius: 8px; padding: 15px; width: 100%;">`;
 
           // Variável para armazenar o arquivo do mês anterior (se existir)
           const arquivoAnterior =
@@ -1017,12 +1356,12 @@
               style: "currency",
               currency: "BRL",
             });
-            const cor = coresExatas[labelIndex];
+            const varCor = `var(${chaveStatus(label)})`;
 
             // Calcula a variação desta fatia específica
             let tagVariacaoFatia = "";
             if (!arquivoAnterior) {
-              tagVariacaoFatia = `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(--)</span>`;
+              tagVariacaoFatia = `<span style="font-size: 11px; color: var(--texto-4); margin-left: 5px;">(--)</span>`;
             } else {
               const valorAnteriorFatia =
                 arquivoAnterior.grafico_pizza.valores_financeiros[labelIndex] ||
@@ -1034,11 +1373,11 @@
             }
 
             htmlValores += `
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; border-left: 4px solid ${cor}; padding-left: 8px; font-size: 12px;">
-                        <span style="color: #555;">${label}</span>
-                        <span style="font-weight: bold; color: #333;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; border-left: 4px solid ${varCor}; background: color-mix(in srgb, ${varCor} 12%, transparent); border-radius: 0 6px 6px 0; padding: 6px 8px; font-size: 12px;">
+                        <span style="color: ${varCor}; font-weight: 600;">${label}</span>
+                        <span style="font-weight: bold; color: var(--texto-1);">
                             ${valorBRL}
-                            <span style="font-size: 10px; color: #888; margin-left: 5px;">(${percentual}%)</span>
+                            <span style="font-size: 10px; color: var(--texto-3); margin-left: 5px;">(${percentual}%)</span>
                             ${tagVariacaoFatia}
                         </span>
                     </div>
@@ -1053,7 +1392,7 @@
           // Calcula a variação do TOTAL GERAL
           let tagVariacaoTotal = "";
           if (!arquivoAnterior) {
-            tagVariacaoTotal = `<span style="font-size: 11px; color: #7f8c8d; margin-left: 5px;">(--)</span>`;
+            tagVariacaoTotal = `<span style="font-size: 11px; color: var(--texto-4); margin-left: 5px;">(--)</span>`;
           } else {
             const totalFinanceiroAnterior =
               arquivoAnterior.grafico_pizza.valores_financeiros.reduce(
@@ -1067,7 +1406,7 @@
           }
 
           htmlValores += `
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; border-top: 1px dashed #ccc; padding-top: 10px; font-weight: bold; font-size: 13px; color: #2c3e50;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; border-top: 1px dashed var(--linha); padding-top: 10px; font-weight: bold; font-size: 13px; color: var(--texto-1);">
                   <span>TOTAL PROCESSADO</span>
                   <span>${totalBRL} ${tagVariacaoTotal}</span>
               </div>
@@ -1076,7 +1415,7 @@
           // 3. Montagem do HTML (Substituindo o "0" fixo pela variável totalCasosBrutos)
           const cardHTML = `
                 <div class="card-arquivo">
-                    <h4 style="text-align: center; color: #555; margin-top: 0; margin-bottom: 20px;">${arquivo.nome_arquivo}</h4>
+                    <h4 style="text-align: center; color: var(--texto-2); margin-top: 0; margin-bottom: 20px;">${arquivo.nome_arquivo}</h4>
 
                     <div style="display: flex; gap: 20px; align-items: flex-start;">
                         <div style="flex: 1; min-width: 290px; display: flex; flex-direction: column; align-items: center;">
@@ -1084,16 +1423,16 @@
                                 <canvas id="pizza-${arquivo.id_arquivo}"></canvas>
 
                                 <div style="text-align: center; margin-top: 0px; margin-bottom: 20px;">
-                                    <span style="font-size: 12px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px;">Casos Processados</span>
+                                    <span style="font-size: 12px; color: var(--texto-4); text-transform: uppercase; letter-spacing: 1px;">Casos Processados</span>
                                     <br>
-                                    <strong style="font-size: 28px; color: #2c3e50;">${totalCasosBrutos.toLocaleString("pt-BR")}</strong>
+                                    <strong style="font-size: 28px; color: var(--texto-1);">${totalCasosBrutos.toLocaleString("pt-BR")}</strong>
                                 </div>
                             </div>
                             ${htmlValores}
                         </div>
 
                         <div style="flex: 1; min-width: 500px; display: flex; flex-direction: column;">
-                            <h5 style="text-align: center; margin-top: 0; margin-bottom: 10px; color: #666; font-size: 13px; font-weight: normal;">Volume de Inconsistências</h5>
+                            <h5 style="text-align: center; margin-top: 0; margin-bottom: 10px; color: var(--texto-2); font-size: 13px; font-weight: normal;">Volume de Inconsistências</h5>
                             <canvas id="barras-${arquivo.id_arquivo}"></canvas>
                         </div>
                     </div>
@@ -1160,7 +1499,8 @@
                   {
                     label: "Quantidade",
                     data: arquivo.grafico_barras.quantidades,
-                    backgroundColor: "#3498db",
+                    backgroundColor: corTema("--cor-barras"),
+                    borderRadius: 6,
                   },
                 ],
               },
@@ -1206,24 +1546,24 @@
               {
                 label: "Acatado",
                 data: dados.grafico_tendencia.aceitos,
-                borderColor: "#2ea44f",
-                backgroundColor: "rgba(46, 164, 79, 0.1)",
+                borderColor: corTema("--cor-integral"),
+                backgroundColor: corTema("--cor-integral") + "22",
                 fill: true,
                 tension: 0.3,
               },
               {
                 label: "Rejeitado",
                 data: dados.grafico_tendencia.rejeitados,
-                borderColor: "#d73a49",
-                backgroundColor: "rgba(215, 58, 73, 0.1)",
+                borderColor: corTema("--cor-tendencia-rej"),
+                backgroundColor: corTema("--cor-tendencia-rej") + "22",
                 fill: true,
                 tension: 0.3,
               },
               {
                 label: "Parcial",
                 data: dados.grafico_tendencia.parciais,
-                borderColor: "#f39c12",
-                backgroundColor: "rgba(215, 58, 73, 0.1)",
+                borderColor: corTema("--cor-parcial"),
+                backgroundColor: corTema("--cor-parcial") + "22",
                 fill: true,
                 tension: 0.3,
               },
@@ -1244,7 +1584,7 @@
         } else {
           // Se estiver desligado, limpa a caixa e avisa que está em modo de teste
           document.getElementById("caixa-ia").innerHTML =
-            '<p style="color: #aaa; text-align: center; font-size: 13px; margin-top: 50px;">⏸️ Modo de teste visual ativo.<br>Geração de insight desativada.</p>';
+            '<p style="color: var(--texto-3); text-align: center; font-size: 13px; margin-top: 50px;">⏸️ Modo de teste visual ativo.<br>Geração de insight desativada.</p>';
         }
         if (btnFiltrar) {
           btnFiltrar.classList.remove("btn-primary"); // Troque 'btn-primary' pela classe de cor original do seu botão, se for diferente
@@ -1269,7 +1609,7 @@
 
       // Mostra um indicador de carregamento charmoso enquanto o Python trabalha
       caixaIA.innerHTML =
-        '<p style="color: #888; text-align: center; font-size: 14px; margin-top: 50px;">⏳ A IA está analisando os resultados...</p>';
+        '<p style="color: var(--texto-3); text-align: center; font-size: 14px; margin-top: 50px;">⏳ A IA está analisando os resultados...</p>';
 
       try {
         const resposta = await fetch(
@@ -1297,10 +1637,10 @@
             dadosIA.status === "cache" ? "⚡ (Cache)" : "🤖 (Gerado)";
 
           caixaIA.innerHTML = `
-                <p style="color: #333; font-size: 13px; line-height: 1.6; text-align: justify; margin: 0;">
+                <p style="color: var(--texto-1); font-size: 13px; line-height: 1.6; text-align: justify; margin: 0;">
                     ${textoLimpo}
                 </p>
-                <div style="text-align: right; margin-top: 15px; font-size: 10px; color: #aaa;">
+                <div style="text-align: right; margin-top: 15px; font-size: 10px; color: var(--texto-3);">
                     ${iconeOrigem}
                 </div>
             `;

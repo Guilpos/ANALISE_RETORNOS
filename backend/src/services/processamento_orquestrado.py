@@ -41,6 +41,14 @@ def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, t
         else:
             df = pd.concat(lista_dfs, ignore_index=True)
 
+        if portal == "VIABILIZE":
+            # Ordena a lista de DataFrames do menor para o maior (em quantidade de linhas)
+            lista_dfs.sort(key=len)
+            df = pd.concat(lista_dfs, ignore_index=True)
+            df = df.drop_duplicates(subset=["Matrícula", "Rúbrica"], keep='first')
+        else:
+            df = pd.concat(lista_dfs, ignore_index=True)
+
         
     elif portal == "CIP":
         # Em vez de uma lista, usamos um dicionário para saber quem é quem
