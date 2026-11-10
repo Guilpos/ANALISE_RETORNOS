@@ -43,6 +43,11 @@ def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, t
             lista_dfs.sort(key=len)
             df = pd.concat(lista_dfs, ignore_index=True)
             df = df.drop_duplicates(subset=["Matrícula", "Rúbrica"], keep='first')
+        elif portal == "CODATA":
+            # Ordena a lista de DataFrames do menor para o maior (em quantidade de linhas)
+            lista_dfs.sort(key=len)
+            df = pd.concat(lista_dfs, ignore_index=True)
+            df = df.drop_duplicates(subset=["matricula", "NomeEntidade"], keep='first')
         else:
             df = pd.concat(lista_dfs, ignore_index=True)
 
