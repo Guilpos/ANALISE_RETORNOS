@@ -615,7 +615,7 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         df = df.iloc[1:].reset_index(drop=True)
             
         
-        df = df.rename(columns={"cpf": "CPF", "matricula": "Matrícula", 'valor_informado': 'Valor Lançado', 'valor_registrado': 'Valor Acatado', "crÃ­tica": "Crítica"})
+        df = df.rename(columns={"cpf": "CPF", "matricula": "Matrícula", 'valor_informado': 'Valor Lançado', 'valor_registrado': 'Valor Acatado', "crÃ­tica": "Crítica", "crítica": "Crítica"})
 
     if modelo == "SIGRH":
         df = df.rename(columns={'Valor_Parcela': 'Valor Lançado', "Motivo_Rejeicao": "Crítica"})
