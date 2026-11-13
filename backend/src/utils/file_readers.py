@@ -721,7 +721,7 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
 
     if modelo == 'CONSIGNET':        
         df.columns = df.iloc[3].astype(str).str.strip()
-        df = df[4:].reset_index(drop=True)
+        df = df.iloc[4:].reset_index(drop=True)
     
         print(f'Como está df antes de filtrar?\n{df.head(10)}\n\n')
     
