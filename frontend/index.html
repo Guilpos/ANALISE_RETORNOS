@@ -753,6 +753,8 @@
               <option value="86">86 - PREF. UBERABA</option>
               <option value="87">87 - GOV. TOCANTINS</option>
               <option value="88">88 - PREF. BAURU</option>
+              <option value="89">89 - PREF. ARARAQUARA</option>
+              <option value="90">90 - PREF. ARAPONGAS</option>
             </select>
           </div>
 
@@ -864,7 +866,7 @@
             </div>
           </div>
           <div class="painel-exibicao-linha">
-            <span>Variação</span>
+            <span>Variação (% / Δ)</span>
             <div class="seg" data-escopo="global" data-chave="variacao">
               <button
                 type="button"
@@ -876,10 +878,10 @@
               ><button
                 type="button"
                 class="seg-btn"
-                data-valor="valor"
-                title="Variação em valores monetários"
+                data-valor="abs"
+                title="Diferença direta (em casos ou em R$, conforme a rosquinha)"
               >
-                R$
+                Δ
               </button>
             </div>
           </div>
@@ -1365,7 +1367,7 @@
     const MODOS_VALIDOS = {
       pizza: ["qtd", "valor"],
       barras: ["qtd", "valor"],
-      variacao: ["pct", "valor"],
+      variacao: ["pct", "abs"], // pct = percentual | abs = diferença direta (casos ou R$)
       tendencia: ["qtd", "valor"],
     };
     // Estado "global" (painel esquerdo + tendência). Novos cards já nascem com ele.
@@ -1441,20 +1443,22 @@
       return linhas;
     }
 
-    // Variação (atual x anterior) em % ou em R$, conforme o modo escolhido
-    function tagVariacao(atual, anterior, modo) {
+    // Variação (atual x anterior).
+    //   modo    : "pct" (percentual) ou "abs" (diferença direta)
+    //   unidade : "qtd" (casos) ou "valor" (R$)  -> formata a diferença direta
+    function tagVariacao(atual, anterior, modo, unidade) {
       const est = (cor) => `font-size: 11px; color: ${cor}; margin-left: 5px;`;
-      const dica =
-        'title="Variação do valor financeiro em relação à competência anterior"';
+      const dica = `title="Variação em relação à competência anterior"`;
+      const fmt = unidade === "valor" ? fmtBRL : fmtInt;
       if (anterior === undefined || anterior === null || isNaN(anterior)) {
         return `<span style="${est("var(--texto-4)")}" ${dica}>(--)</span>`;
       }
-      if (modo === "valor") {
+      if (modo === "abs") {
         const dif = atual - anterior;
         if (Math.abs(dif) < 0.005)
-          return `<span style="${est("var(--texto-4)")}" ${dica}>(${fmtBRL(0)})</span>`;
+          return `<span style="${est("var(--texto-4)")}" ${dica}>(${fmt(0)})</span>`;
         const cor = dif > 0 ? "var(--cor-positivo)" : "var(--cor-negativo)";
-        return `<span style="${est(cor)}" ${dica}>(${dif > 0 ? "+" : "-"}${fmtBRL(Math.abs(dif))})</span>`;
+        return `<span style="${est(cor)}" ${dica}>(${dif > 0 ? "+" : "-"}${fmt(Math.abs(dif))})</span>`;
       }
       if (anterior === 0) {
         return atual > 0
@@ -1476,6 +1480,17 @@
       const i = grafico.labels.indexOf(label);
       return i >= 0 ? Number(grafico.valores_financeiros[i]) || 0 : 0;
     }
+    function qtdPorLabel(grafico, label) {
+      const i = grafico.labels.indexOf(label);
+      return i >= 0 ? Number(grafico.quantidades[i]) || 0 : 0;
+    }
+    function somaAceitosQtd(grafico) {
+      return grafico.labels.reduce(
+        (acc, l, i) =>
+          acc + (isAceito(l) ? Number(grafico.quantidades[i]) || 0 : 0),
+        0,
+      );
+    }
     function somaAceitos(grafico) {
       return grafico.labels.reduce(
         (acc, l, i) =>
@@ -1491,7 +1506,11 @@
     ];
     const OPC_VARIACAO = [
       ["pct", "%", "Variação em percentual"],
-      ["valor", "R$", "Variação em valores monetários"],
+      [
+        "abs",
+        "Δ",
+        "Diferença direta (em casos ou em R$, conforme a rosquinha)",
+      ],
     ];
     function segHTML(chave, atual, opcoes, attrs, desabilitarValor) {
       return (
@@ -1547,12 +1566,15 @@
       const est = estadoCards[id];
       const gp = arquivo.grafico_pizza;
       const gpAnt = anterior ? anterior.grafico_pizza : null;
-      const modoVar = est.variacao;
+      const modoVar = est.variacao; // "pct" | "abs"
       const emValor = est.pizza === "valor";
+      const unidade = emValor ? "valor" : "qtd"; // a variação das fatias segue a rosquinha
       const base = emValor ? gp.valores_financeiros : gp.quantidades;
       const totalBase = somar(base);
       const totalFin = somar(gp.valores_financeiros);
       const aceitoFin = somaAceitos(gp);
+      const totalQtd = somar(gp.quantidades);
+      const aceitoQtd = somaAceitosQtd(gp);
 
       let html = `<div class="resumo-topo">
           <span class="rotulo-controle">Variação vs. mês anterior</span>
@@ -1562,42 +1584,97 @@
       gp.labels.forEach((label, i) => {
         const varCor = `var(${chaveStatus(label)})`;
         const principal = emValor ? fmtBRL(base[i]) : fmtInt(base[i]);
-        const tag = tagVariacao(
-          Number(gp.valores_financeiros[i]) || 0,
-          gpAnt ? valorPorLabel(gpAnt, label) : null,
-          modoVar,
-        );
+        const atual = Number(base[i]) || 0;
+        const ant = gpAnt
+          ? emValor
+            ? valorPorLabel(gpAnt, label)
+            : qtdPorLabel(gpAnt, label)
+          : null;
         html += `
           <div style="display: flex; justify-content: space-between; margin-bottom: 8px; border-left: 4px solid ${varCor}; background: color-mix(in srgb, ${varCor} 12%, transparent); border-radius: 0 6px 6px 0; padding: 6px 8px; font-size: 12px;">
             <span style="color: ${varCor}; font-weight: 600;">${label}</span>
             <span style="font-weight: bold; color: var(--texto-1);">
               ${principal}
               <span style="font-size: 10px; color: var(--texto-3); margin-left: 5px;">(${pct1(base[i], totalBase)}%)</span>
-              ${tag}
+              ${tagVariacao(atual, ant, modoVar, unidade)}
             </span>
           </div>`;
       });
 
-      const tagTotal = tagVariacao(
-        totalFin,
-        gpAnt ? somar(gpAnt.valores_financeiros) : null,
-        modoVar,
-      );
-      const tagAceito = tagVariacao(
-        aceitoFin,
-        gpAnt ? somaAceitos(gpAnt) : null,
-        modoVar,
-      );
+      const linhaTotal = (
+        rotulo,
+        valorTxt,
+        tag,
+        extra = "",
+        cor = "var(--texto-1)",
+        dica = "",
+      ) => `
+        <div style="display: flex; justify-content: space-between; align-items: center; ${extra} font-weight: bold; font-size: 13px; color: ${cor};">
+          <span title="${dica}">${rotulo}</span>
+          <span>${valorTxt} ${tag}</span>
+        </div>`;
 
+      // Em modo "Qtde", mostramos também os totais em casos (variação em casos).
+      // Os totais em R$ continuam sempre visíveis, com variação em R$.
+      let primeiro = true;
+      const topo = () => {
+        const s = primeiro
+          ? "margin-top: 12px; border-top: 1px dashed var(--linha); padding-top: 10px;"
+          : "margin-top: 8px;";
+        primeiro = false;
+        return s;
+      };
+      if (!emValor) {
+        html += linhaTotal(
+          "TOTAL DE CASOS",
+          fmtInt(totalQtd),
+          tagVariacao(
+            totalQtd,
+            gpAnt ? somar(gpAnt.quantidades) : null,
+            modoVar,
+            "qtd",
+          ),
+          topo(),
+        );
+        html += linhaTotal(
+          "CASOS ACEITOS",
+          fmtInt(aceitoQtd),
+          tagVariacao(
+            aceitoQtd,
+            gpAnt ? somaAceitosQtd(gpAnt) : null,
+            modoVar,
+            "qtd",
+          ),
+          topo(),
+          "var(--cor-integral)",
+          "Acatado Integral + Acatado Parcial",
+        );
+      }
+      html += linhaTotal(
+        "TOTAL PROCESSADO",
+        fmtBRL(totalFin),
+        tagVariacao(
+          totalFin,
+          gpAnt ? somar(gpAnt.valores_financeiros) : null,
+          modoVar,
+          "valor",
+        ),
+        topo(),
+      );
+      html += linhaTotal(
+        "VALOR ACEITO",
+        fmtBRL(aceitoFin),
+        tagVariacao(
+          aceitoFin,
+          gpAnt ? somaAceitos(gpAnt) : null,
+          modoVar,
+          "valor",
+        ),
+        topo(),
+        "var(--cor-integral)",
+        "Acatado Integral + Acatado Parcial",
+      );
       html += `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; border-top: 1px dashed var(--linha); padding-top: 10px; font-weight: bold; font-size: 13px; color: var(--texto-1);">
-          <span>TOTAL PROCESSADO</span>
-          <span>${fmtBRL(totalFin)} ${tagTotal}</span>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-weight: bold; font-size: 13px; color: var(--cor-integral);">
-          <span title="Acatado Integral + Acatado Parcial">VALOR ACEITO</span>
-          <span>${fmtBRL(aceitoFin)} ${tagAceito}</span>
-        </div>
         <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 11px; color: var(--texto-3);">
           <span>Taxa de aceitação (valor aceito ÷ total)</span>
           <span>${pct1(aceitoFin, totalFin)}%</span>

@@ -719,4 +719,14 @@ def colunas_usadas(modelo, df: pd.DataFrame) -> pd.DataFrame:
         # Renomeia para o padrão final do seu sistema
         df.rename(columns={'Matricula': 'Matrícula', 'Valor': 'Valor Lançado', 'Erro': 'Crítica'}, inplace=True)
 
+    if modelo == 'CONSIGNET':        
+        df.columns = df.iloc[3]
+        df = df[4:].reset_index(drop=True)
+    
+        print(f'Como está df antes de filtrar?\n{df.head(10)}\n\n')
+    
+        df.rename(columns={"Vl. Total": "Valor Lançado", "Vl. Lançamento": "Valor Acatado"}, inplace=True)    
+    
+        df['Crítica'] = ''
+    
     return df

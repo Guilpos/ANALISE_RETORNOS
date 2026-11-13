@@ -93,7 +93,9 @@ def convenio_escolher():
     "85": "PREF. VÁRZEA GRANDE",
     "86": "PREF. UBERABA",
     "87": "GOV. TOCANTINS",
-    "88": "PREF. BAURU"
+    "88": "PREF. BAURU",
+    "89": "PREF. ARARAQUARA",
+    "90": "PREF. ARAPONGAS",
 }
 
     return mapa_convenios
@@ -187,9 +189,11 @@ def portal_escolhido(nome_convenio: str) -> list:
         
         "LINECONSIG": ["PREF. PICOS", "PREV. PICOS"],
         
-        "SAFECONSIG": ["PREF. TAUBATÉ", "PREF. SANTOS", "GOV. CEARÁ", "GOV. ALAGOAS", "PREF. CAUCAIA"],
+        "SAFECONSIG": ["PREF. TAUBATÉ", "PREF. SANTOS", "GOV. CEARÁ", "GOV. ALAGOAS", "PREF. CAUCAIA", "PREF. ARARAQUARA"],
 
         "CONSIGCARIOCA": ["PREF. RIO DE JANEIRO"],
+
+        "CONSIGNET": ["PREF. ARAPONGAS"],
         
         "CONSIGFACIL_1": ["GOV. MATO GROSSO",
                           "PREF. TUTÓIA",
