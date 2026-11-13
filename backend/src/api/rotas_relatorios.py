@@ -329,7 +329,8 @@ def obter_resumo_dashboard(
         SELECT 
             {coluna_agrupador} as id_agrupador,
             f.texto_critica_original,
-            COUNT(f.id) as quantidade
+            COUNT(f.id) as quantidade,
+            SUM(f.valor_lancado) as valor_financeiro  -- valor que se tentou lançar e foi rejeitado
         FROM fato_retornos f
         WHERE f.status_acatamento IN ('ZERADO/REJEITADO') 
           AND f.texto_critica_original IS NOT NULL
@@ -378,7 +379,7 @@ def obter_resumo_dashboard(
                 "nome_arquivo": nome_card,  
                 "competencia_ref": comp_ref,
                 "grafico_pizza": {"labels": [], "quantidades": [], "valores_financeiros": []},
-                "grafico_barras": {"labels": [], "quantidades": []}
+                "grafico_barras": {"labels": [], "quantidades": [], "valores_financeiros": []}
             }
         
         cards_arquivos[id_agrupador]["grafico_pizza"]["labels"].append(status)
@@ -390,10 +391,12 @@ def obter_resumo_dashboard(
         id_agrupador = str(row[0])
         critica = row[1] if row[1] else "ERRO DESCONHECIDO"
         qtd = row[2]
+        valor_fin = float(row[3] or 0.0)
 
         if id_agrupador in cards_arquivos:
             cards_arquivos[id_agrupador]["grafico_barras"]["labels"].append(critica)
             cards_arquivos[id_agrupador]["grafico_barras"]["quantidades"].append(qtd)
+            cards_arquivos[id_agrupador]["grafico_barras"]["valores_financeiros"].append(valor_fin)
 
     # =================================================================
     # 5. ORDENAÇÃO DOS DADOS (DO MAIOR PARA O MENOR)
@@ -416,12 +419,13 @@ def obter_resumo_dashboard(
         barras = dados_arq["grafico_barras"]
         if len(barras["labels"]) > 0:
             barras_ordenadas = sorted(
-                zip(barras["labels"], barras["quantidades"]), 
+                zip(barras["labels"], barras["quantidades"], barras["valores_financeiros"]), 
                 key=lambda x: x[1], 
                 reverse=True
             )
             barras["labels"] = [item[0] for item in barras_ordenadas]
             barras["quantidades"] = [item[1] for item in barras_ordenadas]
+            barras["valores_financeiros"] = [item[2] for item in barras_ordenadas]
 
     # Convertendo para lista final que vai pro JavaScript
     lista_de_cards = list(cards_arquivos.values())
@@ -435,7 +439,13 @@ def obter_resumo_dashboard(
         SELECT 
             DATE_FORMAT(f.competencia, '%m/%Y') as mes_ano, 
             f.status_acatamento, 
-            COUNT(f.id) as quantidade
+            COUNT(f.id) as quantidade,
+            SUM(
+                CASE 
+                    WHEN f.status_acatamento = 'ACATADO PARCIAL' THEN f.valor_acatado
+                    ELSE f.valor_lancado
+                END
+            ) as valor_financeiro  -- mesma regra da rosquinha, para os números baterem
         FROM fato_retornos f
         WHERE f.status_acatamento IS NOT NULL {clausula_where}
         GROUP BY mes_ano, f.status_acatamento
@@ -452,30 +462,45 @@ def obter_resumo_dashboard(
     linha_aceitos = {}
     linha_rejeitados = {}
     linha_parciais = {}
+    # NOVO: mesmas séries, porém em valores monetários (R$)
+    valor_aceitos = {}
+    valor_rejeitados = {}
+    valor_parciais = {}
     
     for row in resultado_tendencia:
         mes = row[0]
         status = row[1].upper() if row[1] else ""
         qtd = row[2]
+        valor = float(row[3] or 0.0)
 
         if mes not in meses_unicos:
             meses_unicos.append(mes)
             linha_aceitos[mes] = 0
             linha_rejeitados[mes] = 0
             linha_parciais[mes] = 0
+            valor_aceitos[mes] = 0.0
+            valor_rejeitados[mes] = 0.0
+            valor_parciais[mes] = 0.0
 
         if "ACATADO" in status and "INTEGRAL" in status:
             linha_aceitos[mes] += qtd
+            valor_aceitos[mes] += valor
         elif "ACATADO" in status and "PARCIAL" in status:
             linha_parciais[mes] += qtd
+            valor_parciais[mes] += valor
         elif "REJEITADO" in status or "ZERADO" in status:
             linha_rejeitados[mes] += qtd
+            valor_rejeitados[mes] += valor
 
     dados_tendencia = {
         "labels": meses_unicos,
         "aceitos": [linha_aceitos[mes] for mes in meses_unicos],
         "parciais": [linha_parciais[mes] for mes in meses_unicos],
-        "rejeitados": [linha_rejeitados[mes] for mes in meses_unicos]
+        "rejeitados": [linha_rejeitados[mes] for mes in meses_unicos],
+        # NOVO: séries em R$ (o front usa quando o botão "R$" da tendência está ativo)
+        "aceitos_valor": [round(valor_aceitos[mes], 2) for mes in meses_unicos],
+        "parciais_valor": [round(valor_parciais[mes], 2) for mes in meses_unicos],
+        "rejeitados_valor": [round(valor_rejeitados[mes], 2) for mes in meses_unicos]
     }
 
     return {

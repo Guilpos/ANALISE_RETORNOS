@@ -464,6 +464,150 @@
         background-color: #0d6efd; /* Azul do Bootstrap, por exemplo */
       }
     </style>
+    <style>
+      /* =====================================================
+         MODOS DE EXIBIÇÃO (botões segmentados Qtde | R$ | %)
+         ===================================================== */
+      :root {
+        --seg-bg: #e6eaf1;
+        --seg-txt: #5b6676;
+        --seg-ativo-bg: #ffffff;
+        --seg-ativo-txt: #1f2d3d;
+        --seg-sombra: 0 1px 3px rgba(0, 0, 0, 0.18);
+      }
+      [data-theme="dark"] {
+        --seg-bg: #0f172a;
+        --seg-txt: #94a3b8;
+        --seg-ativo-bg: #4f46e5;
+        --seg-ativo-txt: #ffffff;
+        --seg-sombra: none;
+      }
+      .seg {
+        display: inline-flex;
+        gap: 2px;
+        padding: 2px;
+        border-radius: 8px;
+        background: var(--seg-bg);
+        border: 1px solid var(--borda-card);
+        flex-shrink: 0;
+      }
+      .seg-btn {
+        border: 0;
+        background: transparent;
+        color: var(--seg-txt);
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 1.4;
+        padding: 3px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition:
+          background 0.2s ease,
+          color 0.2s ease;
+      }
+      .seg-btn:hover:not(.ativo):not(:disabled) {
+        color: var(--texto-1);
+      }
+      .seg-btn.ativo {
+        background: var(--seg-ativo-bg);
+        color: var(--seg-ativo-txt);
+        box-shadow: var(--seg-sombra);
+      }
+      .seg-btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .controle-linha {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
+        margin-bottom: 10px;
+      }
+      .rotulo-controle {
+        font-size: 11px;
+        color: var(--texto-4);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .resumo-card {
+        margin-top: 20px;
+        width: 100%;
+        padding: 15px;
+        border-radius: 8px;
+        background: var(--card-resumo);
+        border: 1px solid var(--borda-card);
+      }
+      .resumo-topo {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .cabecalho-tendencia {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      /* Painel "Exibição dos cards" (barra esquerda) */
+      .painel-exibicao {
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 12px;
+        padding: 12px 14px;
+        color: #fff;
+      }
+      .painel-exibicao-titulo {
+        font-size: 12px;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 10px;
+        letter-spacing: 0.4px;
+      }
+      .painel-exibicao-linha {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 12px;
+      }
+      .painel-exibicao small {
+        display: block;
+        text-align: center;
+        font-size: 10px;
+        opacity: 0.8;
+        margin-top: 4px;
+      }
+      .painel-exibicao .seg {
+        background: rgba(0, 0, 0, 0.25);
+        border-color: transparent;
+      }
+      .painel-exibicao .seg-btn {
+        color: rgba(255, 255, 255, 0.8);
+      }
+      .painel-exibicao .seg-btn:hover:not(.ativo):not(:disabled) {
+        color: #fff;
+      }
+      .painel-exibicao .seg-btn.ativo {
+        background: #fff;
+        color: #4c1d95;
+        box-shadow: none;
+      }
+      [data-theme="dark"] .painel-exibicao .seg-btn.ativo {
+        background: #4f46e5;
+        color: #fff;
+      }
+      /* Com o novo bloco "Exibição dos cards", o painel esquerdo pode passar da altura da tela */
+      .barra-esquerda {
+        overflow-y: auto;
+        box-sizing: border-box;
+      }
+    </style>
   </head>
   <body>
     <!-- Novo Botão Flutuante Fixo -->
@@ -676,6 +820,77 @@
 
         <hr class="divisor-linha" />
 
+        <!-- EXIBIÇÃO DOS CARDS: altera todos os cards de uma vez -->
+        <div class="painel-exibicao">
+          <div class="painel-exibicao-titulo">Exibição dos cards</div>
+          <div class="painel-exibicao-linha">
+            <span>Rosquinha</span>
+            <div class="seg" data-escopo="global" data-chave="pizza">
+              <button
+                type="button"
+                class="seg-btn"
+                data-valor="qtd"
+                title="Mostrar quantidade de casos"
+              >
+                Qtde</button
+              ><button
+                type="button"
+                class="seg-btn"
+                data-valor="valor"
+                title="Mostrar valores monetários"
+              >
+                R$
+              </button>
+            </div>
+          </div>
+          <div class="painel-exibicao-linha">
+            <span>Barras</span>
+            <div class="seg" data-escopo="global" data-chave="barras">
+              <button
+                type="button"
+                class="seg-btn"
+                data-valor="qtd"
+                title="Mostrar quantidade de casos"
+              >
+                Qtde</button
+              ><button
+                type="button"
+                class="seg-btn"
+                data-valor="valor"
+                title="Mostrar valores monetários"
+              >
+                R$
+              </button>
+            </div>
+          </div>
+          <div class="painel-exibicao-linha">
+            <span>Variação</span>
+            <div class="seg" data-escopo="global" data-chave="variacao">
+              <button
+                type="button"
+                class="seg-btn"
+                data-valor="pct"
+                title="Variação em percentual"
+              >
+                %</button
+              ><button
+                type="button"
+                class="seg-btn"
+                data-valor="valor"
+                title="Variação em valores monetários"
+              >
+                R$
+              </button>
+            </div>
+          </div>
+          <small
+            >Vale para todos os cards. Cada card também tem seus próprios
+            botões.</small
+          >
+        </div>
+
+        <hr class="divisor-linha" />
+
         <!-- 2º BOTÃO: UPLOAD DE NOVO ARQUIVO -->
         <div class="grupo-form" style="margin-top: 5px">
           <label>Arquivo de Retorno (.csv, .xlsx)</label>
@@ -724,9 +939,28 @@
 
       <!-- BARRA DIREITA -->
       <aside id="barra-direita">
-        <h4 style="text-align: center; color: var(--texto-2); margin-bottom: 0">
-          Tendência (Mês a Mês)
-        </h4>
+        <div class="cabecalho-tendencia">
+          <h4 style="color: var(--texto-2); margin: 0">
+            Tendência (Mês a Mês)
+          </h4>
+          <div class="seg" data-escopo="tendencia" data-chave="tendencia">
+            <button
+              type="button"
+              class="seg-btn"
+              data-valor="qtd"
+              title="Mostrar quantidade de casos"
+            >
+              Qtde</button
+            ><button
+              type="button"
+              class="seg-btn"
+              data-valor="valor"
+              title="Mostrar valores monetários"
+            >
+              R$
+            </button>
+          </div>
+        </div>
 
         <!-- Esta DIV é a "jaula" que vai segurar o tamanho do gráfico -->
         <div
@@ -1126,6 +1360,580 @@
     document.addEventListener("DOMContentLoaded", configurarPadroesChart);
     // ===============================================================
 
+    // ===================== MODOS DE EXIBIÇÃO (Qtde / R$ / %) =====================
+    const CHAVE_MODOS = "modos-exibicao-dashboard";
+    const MODOS_VALIDOS = {
+      pizza: ["qtd", "valor"],
+      barras: ["qtd", "valor"],
+      variacao: ["pct", "valor"],
+      tendencia: ["qtd", "valor"],
+    };
+    // Estado "global" (painel esquerdo + tendência). Novos cards já nascem com ele.
+    const estadoGlobal = {
+      pizza: "qtd",
+      barras: "qtd",
+      variacao: "pct",
+      tendencia: "qtd",
+    };
+    try {
+      const salvo = JSON.parse(localStorage.getItem(CHAVE_MODOS) || "{}");
+      Object.keys(estadoGlobal).forEach((k) => {
+        if (MODOS_VALIDOS[k].includes(salvo[k])) estadoGlobal[k] = salvo[k];
+      });
+    } catch (e) {}
+    function salvarModos() {
+      try {
+        localStorage.setItem(CHAVE_MODOS, JSON.stringify(estadoGlobal));
+      } catch (e) {}
+    }
+
+    // Dados e estado de cada card, indexados por id_arquivo
+    const cardsDados = {}; // { id: { arquivo, anterior } }
+    const estadoCards = {}; // { id: { pizza, barras, variacao } }
+    const graficosCards = {}; // { id: { pizza: Chart, barras: Chart } }
+    let dadosTendencia = null;
+
+    // ---------- Formatadores ----------
+    const fmtBRL = (v) =>
+      (Number(v) || 0).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      });
+    const fmtInt = (v) => (Number(v) || 0).toLocaleString("pt-BR");
+    const fmtCompacto = (v) => {
+      try {
+        return new Intl.NumberFormat("pt-BR", {
+          style: "currency",
+          currency: "BRL",
+          notation: "compact",
+          maximumFractionDigits: 1,
+        }).format(v);
+      } catch (e) {
+        return fmtBRL(v);
+      }
+    };
+    const somar = (arr) =>
+      (arr || []).reduce((a, b) => a + (Number(b) || 0), 0);
+    const pct1 = (parte, total) =>
+      total > 0 ? ((parte / total) * 100).toFixed(1).replace(".", ",") : "0,0";
+
+    function isAceito(label) {
+      const c = chaveStatus(label);
+      return c === "--cor-integral" || c === "--cor-parcial";
+    }
+
+    // Quebra textos longos para o Chart.js ler como múltiplas linhas
+    function formatarLabelMultiplasLinhas(texto, tamanhoMaximo = 20) {
+      if (!texto) return ["Não Informado"];
+      if (texto.length <= tamanhoMaximo) return texto;
+      const palavras = texto.split(" ");
+      const linhas = [];
+      let linhaAtual = "";
+      palavras.forEach((palavra) => {
+        if ((linhaAtual + palavra).length > tamanhoMaximo) {
+          if (linhaAtual.trim() !== "") linhas.push(linhaAtual.trim());
+          linhaAtual = palavra + " ";
+        } else {
+          linhaAtual += palavra + " ";
+        }
+      });
+      if (linhaAtual.trim() !== "") linhas.push(linhaAtual.trim());
+      return linhas;
+    }
+
+    // Variação (atual x anterior) em % ou em R$, conforme o modo escolhido
+    function tagVariacao(atual, anterior, modo) {
+      const est = (cor) => `font-size: 11px; color: ${cor}; margin-left: 5px;`;
+      const dica =
+        'title="Variação do valor financeiro em relação à competência anterior"';
+      if (anterior === undefined || anterior === null || isNaN(anterior)) {
+        return `<span style="${est("var(--texto-4)")}" ${dica}>(--)</span>`;
+      }
+      if (modo === "valor") {
+        const dif = atual - anterior;
+        if (Math.abs(dif) < 0.005)
+          return `<span style="${est("var(--texto-4)")}" ${dica}>(${fmtBRL(0)})</span>`;
+        const cor = dif > 0 ? "var(--cor-positivo)" : "var(--cor-negativo)";
+        return `<span style="${est(cor)}" ${dica}>(${dif > 0 ? "+" : "-"}${fmtBRL(Math.abs(dif))})</span>`;
+      }
+      if (anterior === 0) {
+        return atual > 0
+          ? `<span style="${est("var(--cor-positivo)")}" ${dica}>(+100,00%)</span>`
+          : `<span style="${est("var(--texto-4)")}" ${dica}>(0,00%)</span>`;
+      }
+      const diferenca = ((atual - anterior) / anterior) * 100;
+      const formatado = Math.abs(diferenca).toFixed(2).replace(".", ",");
+      if (diferenca > 0)
+        return `<span style="${est("var(--cor-positivo)")}" ${dica}>(+${formatado}%)</span>`;
+      if (diferenca < 0)
+        return `<span style="${est("var(--cor-negativo)")}" ${dica}>(-${formatado}%)</span>`;
+      return `<span style="${est("var(--texto-4)")}" ${dica}>(0,00%)</span>`;
+    }
+
+    // Valor financeiro de uma fatia do card anterior, localizada pelo NOME do status
+    // (e não pela posição, pois a ordem das fatias pode mudar de um mês para outro)
+    function valorPorLabel(grafico, label) {
+      const i = grafico.labels.indexOf(label);
+      return i >= 0 ? Number(grafico.valores_financeiros[i]) || 0 : 0;
+    }
+    function somaAceitos(grafico) {
+      return grafico.labels.reduce(
+        (acc, l, i) =>
+          acc + (isAceito(l) ? Number(grafico.valores_financeiros[i]) || 0 : 0),
+        0,
+      );
+    }
+
+    // ---------- Botões segmentados ----------
+    const OPC_QTD_VALOR = [
+      ["qtd", "Qtde", "Mostrar quantidade de casos"],
+      ["valor", "R$", "Mostrar valores monetários"],
+    ];
+    const OPC_VARIACAO = [
+      ["pct", "%", "Variação em percentual"],
+      ["valor", "R$", "Variação em valores monetários"],
+    ];
+    function segHTML(chave, atual, opcoes, attrs, desabilitarValor) {
+      return (
+        `<div class="seg" ${attrs} data-chave="${chave}" role="group">` +
+        opcoes
+          .map(([v, t, dica]) => {
+            const off = desabilitarValor && v === "valor";
+            return `<button type="button" class="seg-btn${v === atual ? " ativo" : ""}" data-valor="${v}" aria-pressed="${v === atual}" ${off ? "disabled" : ""} title="${off ? "A API ainda não envia os valores monetários deste gráfico" : dica}">${t}</button>`;
+          })
+          .join("") +
+        `</div>`
+      );
+    }
+    function setSegAtivo(seg, valor) {
+      seg.querySelectorAll(".seg-btn").forEach((b) => {
+        const on = b.dataset.valor === valor;
+        b.classList.toggle("ativo", on);
+        b.setAttribute("aria-pressed", on);
+      });
+    }
+    function sincronizarSegGlobais() {
+      document.querySelectorAll(".seg[data-escopo]").forEach((seg) => {
+        setSegAtivo(seg, estadoGlobal[seg.dataset.chave]);
+      });
+    }
+    function sincronizarSegCard(id) {
+      const el = document.getElementById(`card-${id}`);
+      if (!el) return;
+      el.querySelectorAll(".seg[data-card]").forEach((seg) => {
+        setSegAtivo(seg, estadoCards[id][seg.dataset.chave]);
+      });
+    }
+
+    // ---------- Blocos de HTML do card ----------
+    function htmlCentro(arquivo, modo) {
+      const gp = arquivo.grafico_pizza;
+      const rotulo = (t) =>
+        `<span style="font-size: 12px; color: var(--texto-4); text-transform: uppercase; letter-spacing: 1px;">${t}</span><br>`;
+      if (modo === "valor") {
+        return (
+          rotulo("Total Processado") +
+          `<strong style="font-size: 22px; color: var(--texto-1);">${fmtBRL(somar(gp.valores_financeiros))}</strong>`
+        );
+      }
+      return (
+        rotulo("Casos Processados") +
+        `<strong style="font-size: 28px; color: var(--texto-1);">${fmtInt(somar(gp.quantidades))}</strong>`
+      );
+    }
+
+    function htmlResumo(id) {
+      const { arquivo, anterior } = cardsDados[id];
+      const est = estadoCards[id];
+      const gp = arquivo.grafico_pizza;
+      const gpAnt = anterior ? anterior.grafico_pizza : null;
+      const modoVar = est.variacao;
+      const emValor = est.pizza === "valor";
+      const base = emValor ? gp.valores_financeiros : gp.quantidades;
+      const totalBase = somar(base);
+      const totalFin = somar(gp.valores_financeiros);
+      const aceitoFin = somaAceitos(gp);
+
+      let html = `<div class="resumo-topo">
+          <span class="rotulo-controle">Variação vs. mês anterior</span>
+          ${segHTML("variacao", est.variacao, OPC_VARIACAO, `data-card="${id}"`)}
+        </div>`;
+
+      gp.labels.forEach((label, i) => {
+        const varCor = `var(${chaveStatus(label)})`;
+        const principal = emValor ? fmtBRL(base[i]) : fmtInt(base[i]);
+        const tag = tagVariacao(
+          Number(gp.valores_financeiros[i]) || 0,
+          gpAnt ? valorPorLabel(gpAnt, label) : null,
+          modoVar,
+        );
+        html += `
+          <div style="display: flex; justify-content: space-between; margin-bottom: 8px; border-left: 4px solid ${varCor}; background: color-mix(in srgb, ${varCor} 12%, transparent); border-radius: 0 6px 6px 0; padding: 6px 8px; font-size: 12px;">
+            <span style="color: ${varCor}; font-weight: 600;">${label}</span>
+            <span style="font-weight: bold; color: var(--texto-1);">
+              ${principal}
+              <span style="font-size: 10px; color: var(--texto-3); margin-left: 5px;">(${pct1(base[i], totalBase)}%)</span>
+              ${tag}
+            </span>
+          </div>`;
+      });
+
+      const tagTotal = tagVariacao(
+        totalFin,
+        gpAnt ? somar(gpAnt.valores_financeiros) : null,
+        modoVar,
+      );
+      const tagAceito = tagVariacao(
+        aceitoFin,
+        gpAnt ? somaAceitos(gpAnt) : null,
+        modoVar,
+      );
+
+      html += `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; border-top: 1px dashed var(--linha); padding-top: 10px; font-weight: bold; font-size: 13px; color: var(--texto-1);">
+          <span>TOTAL PROCESSADO</span>
+          <span>${fmtBRL(totalFin)} ${tagTotal}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-weight: bold; font-size: 13px; color: var(--cor-integral);">
+          <span title="Acatado Integral + Acatado Parcial">VALOR ACEITO</span>
+          <span>${fmtBRL(aceitoFin)} ${tagAceito}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 4px; font-size: 11px; color: var(--texto-3);">
+          <span>Taxa de aceitação (valor aceito ÷ total)</span>
+          <span>${pct1(aceitoFin, totalFin)}%</span>
+        </div>`;
+      return html;
+    }
+
+    function htmlCard(id) {
+      const { arquivo } = cardsDados[id];
+      const est = estadoCards[id];
+      const semValorBarras = !Array.isArray(
+        arquivo.grafico_barras.valores_financeiros,
+      );
+      return `
+        <div class="card-arquivo" id="card-${id}">
+          <h4 style="text-align: center; color: var(--texto-2); margin-top: 0; margin-bottom: 20px;">${arquivo.nome_arquivo}</h4>
+
+          <div style="display: flex; gap: 20px; align-items: flex-start;">
+            <div style="flex: 1; min-width: 290px; display: flex; flex-direction: column; align-items: center;">
+              <div class="controle-linha">
+                <span class="rotulo-controle">Rosquinha</span>
+                ${segHTML("pizza", est.pizza, OPC_QTD_VALOR, `data-card="${id}"`)}
+              </div>
+              <div style="width: 100%; max-width: 220px;">
+                <canvas id="pizza-${id}"></canvas>
+                <div id="centro-${id}" style="text-align: center; margin-top: 0px; margin-bottom: 20px;">${htmlCentro(arquivo, est.pizza)}</div>
+              </div>
+              <div class="resumo-card" id="resumo-${id}">${htmlResumo(id)}</div>
+            </div>
+
+            <div style="flex: 1; min-width: 500px; display: flex; flex-direction: column;">
+              <div class="controle-linha" style="justify-content: space-between;">
+                <h5 style="margin: 0; color: var(--texto-2); font-size: 13px; font-weight: normal;">Volume de Inconsistências</h5>
+                ${segHTML("barras", est.barras, OPC_QTD_VALOR, `data-card="${id}"`, semValorBarras)}
+              </div>
+              <canvas id="barras-${id}"></canvas>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // ---------- Gráficos do card ----------
+    function modoBarras(id) {
+      const { arquivo } = cardsDados[id];
+      return estadoCards[id].barras === "valor" &&
+        Array.isArray(arquivo.grafico_barras.valores_financeiros)
+        ? "valor"
+        : "qtd";
+    }
+    function dadosBarras(id) {
+      const gb = cardsDados[id].arquivo.grafico_barras;
+      return modoBarras(id) === "valor"
+        ? gb.valores_financeiros
+        : gb.quantidades;
+    }
+    const rotuloEixoBarras = (modo) =>
+      modo === "valor"
+        ? "Valor lançado e rejeitado (R$)"
+        : "Quantidade de casos";
+
+    function desenharGraficosCard(id) {
+      const { arquivo } = cardsDados[id];
+      const gp = arquivo.grafico_pizza;
+      const gb = arquivo.grafico_barras;
+      const cores = gp.labels.map((l) => corTema(chaveStatus(l)));
+
+      const pizza = new Chart(
+        document.getElementById(`pizza-${id}`).getContext("2d"),
+        {
+          type: "doughnut",
+          data: {
+            labels: gp.labels,
+            datasets: [
+              {
+                data:
+                  estadoCards[id].pizza === "valor"
+                    ? gp.valores_financeiros
+                    : gp.quantidades,
+                backgroundColor: cores,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function (ctx) {
+                    const p = pct1(ctx.raw, somar(ctx.dataset.data));
+                    return estadoCards[id].pizza === "valor"
+                      ? `${fmtBRL(ctx.raw)} (${p}%)`
+                      : `${fmtInt(ctx.raw)} registros (${p}%)`;
+                  },
+                },
+              },
+            },
+          },
+        },
+      );
+
+      const modoInicial = modoBarras(id);
+      const barras = new Chart(
+        document.getElementById(`barras-${id}`).getContext("2d"),
+        {
+          type: "bar",
+          data: {
+            labels: gb.labels.map((l) => formatarLabelMultiplasLinhas(l, 25)),
+            datasets: [
+              {
+                label: modoInicial === "valor" ? "Valor (R$)" : "Quantidade",
+                data: dadosBarras(id),
+                backgroundColor: corTema("--cor-barras"),
+                borderRadius: 6,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function (ctx) {
+                    const p = pct1(ctx.raw, somar(ctx.dataset.data));
+                    return modoBarras(id) === "valor"
+                      ? `${fmtBRL(ctx.raw)} (${p}%)`
+                      : `${fmtInt(ctx.raw)} registros (${p}%)`;
+                  },
+                },
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                title: { display: true, text: rotuloEixoBarras(modoInicial) },
+                ticks: {
+                  callback: (v) =>
+                    modoBarras(id) === "valor" ? fmtCompacto(v) : fmtInt(v),
+                },
+              },
+            },
+          },
+        },
+      );
+
+      graficosCards[id] = { pizza, barras };
+    }
+
+    function atualizarPizza(id) {
+      const { arquivo } = cardsDados[id];
+      const modo = estadoCards[id].pizza;
+      const g = graficosCards[id].pizza;
+      g.data.datasets[0].data =
+        modo === "valor"
+          ? arquivo.grafico_pizza.valores_financeiros
+          : arquivo.grafico_pizza.quantidades;
+      g.update();
+      document.getElementById(`centro-${id}`).innerHTML = htmlCentro(
+        arquivo,
+        modo,
+      );
+      atualizarResumo(id); // a legenda acompanha o modo da rosquinha
+    }
+    function atualizarBarras(id) {
+      const g = graficosCards[id].barras;
+      const modo = modoBarras(id);
+      g.data.datasets[0].data = dadosBarras(id);
+      g.data.datasets[0].label = modo === "valor" ? "Valor (R$)" : "Quantidade";
+      g.options.scales.y.title.text = rotuloEixoBarras(modo);
+      g.update();
+    }
+    function atualizarResumo(id) {
+      document.getElementById(`resumo-${id}`).innerHTML = htmlResumo(id);
+    }
+    function atualizarCard(id, chave) {
+      sincronizarSegCard(id);
+      if (chave === "pizza") atualizarPizza(id);
+      else if (chave === "barras") atualizarBarras(id);
+      else if (chave === "variacao") atualizarResumo(id);
+    }
+
+    // ---------- Cards: criação e limpeza ----------
+    function destruirGraficosCards() {
+      Object.values(graficosCards).forEach((g) => {
+        g.pizza.destroy();
+        g.barras.destroy();
+      });
+      [graficosCards, cardsDados, estadoCards].forEach((o) =>
+        Object.keys(o).forEach((k) => delete o[k]),
+      );
+    }
+    function renderizarCards(dados) {
+      const areaCards = document.getElementById("area-cards");
+      dados.cards_arquivos.forEach((arquivo, idx) => {
+        const id = String(arquivo.id_arquivo);
+        cardsDados[id] = {
+          arquivo,
+          anterior: idx > 0 ? dados.cards_arquivos[idx - 1] : null, // cards já vêm ordenados por competência
+        };
+        // Cada card nasce com o modo que estiver no painel esquerdo
+        estadoCards[id] = {
+          pizza: estadoGlobal.pizza,
+          barras: estadoGlobal.barras,
+          variacao: estadoGlobal.variacao,
+        };
+        areaCards.insertAdjacentHTML("beforeend", htmlCard(id));
+        desenharGraficosCard(id);
+      });
+    }
+
+    // ---------- Tendência ----------
+    const temValorTendencia = () =>
+      !!dadosTendencia && Array.isArray(dadosTendencia.aceitos_valor);
+    const modoTendencia = () =>
+      estadoGlobal.tendencia === "valor" && temValorTendencia()
+        ? "valor"
+        : "qtd";
+    function serieTendencia(chave) {
+      return modoTendencia() === "valor"
+        ? dadosTendencia[chave + "_valor"]
+        : dadosTendencia[chave];
+    }
+    function atualizarDisponibilidadeTendencia() {
+      const btn = document.querySelector(
+        '.seg[data-escopo="tendencia"] .seg-btn[data-valor="valor"]',
+      );
+      if (!btn) return;
+      const ok = !dadosTendencia || temValorTendencia();
+      btn.disabled = !ok;
+      btn.title = ok
+        ? "Mostrar valores monetários"
+        : "A API ainda não envia os valores monetários da tendência";
+    }
+    function desenharTendencia() {
+      if (!dadosTendencia) return;
+      const ctx = document.getElementById("chartTendencia").getContext("2d");
+      if (chartTendenciaInstancia) chartTendenciaInstancia.destroy();
+      const serie = (label, chave, cor) => ({
+        label,
+        data: serieTendencia(chave),
+        borderColor: corTema(cor),
+        backgroundColor: corTema(cor) + "22",
+        pointBackgroundColor: corTema(cor),
+        fill: true,
+        tension: 0.3,
+      });
+      chartTendenciaInstancia = new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: dadosTendencia.labels,
+          datasets: [
+            serie("Acatado", "aceitos", "--cor-integral"),
+            serie("Rejeitado", "rejeitados", "--cor-tendencia-rej"),
+            serie("Parcial", "parciais", "--cor-parcial"),
+          ],
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "top" },
+            tooltip: {
+              callbacks: {
+                label: (c) =>
+                  `${c.dataset.label}: ${modoTendencia() === "valor" ? fmtBRL(c.raw) : fmtInt(c.raw)}`,
+              },
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text:
+                  modoTendencia() === "valor"
+                    ? "Valor (R$)"
+                    : "Quantidade de casos",
+              },
+              ticks: {
+                callback: (v) =>
+                  modoTendencia() === "valor" ? fmtCompacto(v) : fmtInt(v),
+              },
+            },
+          },
+        },
+      });
+      atualizarDisponibilidadeTendencia();
+    }
+    function atualizarTendencia() {
+      if (!chartTendenciaInstancia || !dadosTendencia) return;
+      const g = chartTendenciaInstancia;
+      g.data.datasets[0].data = serieTendencia("aceitos");
+      g.data.datasets[1].data = serieTendencia("rejeitados");
+      g.data.datasets[2].data = serieTendencia("parciais");
+      g.options.scales.y.title.text =
+        modoTendencia() === "valor" ? "Valor (R$)" : "Quantidade de casos";
+      g.update();
+    }
+
+    // ---------- Ações dos botões ----------
+    function definirGlobal(chave, valor) {
+      estadoGlobal[chave] = valor;
+      salvarModos();
+      sincronizarSegGlobais();
+      Object.keys(cardsDados).forEach((id) => {
+        estadoCards[id][chave] = valor;
+        atualizarCard(id, chave);
+      });
+    }
+    function definirCard(id, chave, valor) {
+      if (!estadoCards[id]) return;
+      estadoCards[id][chave] = valor;
+      atualizarCard(id, chave);
+    }
+    function definirTendencia(valor) {
+      estadoGlobal.tendencia = valor;
+      salvarModos();
+      sincronizarSegGlobais();
+      atualizarTendencia();
+    }
+    // Um único ouvinte para todos os botões (inclusive os dos cards criados dinamicamente)
+    document.addEventListener("click", function (e) {
+      const btn = e.target.closest(".seg-btn");
+      if (!btn || btn.disabled) return;
+      const seg = btn.closest(".seg");
+      if (!seg) return;
+      const { chave, escopo, card } = seg.dataset;
+      const valor = btn.dataset.valor;
+      if (escopo === "global") definirGlobal(chave, valor);
+      else if (escopo === "tendencia") definirTendencia(valor);
+      else if (card !== undefined) definirCard(card, chave, valor);
+    });
+    sincronizarSegGlobais();
+    // ===============================================================================
+
     let chartPizzaInstancia = null;
     let chartBarrasInstancia = null;
     let chartTendenciaInstancia = null;
@@ -1185,6 +1993,7 @@
         const resposta = await fetch(urlFinal);
         const dados = await resposta.json();
 
+        destruirGraficosCards(); // evita gráficos "fantasma" ao filtrar de novo
         const areaCards = document.getElementById("area-cards");
         areaCards.innerHTML = "";
 
@@ -1244,337 +2053,13 @@
           return;
         }
 
-        // ... (O seu laço de repetição forEach que desenha os gráficos continua AQUI para baixo) ...
+        // Desenha os cards (rosquinha, resumo e barras) com os botões de exibição
+        renderizarCards(dados);
 
-        // FUNÇÃO AUXILIAR: Quebra textos longos para o Chart.js ler como múltiplas linhas
-        function formatarLabelMultiplasLinhas(texto, tamanhoMaximo = 20) {
-          if (!texto) return ["Não Informado"];
-          if (texto.length <= tamanhoMaximo) return texto; // Se for curto, retorna normal
-
-          const palavras = texto.split(" ");
-          const linhas = [];
-          let linhaAtual = "";
-
-          palavras.forEach((palavra) => {
-            // Se adicionar a próxima palavra for estourar o limite, guarda a linha e começa outra
-            if ((linhaAtual + palavra).length > tamanhoMaximo) {
-              if (linhaAtual.trim() !== "") linhas.push(linhaAtual.trim());
-              linhaAtual = palavra + " ";
-            } else {
-              linhaAtual += palavra + " ";
-            }
-          });
-          if (linhaAtual.trim() !== "") linhas.push(linhaAtual.trim());
-
-          return linhas; // Retorna a matriz que o Chart.js entende como quebra de linha
-        }
-
-        // FUNÇÃO AUXILIAR: Quebra textos longos para o Chart.js ler como múltiplas linhas
-        function formatarLabelMultiplasLinhas(texto, tamanhoMaximo = 20) {
-          if (!texto) return ["Não Informado"];
-          if (texto.length <= tamanhoMaximo) return texto;
-
-          const palavras = texto.split(" ");
-          const linhas = [];
-          let linhaAtual = "";
-
-          palavras.forEach((palavra) => {
-            if ((linhaAtual + palavra).length > tamanhoMaximo) {
-              if (linhaAtual.trim() !== "") linhas.push(linhaAtual.trim());
-              linhaAtual = palavra + " ";
-            } else {
-              linhaAtual += palavra + " ";
-            }
-          });
-          if (linhaAtual.trim() !== "") linhas.push(linhaAtual.trim());
-
-          return linhas;
-        }
-
-        // NOVA FUNÇÃO AUXILIAR MATEMÁTICA: Calcula e formata a variação mês a mês
-        function calcularVariacaoHTML(valorAtual, valorAnterior) {
-          if (
-            valorAnterior === undefined ||
-            valorAnterior === null ||
-            isNaN(valorAnterior)
-          ) {
-            return `<span style="font-size: 11px; color: var(--texto-4); margin-left: 5px;">(--)</span>`;
-          }
-          if (valorAnterior === 0) {
-            return valorAtual > 0
-              ? `<span style="font-size: 11px; color: var(--cor-positivo); margin-left: 5px;">(+100,00%)</span>`
-              : `<span style="font-size: 11px; color: var(--texto-4); margin-left: 5px;">(0,00%)</span>`;
-          }
-
-          const diferenca =
-            ((valorAtual - valorAnterior) / valorAnterior) * 100;
-          const formatado = Math.abs(diferenca).toFixed(2).replace(".", ",");
-
-          if (diferenca > 0) {
-            return `<span style="font-size: 11px; color: var(--cor-positivo); margin-left: 5px;">(+${formatado}%)</span>`;
-          } else if (diferenca < 0) {
-            return `<span style="font-size: 11px; color: var(--cor-negativo); margin-left: 5px;">(-${formatado}%)</span>`;
-          }
-          return `<span style="font-size: 11px; color: var(--texto-4); margin-left: 5px;">(0,00%)</span>`;
-        }
-
-        // Varre a lista de arquivos e desenha os cards dinâmicos (renomeamos index para arquivoIndex)
-        dados.cards_arquivos.forEach((arquivo, arquivoIndex) => {
-          // Cores resolvidas a partir do tema ativo (claro ou escuro)
-          const coresExatas = arquivo.grafico_pizza.labels.map((label) =>
-            corTema(chaveStatus(label)),
-          );
-
-          // 2. CONSTRUÇÃO DO RESUMO FINANCEIRO
-          const totalFinanceiro =
-            arquivo.grafico_pizza.valores_financeiros.reduce(
-              (a, b) => a + b,
-              0,
-            );
-
-          // NOVO: SOMA DOS CASOS (Quantidades brutas)
-          const totalCasosBrutos = arquivo.grafico_pizza.quantidades.reduce(
-            (a, b) => a + b,
-            0,
-          );
-
-          let htmlValores = `<div style="margin-top: 20px; background: var(--card-resumo); border: 1px solid var(--borda-card); border-radius: 8px; padding: 15px; width: 100%;">`;
-
-          // Variável para armazenar o arquivo do mês anterior (se existir)
-          const arquivoAnterior =
-            arquivoIndex > 0 ? dados.cards_arquivos[arquivoIndex - 1] : null;
-
-          // Laço de repetição das fatias (renomeamos index para labelIndex)
-          arquivo.grafico_pizza.labels.forEach((label, labelIndex) => {
-            const valorAtual =
-              arquivo.grafico_pizza.valores_financeiros[labelIndex];
-            const percentual =
-              totalFinanceiro > 0
-                ? ((valorAtual / totalFinanceiro) * 100).toFixed(1)
-                : 0;
-            const valorBRL = valorAtual.toLocaleString("pt-BR", {
-              style: "currency",
-              currency: "BRL",
-            });
-            const varCor = `var(${chaveStatus(label)})`;
-
-            // Calcula a variação desta fatia específica
-            let tagVariacaoFatia = "";
-            if (!arquivoAnterior) {
-              tagVariacaoFatia = `<span style="font-size: 11px; color: var(--texto-4); margin-left: 5px;">(--)</span>`;
-            } else {
-              const valorAnteriorFatia =
-                arquivoAnterior.grafico_pizza.valores_financeiros[labelIndex] ||
-                0;
-              tagVariacaoFatia = calcularVariacaoHTML(
-                valorAtual,
-                valorAnteriorFatia,
-              );
-            }
-
-            htmlValores += `
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; border-left: 4px solid ${varCor}; background: color-mix(in srgb, ${varCor} 12%, transparent); border-radius: 0 6px 6px 0; padding: 6px 8px; font-size: 12px;">
-                        <span style="color: ${varCor}; font-weight: 600;">${label}</span>
-                        <span style="font-weight: bold; color: var(--texto-1);">
-                            ${valorBRL}
-                            <span style="font-size: 10px; color: var(--texto-3); margin-left: 5px;">(${percentual}%)</span>
-                            ${tagVariacaoFatia}
-                        </span>
-                    </div>
-                `;
-          });
-
-          const totalBRL = totalFinanceiro.toLocaleString("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-          });
-
-          // Calcula a variação do TOTAL GERAL
-          let tagVariacaoTotal = "";
-          if (!arquivoAnterior) {
-            tagVariacaoTotal = `<span style="font-size: 11px; color: var(--texto-4); margin-left: 5px;">(--)</span>`;
-          } else {
-            const totalFinanceiroAnterior =
-              arquivoAnterior.grafico_pizza.valores_financeiros.reduce(
-                (a, b) => a + b,
-                0,
-              );
-            tagVariacaoTotal = calcularVariacaoHTML(
-              totalFinanceiro,
-              totalFinanceiroAnterior,
-            );
-          }
-
-          htmlValores += `
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; border-top: 1px dashed var(--linha); padding-top: 10px; font-weight: bold; font-size: 13px; color: var(--texto-1);">
-                  <span>TOTAL PROCESSADO</span>
-                  <span>${totalBRL} ${tagVariacaoTotal}</span>
-              </div>
-          </div>`;
-
-          // 3. Montagem do HTML (Substituindo o "0" fixo pela variável totalCasosBrutos)
-          const cardHTML = `
-                <div class="card-arquivo">
-                    <h4 style="text-align: center; color: var(--texto-2); margin-top: 0; margin-bottom: 20px;">${arquivo.nome_arquivo}</h4>
-
-                    <div style="display: flex; gap: 20px; align-items: flex-start;">
-                        <div style="flex: 1; min-width: 290px; display: flex; flex-direction: column; align-items: center;">
-                            <div style="width: 100%; max-width: 220px;">
-                                <canvas id="pizza-${arquivo.id_arquivo}"></canvas>
-
-                                <div style="text-align: center; margin-top: 0px; margin-bottom: 20px;">
-                                    <span style="font-size: 12px; color: var(--texto-4); text-transform: uppercase; letter-spacing: 1px;">Casos Processados</span>
-                                    <br>
-                                    <strong style="font-size: 28px; color: var(--texto-1);">${totalCasosBrutos.toLocaleString("pt-BR")}</strong>
-                                </div>
-                            </div>
-                            ${htmlValores}
-                        </div>
-
-                        <div style="flex: 1; min-width: 500px; display: flex; flex-direction: column;">
-                            <h5 style="text-align: center; margin-top: 0; margin-bottom: 10px; color: var(--texto-2); font-size: 13px; font-weight: normal;">Volume de Inconsistências</h5>
-                            <canvas id="barras-${arquivo.id_arquivo}"></canvas>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-          areaCards.insertAdjacentHTML("beforeend", cardHTML);
-
-          // Desenhando a Pizza
-          new Chart(
-            document
-              .getElementById(`pizza-${arquivo.id_arquivo}`)
-              .getContext("2d"),
-            {
-              type: "doughnut",
-              data: {
-                labels: arquivo.grafico_pizza.labels,
-                datasets: [
-                  {
-                    data: arquivo.grafico_pizza.quantidades,
-                    backgroundColor: coresExatas,
-                  },
-                ],
-              },
-              options: {
-                responsive: true,
-                plugins: {
-                  legend: { display: false },
-                  tooltip: {
-                    callbacks: {
-                      label: function (context) {
-                        let rotulo = "";
-                        const valor = context.raw;
-                        const total = context.dataset.data.reduce(
-                          (acumulador, atual) => acumulador + atual,
-                          0,
-                        );
-                        const percentual =
-                          total > 0 ? ((valor / total) * 100).toFixed(1) : 0;
-                        rotulo += `${valor} registros (${percentual}%)`;
-                        return rotulo;
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          );
-
-          const labelsBarrasFormatadas = arquivo.grafico_barras.labels.map(
-            (label) => formatarLabelMultiplasLinhas(label, 25),
-          );
-
-          // Desenhando o Gráfico de Barras
-          new Chart(
-            document
-              .getElementById(`barras-${arquivo.id_arquivo}`)
-              .getContext("2d"),
-            {
-              type: "bar",
-              data: {
-                labels: labelsBarrasFormatadas,
-                datasets: [
-                  {
-                    label: "Quantidade",
-                    data: arquivo.grafico_barras.quantidades,
-                    backgroundColor: corTema("--cor-barras"),
-                    borderRadius: 6,
-                  },
-                ],
-              },
-              options: {
-                responsive: true,
-                plugins: {
-                  legend: { display: false },
-                  tooltip: {
-                    callbacks: {
-                      label: function (context) {
-                        let rotulo = "";
-                        const valor = context.raw;
-                        const total = context.dataset.data.reduce(
-                          (acumulador, atual) => acumulador + atual,
-                          0,
-                        );
-                        const percentual =
-                          total > 0 ? ((valor / total) * 100).toFixed(1) : 0;
-                        rotulo += `${valor} registros (${percentual}%)`;
-                        return rotulo;
-                      },
-                    },
-                  },
-                },
-                scales: { y: { beginAtZero: true } },
-              },
-            },
-          );
-        });
-
-        // Desenha a Barra Direita (Gráfico de Tendência Fixo)
+        // Desenha a Barra Direita (Gráfico de Tendência)
         if (!dados.grafico_tendencia) return;
-        const ctxTendencia = document
-          .getElementById("chartTendencia")
-          .getContext("2d");
-        if (chartTendenciaInstancia) chartTendenciaInstancia.destroy();
-
-        chartTendenciaInstancia = new Chart(ctxTendencia, {
-          type: "line",
-          data: {
-            labels: dados.grafico_tendencia.labels,
-            datasets: [
-              {
-                label: "Acatado",
-                data: dados.grafico_tendencia.aceitos,
-                borderColor: corTema("--cor-integral"),
-                backgroundColor: corTema("--cor-integral") + "22",
-                fill: true,
-                tension: 0.3,
-              },
-              {
-                label: "Rejeitado",
-                data: dados.grafico_tendencia.rejeitados,
-                borderColor: corTema("--cor-tendencia-rej"),
-                backgroundColor: corTema("--cor-tendencia-rej") + "22",
-                fill: true,
-                tension: 0.3,
-              },
-              {
-                label: "Parcial",
-                data: dados.grafico_tendencia.parciais,
-                borderColor: corTema("--cor-parcial"),
-                backgroundColor: corTema("--cor-parcial") + "22",
-                fill: true,
-                tension: 0.3,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { position: "top" } },
-          },
-        });
+        dadosTendencia = dados.grafico_tendencia;
+        desenharTendencia();
         // 3. O PONTO DE IGNIÇÃO DA IA (COM TRAVA DE SEGURANÇA)
         const botaoIA = document.getElementById("toggle-ia");
 
