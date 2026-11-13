@@ -26,7 +26,5 @@ def processar_portal_consignet(df_bruto: pd.DataFrame, convenio: str, portal: st
 
     validar_matematica_descontos(df, col_lancado="Valor_lancado", col_acatado="Valor_descontado")
 
-    resultado = analisar_dados(df, convenio=convenio, portal=portal)
 
-
-    return resultado
+    return df
