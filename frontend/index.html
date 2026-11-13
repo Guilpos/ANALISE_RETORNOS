@@ -608,6 +608,295 @@
         box-sizing: border-box;
       }
     </style>
+    <style>
+      /* =====================================================
+         REGISTRO DE UPLOADS (painel que desliza sobre a barra de filtros)
+         ===================================================== */
+      :root {
+        --aviso-txt: #92400e;
+        --aviso-bg: rgba(245, 158, 11, 0.16);
+        --recente-txt: #047857;
+        --recente-bg: rgba(16, 185, 129, 0.16);
+      }
+      [data-theme="dark"] {
+        --aviso-txt: #fbbf24;
+        --aviso-bg: rgba(251, 191, 36, 0.14);
+        --recente-txt: #34d399;
+        --recente-bg: rgba(52, 211, 153, 0.14);
+      }
+
+      /* Os dois botões flutuantes andam juntos com a barra de filtros */
+      #botoes-flutuantes {
+        position: fixed;
+        bottom: 30px;
+        left: 420px;
+        z-index: 9999;
+        display: flex;
+        gap: 10px;
+        transition: left 0.3s ease;
+      }
+      .btn-flutuante {
+        border-radius: 50px;
+        padding: 10px 20px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+        white-space: nowrap;
+      }
+      [data-theme="dark"] #btn-registro {
+        background: #4f46e5 !important;
+        border-color: #4f46e5 !important;
+      }
+      #btn-registro.ativo {
+        box-shadow:
+          0 0 0 3px rgba(129, 140, 248, 0.55),
+          0 4px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      .painel-registro {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        width: 400px;
+        z-index: 9000;
+        box-sizing: border-box;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: var(--bg-lateral);
+        color: #fff;
+        transform: translateX(-100%);
+        visibility: hidden;
+        transition:
+          transform 0.3s ease,
+          visibility 0s linear 0.3s;
+        box-shadow: 6px 0 24px rgba(0, 0, 0, 0.25);
+      }
+      .painel-registro.visivel {
+        transform: translateX(0);
+        visibility: visible;
+        transition:
+          transform 0.3s ease,
+          visibility 0s;
+      }
+      .reg-topo {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .reg-titulo {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+      }
+      .reg-sub {
+        margin: 2px 0 0;
+        font-size: 11px;
+        opacity: 0.8;
+      }
+      .reg-voltar {
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: 999px;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .reg-voltar:hover {
+        background: rgba(255, 255, 255, 0.22);
+      }
+      .reg-busca {
+        position: relative;
+      }
+      .reg-busca input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 9px 32px 9px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--input-borda);
+        background: var(--input-bg);
+        color: var(--texto-1);
+        font-size: 13px;
+        outline: none;
+      }
+      .reg-busca input:focus {
+        box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.45);
+      }
+      .reg-busca button {
+        position: absolute;
+        right: 6px;
+        top: 50%;
+        transform: translateY(-50%);
+        border: 0;
+        background: transparent;
+        color: var(--texto-3);
+        font-size: 16px;
+        cursor: pointer;
+        line-height: 1;
+      }
+      .reg-contagem {
+        font-size: 11px;
+        opacity: 0.85;
+        min-height: 14px;
+      }
+      .reg-lista {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding-right: 2px;
+      }
+      .reg-item {
+        background: var(--card-lateral);
+        color: var(--texto-1);
+        border: 1px solid var(--borda-card);
+        border-radius: 12px;
+        padding: 10px 12px;
+        cursor: pointer;
+        text-align: left;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
+      }
+      .reg-item:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.22);
+      }
+      .reg-item:focus-visible {
+        outline: 2px solid #818cf8;
+        outline-offset: 2px;
+      }
+      .reg-linha1 {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .reg-conv {
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.25;
+        word-break: break-word;
+      }
+      .reg-comp {
+        flex-shrink: 0;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #fff;
+      }
+      [data-theme="dark"] .reg-comp {
+        background: #4f46e5;
+      }
+      .reg-linha2 {
+        font-size: 12px;
+        color: var(--texto-2);
+        margin-top: 3px;
+      }
+      .reg-arquivo {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 6px;
+        font-size: 11px;
+        color: var(--texto-3);
+        min-width: 0;
+      }
+      .reg-arquivo .nome {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        min-width: 0;
+        flex: 1;
+      }
+      .reg-chip {
+        flex-shrink: 0;
+        border: 0;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: var(--seg-bg);
+        color: var(--texto-2);
+        cursor: pointer;
+      }
+      .reg-chip:hover {
+        filter: brightness(0.95);
+      }
+      .reg-expandido {
+        margin: 6px 0 0;
+        padding: 6px 8px;
+        list-style: none;
+        border-radius: 8px;
+        background: var(--card-resumo);
+        font-size: 11px;
+        color: var(--texto-2);
+      }
+      .reg-expandido li {
+        padding: 2px 0;
+        word-break: break-all;
+      }
+      .reg-expandido li.diverge {
+        color: var(--aviso-txt);
+        font-weight: 600;
+      }
+      .reg-rodape {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        margin-top: 8px;
+        font-size: 11px;
+        color: var(--texto-3);
+      }
+      .reg-selo {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 999px;
+      }
+      .reg-selo.recente {
+        background: var(--recente-bg);
+        color: var(--recente-txt);
+      }
+      .reg-selo.aviso {
+        background: var(--aviso-bg);
+        color: var(--aviso-txt);
+      }
+      .reg-estado {
+        text-align: center;
+        font-size: 13px;
+        opacity: 0.9;
+        padding: 30px 10px;
+      }
+      .reg-mais {
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.12);
+        color: #fff;
+        border-radius: 10px;
+        padding: 8px;
+        font-size: 12px;
+        cursor: pointer;
+      }
+      .reg-aviso-topo {
+        display: none;
+        font-size: 12px;
+        padding: 8px 10px;
+        border-radius: 8px;
+        background: var(--aviso-bg);
+        color: #fff;
+        border: 1px solid rgba(251, 191, 36, 0.5);
+      }
+    </style>
   </head>
   <body>
     <!-- Novo Botão Flutuante Fixo -->
@@ -626,23 +915,67 @@
     </button>
 
     <!-- Novo Botão Flutuante Fixo -->
-    <button
-      id="btn-toggle-menu"
-      class="btn btn-dark"
-      style="
-        position: fixed;
-        bottom: 30px;
-        left: 420px;
-        z-index: 9999;
-        border-radius: 50px;
-        padding: 10px 20px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-        transition: all 0.3s ease;
-      "
+    <div id="botoes-flutuantes">
+      <button
+        id="btn-toggle-menu"
+        type="button"
+        class="btn btn-dark btn-flutuante"
+      >
+        <span id="icone-menu">◀</span>
+        <span style="font-size: 14px">Filtros</span>
+      </button>
+      <button
+        id="btn-registro"
+        type="button"
+        class="btn btn-dark btn-flutuante"
+        aria-expanded="false"
+        aria-controls="painel-registro"
+      >
+        <span>🕘</span>
+        <span style="font-size: 14px">Registro de Uploads</span>
+      </button>
+    </div>
+
+    <!-- PAINEL "REGISTRO DE UPLOADS": desliza da esquerda para a direita, por cima da barra de filtros -->
+    <section
+      id="painel-registro"
+      class="painel-registro"
+      aria-hidden="true"
+      aria-label="Registro de Uploads"
     >
-      <span id="icone-menu">◀</span>
-      <span style="font-size: 14px">Filtros</span>
-    </button>
+      <div class="reg-topo">
+        <div>
+          <h3 class="reg-titulo">Registro de Uploads</h3>
+          <p class="reg-sub">
+            Confira os filtros usados em cada envio. Clique numa linha para
+            filtrá-la.
+          </p>
+        </div>
+        <button type="button" id="reg-voltar" class="reg-voltar">
+          ← Filtros
+        </button>
+      </div>
+      <div class="reg-busca">
+        <input
+          id="reg-busca"
+          type="search"
+          autocomplete="off"
+          placeholder="Código, convênio, banco, produto, arquivo ou competência"
+          aria-label="Buscar no registro de uploads"
+        />
+        <button
+          type="button"
+          id="reg-limpar"
+          aria-label="Limpar busca"
+          style="display: none"
+        >
+          ×
+        </button>
+      </div>
+      <div class="reg-contagem" id="reg-contagem"></div>
+      <div class="reg-aviso-topo" id="reg-aviso"></div>
+      <div class="reg-lista" id="reg-lista"></div>
+    </section>
 
     <div class="layout-principal">
       <!-- BARRA ESQUERDA -->
@@ -753,8 +1086,6 @@
               <option value="86">86 - PREF. UBERABA</option>
               <option value="87">87 - GOV. TOCANTINS</option>
               <option value="88">88 - PREF. BAURU</option>
-              <option value="89">89 - PREF. ARARAQUARA</option>
-              <option value="90">90 - PREF. ARAPONGAS</option>
             </select>
           </div>
 
@@ -1131,6 +1462,8 @@
           mostrarAlerta("Upload concluído com sucesso!", "#2ecc71"); // Verde
           inputArquivo.value = ""; // Limpa o campo do arquivo após sucesso
           carregarDashboard(); // Atualiza os gráficos sozinhos
+          if (typeof registroMarcarDesatualizado === "function")
+            registroMarcarDesatualizado();
         } else {
           // Se não for OK (400, 404, 409, 500, etc)
           let mensagemErro = "Ocorreu um erro ao processar o arquivo.";
@@ -1222,6 +1555,8 @@
 
             // Recarrega o dashboard. Como os dados foram apagados, a tela ficará em branco e mostrará "Nenhum dado encontrado"
             carregarDashboard();
+            if (typeof registroMarcarDesatualizado === "function")
+              registroMarcarDesatualizado();
           } else {
             // Caso o backend avise que não achou nada para apagar
             mostrarAlerta(dados.mensagem, "#f39c12"); // Laranja
@@ -1240,26 +1575,29 @@
       }
     });
 
-    // Intercepta o clique no botão Flutuante
+    // Intercepta o clique no botão Flutuante de Filtros
     document
       .getElementById("btn-toggle-menu")
       .addEventListener("click", function () {
         const barraEsquerda = document.querySelector(".barra-esquerda");
         const iconeMenu = document.getElementById("icone-menu");
-        const btnToggle = document.getElementById("btn-toggle-menu"); // <-- NOVO: Captura o próprio botão
+        const botoes = document.getElementById("botoes-flutuantes"); // contêiner dos 2 botões
 
         // Ativa ou desativa a classe que oculta a barra
         barraEsquerda.classList.toggle("oculta");
 
-        // Muda a setinha do botão para dar feedback visual de qual lado a barra vai
+        // Os botões acompanham a barra: some a barra, vão para a esquerda; volta a barra, abrem espaço
         if (barraEsquerda.classList.contains("oculta")) {
           iconeMenu.textContent = "▶"; // Mostrar
-          btnToggle.style.left = "0px";
+          botoes.style.left = "0px";
         } else {
           iconeMenu.textContent = "◀"; // Esconder
-
-          btnToggle.style.left = "420px";
+          botoes.style.left = "420px";
         }
+
+        // O painel de registro some e volta junto com a barra
+        if (typeof sincronizarPainelRegistro === "function")
+          sincronizarPainelRegistro();
       });
 
     // Função auxiliar para exibir a caixa de aviso verde ou vermelha
@@ -2268,5 +2606,426 @@
     document
       .getElementById("btn-buscar")
       .addEventListener("click", carregarDashboard);
+  </script>
+  <script>
+    // ============================ REGISTRO DE UPLOADS ============================
+    // true  = as datas de historico_uploads estão gravadas em UTC (o mais comum em banco na nuvem)
+    // false = estão gravadas no horário local do navegador
+    const DATAS_DO_BANCO_EM_UTC = true;
+    const REG_POR_PAGINA = 30;
+
+    // ---- Funções puras (sem DOM) ----
+    function regNormalizar(txt) {
+      return String(txt || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+    }
+    function regEscapar(txt) {
+      return String(txt == null ? "" : txt).replace(
+        /[&<>"']/g,
+        (c) =>
+          ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;",
+          })[c],
+      );
+    }
+    function regFormatarCompetencia(aaaaMm) {
+      const m = /^(\d{4})-(\d{2})/.exec(aaaaMm || "");
+      return m ? `${m[2]}/${m[1]}` : aaaaMm || "--";
+    }
+    function regParseData(iso) {
+      if (!iso) return null;
+      let s = String(iso).replace(" ", "T");
+      if (DATAS_DO_BANCO_EM_UTC && !/[zZ]|[+-]\d{2}:?\d{2}$/.test(s)) s += "Z";
+      const d = new Date(s);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    function regFormatarDataHora(d) {
+      return d.toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    }
+
+    // Procura a competência escrita no NOME do arquivo. Formatos aceitos (mês com ou sem zero à frente):
+    //   10.26  10.2026  9.26  09.2026  (separadores . _ - / ou espaço)  |  2026-10  |  102026  |  202610
+    // Retorna uma lista de "AAAA-MM" (pode vir vazia ou com mais de uma).
+    function detectarCompetencias(nomeArquivo) {
+      const nome = String(nomeArquivo || "").replace(
+        /\.(csv|xlsx|xls|xml|txt|ret|rem|zip|pdf|json)$/i,
+        "",
+      );
+      const MES = "(0?[1-9]|1[0-2])";
+      const ANO2 = "([23]\\d)"; // 20..39 => 2020..2039 (evita confundir com dia/outros números)
+      const ANO4 = "(20\\d{2})";
+      const SEP = "[._\\-/ ]";
+      const achados = new Set();
+      const add = (ano, mes) => {
+        const a = String(ano).length === 2 ? "20" + ano : String(ano);
+        achados.add(`${a}-${String(mes).padStart(2, "0")}`);
+      };
+      const regras = [
+        [
+          new RegExp(`(?:^|\\D)${MES}${SEP}(?:${ANO4}|${ANO2})(?!\\d)`, "g"),
+          (m) => add(m[2] || m[3], m[1]),
+        ],
+        [
+          new RegExp(`(?:^|\\D)${ANO4}${SEP}${MES}(?!\\d)`, "g"),
+          (m) => add(m[1], m[2]),
+        ],
+        [
+          new RegExp(`(?:^|\\D)(0[1-9]|1[0-2])${ANO4}(?!\\d)`, "g"),
+          (m) => add(m[2], m[1]),
+        ],
+        [
+          new RegExp(`(?:^|\\D)${ANO4}(0[1-9]|1[0-2])(?!\\d)`, "g"),
+          (m) => add(m[1], m[2]),
+        ],
+      ];
+      regras.forEach(([re, fn]) => {
+        let m;
+        while ((m = re.exec(nome)) !== null) {
+          fn(m);
+          if (m.index === re.lastIndex) re.lastIndex++;
+        }
+      });
+      return [...achados];
+    }
+    // O nome "diverge" quando traz alguma competência, mas nenhuma é a do upload
+    function nomeDivergeDaCompetencia(nomeArquivo, competenciaUpload) {
+      const achadas = detectarCompetencias(nomeArquivo);
+      if (achadas.length === 0) return null;
+      return achadas.includes(competenciaUpload) ? null : achadas;
+    }
+
+    // ---- Nomes amigáveis (lidos dos selects ANTES do Tom Select reescrever as opções) ----
+    function regSnapshotOpcoes(selectId) {
+      const mapa = new Map();
+      document.querySelectorAll(`#${selectId} option`).forEach((o) => {
+        if (o.value)
+          mapa.set(o.value, o.textContent.replace(/\s+/g, " ").trim());
+      });
+      return mapa;
+    }
+    const REG_NOMES = {
+      convenio: regSnapshotOpcoes("codigo_convenio"),
+      banco: regSnapshotOpcoes("consignataria"),
+      produto: regSnapshotOpcoes("produto"),
+    };
+    const regNomeConvenio = (c) =>
+      REG_NOMES.convenio.get(String(c)) || `Convênio ${c}`;
+    const regNomeBanco = (b) => REG_NOMES.banco.get(b) || b || "--";
+    const regNomeProduto = (p) => REG_NOMES.produto.get(p) || p || "--";
+
+    // Traduz o texto digitado ("paraiba", "capital", "cartão") nos códigos/valores correspondentes
+    function regCodigosPorTexto(mapa, termo) {
+      const t = regNormalizar(termo);
+      const r = [];
+      mapa.forEach((nome, valor) => {
+        if (regNormalizar(nome).includes(t) || regNormalizar(valor).includes(t))
+          r.push(valor);
+      });
+      return r;
+    }
+
+    // ---- Estado ----
+    const reg = {
+      itens: [],
+      total: 0,
+      busca: "",
+      carregando: false,
+      seq: 0,
+      desatualizado: true,
+      aberto: false,
+      expandidos: new Set(),
+    };
+    const elPainel = document.getElementById("painel-registro");
+    const elBtn = document.getElementById("btn-registro");
+    const elLista = document.getElementById("reg-lista");
+    const elBusca = document.getElementById("reg-busca");
+    const elLimpar = document.getElementById("reg-limpar");
+    const elContagem = document.getElementById("reg-contagem");
+    const elAviso = document.getElementById("reg-aviso");
+    const barraOculta = () =>
+      document.getElementById("menu-lateral").classList.contains("oculta");
+
+    function sincronizarPainelRegistro() {
+      const visivel = reg.aberto && !barraOculta();
+      elPainel.classList.toggle("visivel", visivel);
+      elPainel.setAttribute("aria-hidden", String(!visivel));
+      elBtn.classList.toggle("ativo", reg.aberto);
+      elBtn.setAttribute("aria-expanded", String(reg.aberto));
+    }
+    function abrirRegistro() {
+      if (barraOculta()) document.getElementById("btn-toggle-menu").click(); // reabre a barra primeiro
+      reg.aberto = true;
+      sincronizarPainelRegistro();
+      carregarRegistro(true);
+    }
+    function fecharRegistro() {
+      reg.aberto = false;
+      sincronizarPainelRegistro();
+    }
+    elBtn.addEventListener("click", () =>
+      reg.aberto ? fecharRegistro() : abrirRegistro(),
+    );
+    document
+      .getElementById("reg-voltar")
+      .addEventListener("click", fecharRegistro);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && reg.aberto) fecharRegistro();
+    });
+
+    // Chamado depois de um upload ou de uma exclusão
+    function registroMarcarDesatualizado() {
+      reg.desatualizado = true;
+      if (reg.aberto) carregarRegistro(true);
+    }
+
+    // ---- Busca ----
+    let regTimer = null;
+    elBusca.addEventListener("input", () => {
+      elLimpar.style.display = elBusca.value ? "block" : "none";
+      clearTimeout(regTimer);
+      regTimer = setTimeout(() => {
+        reg.busca = elBusca.value.trim();
+        carregarRegistro(true);
+      }, 350);
+    });
+    elLimpar.addEventListener("click", () => {
+      elBusca.value = "";
+      elLimpar.style.display = "none";
+      reg.busca = "";
+      carregarRegistro(true);
+      elBusca.focus();
+    });
+
+    // ---- Requisição ----
+    async function carregarRegistro(recomecar) {
+      if (recomecar) {
+        reg.itens = [];
+        reg.total = 0;
+        reg.expandidos.clear();
+      }
+      const minhaSeq = ++reg.seq; // descarta respostas antigas (digitação rápida)
+      reg.carregando = true;
+      elAviso.style.display = "none";
+      renderizarRegistro();
+
+      const p = new URLSearchParams();
+      p.set("limite", REG_POR_PAGINA);
+      p.set("offset", reg.itens.length);
+      if (reg.busca) {
+        p.set("busca", reg.busca);
+        if (!/^\d+$/.test(reg.busca) && reg.busca.length >= 2) {
+          regCodigosPorTexto(REG_NOMES.convenio, reg.busca)
+            .slice(0, 60)
+            .forEach((c) => p.append("convenios", c));
+          regCodigosPorTexto(REG_NOMES.banco, reg.busca).forEach((b) =>
+            p.append("consignatarias", b),
+          );
+          regCodigosPorTexto(REG_NOMES.produto, reg.busca).forEach((x) =>
+            p.append("produtos", x),
+          );
+        }
+      }
+      try {
+        const resp = await fetch(
+          `${API_URL}/api/upload/registro?${p.toString()}`,
+        );
+        let dados = null;
+        try {
+          dados = await resp.json();
+        } catch (e) {}
+        if (minhaSeq !== reg.seq) return;
+        if (!resp.ok) {
+          const detalhe =
+            dados && dados.detail
+              ? typeof dados.detail === "string"
+                ? dados.detail
+                : "Erro ao consultar o registro."
+              : "Erro ao consultar o registro.";
+          elAviso.textContent = detalhe;
+          elAviso.style.display = "block";
+        } else {
+          reg.itens = reg.itens.concat(dados.itens || []);
+          reg.total = dados.total || 0;
+          reg.desatualizado = false;
+        }
+      } catch (e) {
+        if (minhaSeq !== reg.seq) return;
+        elAviso.textContent = "Não foi possível conectar ao servidor.";
+        elAviso.style.display = "block";
+      } finally {
+        if (minhaSeq === reg.seq) {
+          reg.carregando = false;
+          renderizarRegistro();
+        }
+      }
+    }
+
+    // ---- Renderização ----
+    function htmlItemRegistro(it, idx) {
+      const competencia = it.competencia;
+      const arquivos = it.arquivos || [];
+      const data = regParseData(it.criado_em);
+      const recente =
+        data &&
+        Date.now() - data.getTime() < 24 * 3600 * 1000 &&
+        Date.now() >= data.getTime() - 60000;
+      const divergencias = arquivos
+        .map((a) => ({
+          nome: a,
+          achadas: nomeDivergeDaCompetencia(a, competencia),
+        }))
+        .filter((x) => x.achadas);
+      const expandido = reg.expandidos.has(it.id);
+      const primeiro = arquivos[0];
+      const nomeDiverge = (n) => divergencias.some((d) => d.nome === n);
+
+      const linhaArquivo = primeiro
+        ? `<div class="reg-arquivo" title="${regEscapar(arquivos.join("\n"))}">
+             <span>📄</span><span class="nome">${regEscapar(primeiro)}</span>
+             ${arquivos.length > 1 ? `<button type="button" class="reg-chip" data-acao="expandir" data-id="${it.id}">+${arquivos.length - 1} ${arquivos.length - 1 === 1 ? "arquivo" : "arquivos"} ${expandido ? "▴" : "▾"}</button>` : ""}
+           </div>`
+        : "";
+      const lista = expandido
+        ? `<ul class="reg-expandido">${arquivos.map((a) => `<li class="${nomeDiverge(a) ? "diverge" : ""}">${nomeDiverge(a) ? "⚠ " : ""}${regEscapar(a)}</li>`).join("")}</ul>`
+        : "";
+      const tituloAviso = divergencias
+        .map(
+          (d) =>
+            `${d.nome} → ${d.achadas.map(regFormatarCompetencia).join(", ")}`,
+        )
+        .join("\n");
+      const rodape = [
+        data ? `<span>${regFormatarDataHora(data)}</span>` : "",
+        it.linhas
+          ? `<span>· ${Number(it.linhas).toLocaleString("pt-BR")} linhas</span>`
+          : "",
+        recente ? `<span class="reg-selo recente">Recente</span>` : "",
+        divergencias.length
+          ? `<span class="reg-selo aviso" title="Upload em ${regFormatarCompetencia(competencia)}. Nome do arquivo sugere:\n${regEscapar(tituloAviso)}">⚠ Competência do nome pode divergir</span>`
+          : "",
+      ].join(" ");
+
+      return `<div class="reg-item" role="button" tabindex="0" data-idx="${idx}" title="Clique para aplicar estes filtros">
+          <div class="reg-linha1">
+            <span class="reg-conv">${regEscapar(regNomeConvenio(it.codigo_convenio))}</span>
+            <span class="reg-comp">${regFormatarCompetencia(competencia)}</span>
+          </div>
+          <div class="reg-linha2">${regEscapar(regNomeBanco(it.consignataria))} · ${regEscapar(regNomeProduto(it.produto))}</div>
+          ${linhaArquivo}${lista}
+          <div class="reg-rodape">${rodape}</div>
+        </div>`;
+    }
+    function renderizarRegistro() {
+      if (reg.carregando && reg.itens.length === 0) {
+        elLista.innerHTML = `<div class="reg-estado">⏳ Carregando...</div>`;
+        elContagem.textContent = "";
+        return;
+      }
+      if (reg.itens.length === 0) {
+        elLista.innerHTML = `<div class="reg-estado">${elAviso.style.display === "block" ? "" : reg.busca ? "Nenhum upload encontrado para essa busca." : "Nenhum upload registrado ainda."}</div>`;
+        elContagem.textContent = "";
+        return;
+      }
+      const maisUm = reg.itens.length < reg.total;
+      elContagem.textContent = `Mostrando ${reg.itens.length} de ${reg.total} ${reg.total === 1 ? "envio" : "envios"} (mais recentes primeiro)`;
+      elLista.innerHTML =
+        reg.itens.map((it, i) => htmlItemRegistro(it, i)).join("") +
+        (maisUm
+          ? `<button type="button" class="reg-mais" data-acao="mais">${reg.carregando ? "Carregando..." : "Carregar mais"}</button>`
+          : "");
+    }
+
+    // ---- Cliques na lista (delegação) ----
+    elLista.addEventListener("click", (e) => {
+      const chip = e.target.closest('[data-acao="expandir"]');
+      if (chip) {
+        e.stopPropagation();
+        const id = Number(chip.dataset.id);
+        reg.expandidos.has(id)
+          ? reg.expandidos.delete(id)
+          : reg.expandidos.add(id);
+        const topo = elLista.scrollTop;
+        renderizarRegistro();
+        elLista.scrollTop = topo;
+        return;
+      }
+      if (e.target.closest('[data-acao="mais"]')) {
+        if (!reg.carregando) carregarRegistro(false);
+        return;
+      }
+      const card = e.target.closest(".reg-item");
+      if (card) aplicarFiltroDoRegistro(reg.itens[Number(card.dataset.idx)]);
+    });
+    elLista.addEventListener("keydown", (e) => {
+      if (
+        (e.key === "Enter" || e.key === " ") &&
+        e.target.classList.contains("reg-item")
+      ) {
+        e.preventDefault();
+        aplicarFiltroDoRegistro(reg.itens[Number(e.target.dataset.idx)]);
+      }
+    });
+    // Rolagem infinita
+    elLista.addEventListener("scroll", () => {
+      if (
+        !reg.carregando &&
+        reg.itens.length < reg.total &&
+        elLista.scrollTop + elLista.clientHeight >= elLista.scrollHeight - 80
+      ) {
+        carregarRegistro(false);
+      }
+    });
+
+    // ---- Clique numa linha: preenche a barra de filtros e carrega aquele upload ----
+    function regDefinirSelect(id, valor) {
+      const sel = document.getElementById(id);
+      const opcao = Array.from(sel.options).find(
+        (o) =>
+          o.value === valor ||
+          o.value.toUpperCase() === String(valor).toUpperCase(),
+      );
+      if (!opcao) return false;
+      sel.value = opcao.value;
+      return true;
+    }
+    function aplicarFiltroDoRegistro(it) {
+      if (!it) return;
+      const selConv = document.getElementById("codigo_convenio");
+      if (selConv.tomselect)
+        selConv.tomselect.setValue([String(it.codigo_convenio)]);
+      else
+        Array.from(selConv.options).forEach(
+          (o) => (o.selected = o.value === String(it.codigo_convenio)),
+        );
+
+      const okBanco = regDefinirSelect("consignataria", it.consignataria);
+      const okProduto = regDefinirSelect("produto", it.produto);
+      document.getElementById("competencia_inicio").value = it.competencia;
+      document.getElementById("competencia_fim").value = "";
+
+      if (!okBanco || !okProduto) {
+        elAviso.textContent =
+          "Atenção: banco ou produto deste upload não existe mais nas opções do filtro. Confira o painel de filtros.";
+        elAviso.style.display = "block";
+      }
+      fecharRegistro();
+      if (typeof carregarDashboard === "function") carregarDashboard();
+    }
+
+    sincronizarPainelRegistro();
+    // =============================================================================
   </script>
 </html>

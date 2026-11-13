@@ -5,7 +5,7 @@ import os
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import Optional 
-from sqlalchemy import text, bindparam
+from sqlalchemy import text, bindparam, inspect as sa_inspect
 from core.database import get_db
 from pydantic import BaseModel
 import google.generativeai as genai
@@ -201,8 +201,24 @@ def excluir_lote_arquivos(
         
         # O SQLAlchemy nos diz exatamente quantas linhas foram evaporadas
         linhas_afetadas = resultado.rowcount
+
+        # Remove o lote também da tela "Registro de Uploads" (mesma transação: ou apaga tudo, ou nada).
+        # Só roda se a coluna 'competencia' já existir em historico_uploads (script SQL aplicado).
+        registros_removidos = 0
+        colunas_hist = {c["name"] for c in sa_inspect(db.get_bind()).get_columns("historico_uploads")}
+        if "competencia" in colunas_hist:
+            registros_removidos = db.execute(
+                text("""
+                    DELETE FROM historico_uploads 
+                    WHERE codigo_convenio IN :conv 
+                    AND consignataria = :banco 
+                    AND produto = :prod 
+                    AND competencia = :comp
+                """).bindparams(bindparam('conv', expanding=True)),
+                {"conv": codigo_convenio, "banco": consignataria, "prod": produto, "comp": competencia_padronizada}
+            ).rowcount
         
-        if linhas_afetadas == 0:
+        if linhas_afetadas == 0 and registros_removidos == 0:
             return {"status": "aviso", "mensagem": "Nenhum dado encontrado com esses parâmetros para excluir."}
 
         db.commit()

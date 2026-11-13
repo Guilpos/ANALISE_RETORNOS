@@ -101,12 +101,12 @@ def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, t
     # 3. Log no historico_uploads
     query_historico = text("""
         INSERT INTO historico_uploads 
-        (codigo_convenio, consignataria, produto, nome_arquivo_original, linhas_totais, status_processamento, usuario_upload)
-        VALUES (:conv, :banco, :prod, :nome, :linhas, 'PROCESSANDO', 'usuario_teste')
+        (codigo_convenio, consignataria, produto, competencia, nome_arquivo_original, linhas_totais, status_processamento, usuario_upload)
+        VALUES (:conv, :banco, :prod, :comp, :nome, :linhas, 'PROCESSANDO', 'usuario_teste')
     """)
     
     # 1º: Executamos a query e guardamos o resultado em uma variável
-    resultado = db.execute(query_historico, {"conv": convenio, "banco": banco, "prod": tipo_produto, "nome": nome_arquivo, "linhas": len(df)})
+    resultado = db.execute(query_historico, {"conv": convenio, "banco": banco, "prod": tipo_produto, "comp": competencia, "nome": nome_arquivo, "linhas": len(df)})
     
     # 2º: Pegamos o ID real que acabou de nascer, ANTES de comitar
     id_upload = resultado.lastrowid
@@ -158,6 +158,22 @@ def orquestrar_processamento(arquivos_lista: list,  convenio: str, banco: str, t
         
         db.execute(text("UPDATE historico_uploads SET status_processamento = 'CONCLUIDO' WHERE id = :id"), {"id": id_upload})
         db.commit()
+
+        # REGISTRO DE UPLOADS: nos portais com vários arquivos por envio (CONSIGX, VIABILIZE, CIP...),
+        # a linha principal acima guarda só UM nome. Gravamos os demais para que a tela
+        # "Registro de Uploads" mostre todos. Falha aqui é só cosmética e NÃO desfaz o upload.
+        try:
+            outros_arquivos = [a["nome_arquivo"] for a in arquivos_lista if a["nome_arquivo"] != nome_arquivo]
+            for nome_extra in outros_arquivos:
+                db.execute(text("""
+                    INSERT INTO historico_uploads
+                    (codigo_convenio, consignataria, produto, competencia, nome_arquivo_original, linhas_totais, status_processamento, usuario_upload)
+                    VALUES (:conv, :banco, :prod, :comp, :nome, 0, 'CONCLUIDO', 'usuario_teste')
+                """), {"conv": convenio, "banco": banco, "prod": tipo_produto, "comp": competencia, "nome": nome_extra})
+            db.commit()
+        except Exception as e_reg:
+            db.rollback()
+            print(f"Aviso: não foi possível registrar os demais arquivos no histórico: {e_reg}")
         
     except Exception as e:
         db.execute(text("UPDATE historico_uploads SET status_processamento = 'ERRO', log_erro = :erro WHERE id = :id"), {"erro": str(e), "id": id_upload})
